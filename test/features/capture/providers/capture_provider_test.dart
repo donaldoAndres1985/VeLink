@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
@@ -243,6 +244,146 @@ void main() {
       container.read(captureProvider.notifier).setUrl('https://example.com');
       container.read(captureProvider.notifier).dismiss();
       expect(mock.resetCalled, isTrue);
+    });
+  });
+
+  group('CaptureProvider — toggleTag', () {
+    test('agrega un tagId a selectedTagIds', () {
+      final container = createCaptureContainer();
+      container.read(captureProvider.notifier).toggleTag(1);
+      expect(container.read(captureProvider).selectedTagIds, contains(1));
+    });
+
+    test('remueve un tagId si ya estaba seleccionado', () {
+      final container = createCaptureContainer();
+      container.read(captureProvider.notifier).toggleTag(1);
+      container.read(captureProvider.notifier).toggleTag(1);
+      expect(container.read(captureProvider).selectedTagIds, isEmpty);
+    });
+
+    test('puede seleccionar multiples tags a la vez', () {
+      final container = createCaptureContainer();
+      container.read(captureProvider.notifier).toggleTag(1);
+      container.read(captureProvider.notifier).toggleTag(2);
+      container.read(captureProvider.notifier).toggleTag(3);
+      expect(container.read(captureProvider).selectedTagIds, containsAll([1, 2, 3]));
+    });
+  });
+
+  group('CaptureProvider — togglePriority', () {
+    test('cambia isPriority de false a true', () {
+      final container = createCaptureContainer();
+      expect(container.read(captureProvider).isPriority, isFalse);
+      container.read(captureProvider.notifier).togglePriority();
+      expect(container.read(captureProvider).isPriority, isTrue);
+    });
+
+    test('alterna isPriority en cada llamada', () {
+      final container = createCaptureContainer();
+      container.read(captureProvider.notifier).togglePriority();
+      container.read(captureProvider.notifier).togglePriority();
+      expect(container.read(captureProvider).isPriority, isFalse);
+    });
+  });
+
+  group('CaptureProvider — createTag', () {
+    test('inserta un nuevo tag en la base de datos', () async {
+      final db = createTestDatabase();
+      final container = ProviderContainer(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          captureServiceProvider.overrideWithValue(MockCaptureService()),
+          metadataServiceProvider.overrideWithValue(MockMetadataService()),
+        ],
+      );
+
+      await container.read(captureProvider.notifier).createTag('flutter');
+
+      final tags = await db.watchAllTags().first;
+      expect(tags.length, 1);
+      expect(tags.first.name, 'flutter');
+    });
+  });
+
+  group('CaptureProvider — saveLink con tags y prioridad', () {
+    test('guarda el link como prioritario cuando isPriority es true', () async {
+      final db = createTestDatabase();
+      final container = ProviderContainer(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          captureServiceProvider.overrideWithValue(MockCaptureService()),
+          metadataServiceProvider.overrideWithValue(MockMetadataService()),
+        ],
+      );
+
+      container.read(captureProvider.notifier).setUrl('https://example.com');
+      container.read(captureProvider.notifier).togglePriority();
+      await container.read(captureProvider.notifier).saveLink();
+
+      final links = await db.getAllLinks();
+      expect(links.first.priority, 1);
+    });
+
+    test('guarda el link como no prioritario por defecto', () async {
+      final db = createTestDatabase();
+      final container = ProviderContainer(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          captureServiceProvider.overrideWithValue(MockCaptureService()),
+          metadataServiceProvider.overrideWithValue(MockMetadataService()),
+        ],
+      );
+
+      container.read(captureProvider.notifier).setUrl('https://example.com');
+      await container.read(captureProvider.notifier).saveLink();
+
+      final links = await db.getAllLinks();
+      expect(links.first.priority, 0);
+    });
+
+    test('asocia los tags seleccionados al link guardado', () async {
+      final db = createTestDatabase();
+      final tagId1 = await db.insertTag(TagsCompanion(name: Value('flutter')));
+      final tagId2 = await db.insertTag(TagsCompanion(name: Value('dart')));
+
+      final container = ProviderContainer(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          captureServiceProvider.overrideWithValue(MockCaptureService()),
+          metadataServiceProvider.overrideWithValue(MockMetadataService()),
+        ],
+      );
+
+      container.read(captureProvider.notifier).setUrl('https://example.com');
+      container.read(captureProvider.notifier).toggleTag(tagId1);
+      container.read(captureProvider.notifier).toggleTag(tagId2);
+      await container.read(captureProvider.notifier).saveLink();
+
+      final links = await db.getAllLinks();
+      final tags = await db.getTagsForLink(links.first.id);
+      expect(tags.length, 2);
+      expect(tags.map((t) => t.name), containsAll(['flutter', 'dart']));
+    });
+
+    test('resetea selectedTagIds e isPriority después de guardar', () async {
+      final db = createTestDatabase();
+      final tagId = await db.insertTag(TagsCompanion(name: Value('test')));
+      final container = ProviderContainer(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          captureServiceProvider.overrideWithValue(MockCaptureService()),
+          metadataServiceProvider.overrideWithValue(MockMetadataService()),
+        ],
+      );
+
+      container.read(captureProvider.notifier).setUrl('https://example.com');
+      container.read(captureProvider.notifier).toggleTag(tagId);
+      container.read(captureProvider.notifier).togglePriority();
+      await container.read(captureProvider.notifier).saveLink();
+
+      final state = container.read(captureProvider);
+      expect(state.selectedTagIds, isEmpty);
+      expect(state.isPriority, isFalse);
     });
   });
 }

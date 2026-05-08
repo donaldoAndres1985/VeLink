@@ -24,33 +24,31 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(captureProvider);
-    final isSaving = state.isSaving;
-    final isFetching = state.isFetchingMetadata;
-    final metadata = state.metadata;
+    final tagsAsync = ref.watch(allTagsProvider);
     final platformInfo = PlatformInfo.forPlatform(PlatformDetector.detect(widget.url));
 
     return Scaffold(
       appBar: AppBar(title: const Text('Guardar link')),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildPreview(context, isFetching, metadata?.imageUrl),
+            _buildPreview(context, state.isFetchingMetadata, state.metadata?.imageUrl),
             const SizedBox(height: 12),
             _buildPlatformBadge(platformInfo),
             const SizedBox(height: 8),
-            if (metadata?.title != null)
+            if (state.metadata?.title != null)
               Text(
-                metadata!.title!,
+                state.metadata!.title!,
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-            if (metadata?.description != null) ...[
+            if (state.metadata?.description != null) ...[
               const SizedBox(height: 4),
               Text(
-                metadata!.description!,
+                state.metadata!.description!,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontSize: 13,
@@ -69,12 +67,16 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            const Spacer(),
+            const SizedBox(height: 20),
+            _buildTagsSection(context, state, tagsAsync),
+            const SizedBox(height: 16),
+            _buildPriorityRow(context, state),
+            const SizedBox(height: 24),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: isSaving
+                    onPressed: state.isSaving
                         ? null
                         : () {
                             ref.read(captureProvider.notifier).dismiss();
@@ -86,14 +88,14 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: FilledButton(
-                    onPressed: isSaving
+                    onPressed: state.isSaving
                         ? null
                         : () async {
                             ref.read(captureProvider.notifier).setUrl(widget.url);
                             await ref.read(captureProvider.notifier).saveLink();
                             if (context.mounted) Navigator.pop(context);
                           },
-                    child: isSaving
+                    child: state.isSaving
                         ? const SizedBox(
                             height: 18,
                             width: 18,
@@ -110,6 +112,108 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     );
   }
 
+  Widget _buildTagsSection(
+    BuildContext context,
+    CaptureState state,
+    AsyncValue tagsAsync,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Tags',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 13,
+          ),
+        ),
+        const SizedBox(height: 8),
+        tagsAsync.when(
+          data: (tags) => Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              ...tags.map((tag) => FilterChip(
+                    label: Text(tag.name),
+                    selected: state.selectedTagIds.contains(tag.id),
+                    onSelected: (_) =>
+                        ref.read(captureProvider.notifier).toggleTag(tag.id),
+                  )),
+              ActionChip(
+                avatar: const Icon(Icons.add, size: 16),
+                label: const Text('Nuevo'),
+                onPressed: () => _showCreateTagDialog(context),
+              ),
+            ],
+          ),
+          loading: () => const SizedBox.shrink(),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPriorityRow(BuildContext context, CaptureState state) {
+    return Row(
+      children: [
+        Icon(
+          Icons.star_outline,
+          size: 20,
+          color: state.isPriority
+              ? Colors.amber
+              : Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            'Marcar como prioritario',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        Switch(
+          value: state.isPriority,
+          onChanged: (_) => ref.read(captureProvider.notifier).togglePriority(),
+        ),
+      ],
+    );
+  }
+
+  void _showCreateTagDialog(BuildContext context) {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Nuevo tag'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'Nombre del tag'),
+          onSubmitted: (value) => _submitNewTag(context, value),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => _submitNewTag(context, controller.text),
+            child: const Text('Crear'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _submitNewTag(BuildContext context, String name) {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return;
+    ref.read(captureProvider.notifier).createTag(trimmed);
+    Navigator.pop(context);
+  }
+
   Widget _buildPreview(BuildContext context, bool isFetching, String? imageUrl) {
     if (isFetching) {
       return const SizedBox(
@@ -117,7 +221,6 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
         child: Center(child: CircularProgressIndicator()),
       );
     }
-
     if (imageUrl != null) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(8),
@@ -130,7 +233,6 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
         ),
       );
     }
-
     return _buildPlaceholder(context);
   }
 
