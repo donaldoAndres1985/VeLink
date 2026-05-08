@@ -355,4 +355,35 @@ void main() {
       expect(links.first.notes, 'Nota');
     });
   });
+
+  // ─── TAGS DEL LINK — STREAM ──────────────────────────────────────────────────
+
+  group('Links — watchTagsForLink', () {
+    test('retorna stream con tags del link', () async {
+      final linkId = await db.insertLink(LinksCompanion.insert(url: 'https://example.com'));
+      final tagId = await db.insertTag(TagsCompanion.insert(name: 'flutter'));
+      await db.addTagToLink(linkId, tagId);
+
+      final tags = await db.watchTagsForLink(linkId).first;
+      expect(tags.length, 1);
+      expect(tags.first.name, 'flutter');
+    });
+
+    test('retorna stream vacío cuando el link no tiene tags', () async {
+      final linkId = await db.insertLink(LinksCompanion.insert(url: 'https://example.com'));
+      final tags = await db.watchTagsForLink(linkId).first;
+      expect(tags, isEmpty);
+    });
+
+    test('se actualiza al agregar un tag al link', () async {
+      final linkId = await db.insertLink(LinksCompanion.insert(url: 'https://example.com'));
+      final tagId = await db.insertTag(TagsCompanion.insert(name: 'dart'));
+
+      final stream = db.watchTagsForLink(linkId);
+      await db.addTagToLink(linkId, tagId);
+
+      final tags = await stream.first;
+      expect(tags.length, 1);
+    });
+  });
 }

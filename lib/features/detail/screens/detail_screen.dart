@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/database/database.dart';
+import '../../../features/capture/providers/capture_provider.dart';
 import '../../../features/capture/services/platform_detector.dart';
 import '../providers/detail_provider.dart';
 
@@ -36,7 +37,8 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final tagsAsync = ref.watch(linkTagsProvider(widget.link.id));
+    final tagsAsync = ref.watch(watchLinkTagsProvider(widget.link.id));
+    final allTagsAsync = ref.watch(allTagsProvider);
     final platformInfo = PlatformInfo.forPlatform(PlatformDetector.detect(widget.link.url));
 
     return Scaffold(
@@ -111,14 +113,31 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
             const SizedBox(height: 8),
-            tagsAsync.when(
-              data: (tags) => tags.isEmpty
+            allTagsAsync.when(
+              data: (allTags) => allTags.isEmpty
                   ? const Text('Sin etiquetas', style: TextStyle(fontSize: 13))
-                  : Wrap(
-                      spacing: 8,
-                      children: tags
-                          .map((t) => Chip(label: Text(t.name)))
-                          .toList(),
+                  : tagsAsync.when(
+                      data: (linkTags) {
+                        final linkTagIds = linkTags.map((t) => t.id).toSet();
+                        return Wrap(
+                          spacing: 8,
+                          children: allTags
+                              .map((tag) => FilterChip(
+                                    label: Text(tag.name),
+                                    selected: linkTagIds.contains(tag.id),
+                                    onSelected: (selected) {
+                                      if (selected) {
+                                        ref.read(databaseProvider).addTagToLink(widget.link.id, tag.id);
+                                      } else {
+                                        ref.read(databaseProvider).removeTagFromLink(widget.link.id, tag.id);
+                                      }
+                                    },
+                                  ))
+                              .toList(),
+                        );
+                      },
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
                     ),
               loading: () => const SizedBox.shrink(),
               error: (_, __) => const SizedBox.shrink(),

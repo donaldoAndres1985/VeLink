@@ -3,18 +3,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
+import 'package:velink/features/capture/providers/capture_provider.dart';
 import 'package:velink/features/detail/providers/detail_provider.dart';
 import 'package:velink/features/detail/screens/detail_screen.dart';
 import '../../../helpers/database_helper.dart';
 import '../../../helpers/link_factory.dart';
 
-Widget buildDetailWidget(Link link, {List<Tag> tags = const []}) {
+Widget buildDetailWidget(
+  Link link, {
+  List<Tag> tags = const [],
+  List<Tag> allTags = const [],
+}) {
   final db = createTestDatabase();
   addTearDown(db.close);
   return ProviderScope(
     overrides: [
       databaseProvider.overrideWithValue(db),
       linkTagsProvider(link.id).overrideWith((ref) => Future.value(tags)),
+      watchLinkTagsProvider(link.id).overrideWith((ref) => Stream.value(tags)),
+      allTagsProvider.overrideWith((ref) => Stream.value(allTags)),
     ],
     child: MaterialApp(home: DetailScreen(link: link)),
   );
@@ -64,6 +71,7 @@ void main() {
       await tester.pumpWidget(buildDetailWidget(
         makeLink(url: 'https://flutter.dev'),
         tags: tags,
+        allTags: tags,
       ));
       await tester.pumpAndSettle();
       expect(find.text('flutter'), findsOneWidget);
@@ -115,6 +123,8 @@ void main() {
         overrides: [
           databaseProvider.overrideWithValue(db),
           linkTagsProvider(id).overrideWith((ref) => Future.value(<Tag>[])),
+          watchLinkTagsProvider(id).overrideWith((ref) => Stream.value(<Tag>[])),
+          allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
         ],
         child: MaterialApp(home: DetailScreen(link: makeLink(id: id, url: 'https://flutter.dev'))),
       ));
@@ -144,6 +154,85 @@ void main() {
       ));
       await tester.pumpAndSettle();
       expect(find.byIcon(Icons.open_in_new), findsOneWidget);
+    });
+  });
+
+  group('DetailScreen — gestión de tags', () {
+    testWidgets('muestra todos los tags disponibles como FilterChips', (tester) async {
+      final allTags = [
+        Tag(id: 1, name: 'flutter', color: '#6366F1', createdAt: DateTime.now()),
+        Tag(id: 2, name: 'dart', color: '#6366F1', createdAt: DateTime.now()),
+      ];
+      await tester.pumpWidget(buildDetailWidget(
+        makeLink(url: 'https://flutter.dev'),
+        allTags: allTags,
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text('flutter'), findsOneWidget);
+      expect(find.text('dart'), findsOneWidget);
+    });
+
+    testWidgets('tags del link aparecen seleccionados', (tester) async {
+      final tag = Tag(id: 1, name: 'flutter', color: '#6366F1', createdAt: DateTime.now());
+      await tester.pumpWidget(buildDetailWidget(
+        makeLink(url: 'https://flutter.dev'),
+        tags: [tag],
+        allTags: [tag],
+      ));
+      await tester.pumpAndSettle();
+      final chip = tester.widget<FilterChip>(find.widgetWithText(FilterChip, 'flutter'));
+      expect(chip.selected, isTrue);
+    });
+
+    testWidgets('tap en tag no seleccionado lo agrega al link en DB', (tester) async {
+      final db = createTestDatabase();
+      addTearDown(db.close);
+      final linkId = await db.insertLink(LinksCompanion.insert(url: 'https://flutter.dev'));
+      final tagId = await db.insertTag(TagsCompanion.insert(name: 'flutter'));
+      final tag = Tag(id: tagId, name: 'flutter', color: '#6366F1', createdAt: DateTime.now());
+
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          linkTagsProvider(linkId).overrideWith((ref) => Future.value(<Tag>[])),
+          watchLinkTagsProvider(linkId).overrideWith((ref) => Stream.value(<Tag>[])),
+          allTagsProvider.overrideWith((ref) => Stream.value([tag])),
+        ],
+        child: MaterialApp(home: DetailScreen(link: makeLink(id: linkId, url: 'https://flutter.dev'))),
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('flutter'));
+      await tester.pumpAndSettle();
+
+      final tags = await db.getTagsForLink(linkId);
+      expect(tags.length, 1);
+    });
+
+    testWidgets('tap en tag seleccionado lo quita del link en DB', (tester) async {
+      final db = createTestDatabase();
+      addTearDown(db.close);
+      final linkId = await db.insertLink(LinksCompanion.insert(url: 'https://flutter.dev'));
+      final tagId = await db.insertTag(TagsCompanion.insert(name: 'flutter'));
+      await db.addTagToLink(linkId, tagId);
+      final tag = Tag(id: tagId, name: 'flutter', color: '#6366F1', createdAt: DateTime.now());
+
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          linkTagsProvider(linkId).overrideWith((ref) => Future.value([tag])),
+          watchLinkTagsProvider(linkId).overrideWith((ref) => Stream.value([tag])),
+          allTagsProvider.overrideWith((ref) => Stream.value([tag])),
+        ],
+        child: MaterialApp(home: DetailScreen(link: makeLink(id: linkId, url: 'https://flutter.dev'))),
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('flutter'));
+      await tester.pumpAndSettle();
+
+      final tags = await db.getTagsForLink(linkId);
+      expect(tags, isEmpty);
     });
   });
 }

@@ -93,6 +93,13 @@ class AppDatabase extends _$AppDatabase {
     ])..where(linkTags.linkId.equals(linkId));
     return query.map((row) => row.readTable(tags)).get();
   }
+
+  Stream<List<Tag>> watchTagsForLink(int linkId) {
+    final query = select(tags).join([
+      innerJoin(linkTags, linkTags.tagId.equalsExp(tags.id)),
+    ])..where(linkTags.linkId.equals(linkId));
+    return query.map((row) => row.readTable(tags)).watch();
+  }
 }
 
 final databaseProvider = Provider<AppDatabase>((ref) {

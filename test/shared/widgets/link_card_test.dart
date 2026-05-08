@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
+import 'package:velink/features/capture/providers/capture_provider.dart';
+import 'package:velink/features/detail/providers/detail_provider.dart';
 import 'package:velink/features/detail/screens/detail_screen.dart';
 import 'package:velink/shared/widgets/link_card.dart';
 import '../../helpers/database_helper.dart';
@@ -12,7 +14,11 @@ Widget buildLinkCardWidget(Link link, {AppDatabase? database}) {
   final db = database ?? createTestDatabase();
   if (database == null) addTearDown(db.close);
   return ProviderScope(
-    overrides: [databaseProvider.overrideWithValue(db)],
+    overrides: [
+      databaseProvider.overrideWithValue(db),
+      watchLinkTagsProvider(link.id).overrideWith((ref) => Stream.value(<Tag>[])),
+      allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
+    ],
     child: MaterialApp(home: Scaffold(body: LinkCard(link: link))),
   );
 }
@@ -79,7 +85,11 @@ void main() {
       addTearDown(db.close);
       final link = makeLink(url: 'https://flutter.dev');
       await tester.pumpWidget(ProviderScope(
-        overrides: [databaseProvider.overrideWithValue(db)],
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          watchLinkTagsProvider(link.id).overrideWith((ref) => Stream.value(<Tag>[])),
+          allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
+        ],
         child: MaterialApp(home: Scaffold(body: LinkCard(link: link))),
       ));
       await tester.pumpAndSettle();
