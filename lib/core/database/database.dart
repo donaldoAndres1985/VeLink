@@ -44,6 +44,10 @@ class AppDatabase extends _$AppDatabase {
       (update(links)..where((l) => l.id.equals(linkId)))
           .write(LinksCompanion(priority: Value(priority)));
 
+  Future<void> updateLinkNotes(int linkId, String? notes) =>
+      (update(links)..where((l) => l.id.equals(linkId)))
+          .write(LinksCompanion(notes: Value(notes)));
+
   Future<List<Link>> searchLinks(String query) {
     final q = '%$query%';
     return (select(links)

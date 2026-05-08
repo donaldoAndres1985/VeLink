@@ -325,4 +325,34 @@ void main() {
       expect(dos.priority, 0);
     });
   });
+
+  // ─── LINKS — NOTAS ────────────────────────────────────────────────────────────
+
+  group('Links — updateLinkNotes', () {
+    test('updateLinkNotes guarda texto en el campo notes', () async {
+      final id = await db.insertLink(LinksCompanion.insert(url: 'https://example.com'));
+      await db.updateLinkNotes(id, 'Mi nota personal');
+      final links = await db.getAllLinks();
+      expect(links.first.notes, 'Mi nota personal');
+    });
+
+    test('updateLinkNotes acepta null para borrar la nota', () async {
+      final id = await db.insertLink(LinksCompanion.insert(url: 'https://example.com'));
+      await db.updateLinkNotes(id, 'Nota previa');
+      await db.updateLinkNotes(id, null);
+      final links = await db.getAllLinks();
+      expect(links.first.notes, null);
+    });
+
+    test('updateLinkNotes no afecta otros campos del link', () async {
+      final id = await db.insertLink(LinksCompanion.insert(
+        url: 'https://example.com',
+        title: const Value('Mi título'),
+      ));
+      await db.updateLinkNotes(id, 'Nota');
+      final links = await db.getAllLinks();
+      expect(links.first.title, 'Mi título');
+      expect(links.first.notes, 'Nota');
+    });
+  });
 }

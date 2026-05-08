@@ -9,6 +9,7 @@ Link makeLink({
   String platform = 'web',
   bool isFavorite = false,
   int priority = 0,
+  String? notes,
   DateTime? createdAt,
 }) =>
     Link(
@@ -24,7 +25,7 @@ Link makeLink({
       priority: priority,
       isRead: false,
       remindAt: null,
-      notes: null,
+      notes: notes,
       createdAt: createdAt ?? DateTime.now(),
       updatedAt: DateTime.now(),
     );

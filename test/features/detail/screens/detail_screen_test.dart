@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -85,6 +86,46 @@ void main() {
       ));
       await tester.pumpAndSettle();
       expect(find.text('Detalle'), findsOneWidget);
+    });
+  });
+
+  group('DetailScreen — notas', () {
+    testWidgets('muestra notas existentes del link', (tester) async {
+      await tester.pumpWidget(buildDetailWidget(
+        makeLink(url: 'https://flutter.dev', notes: 'Leer este fin de semana'),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text('Leer este fin de semana'), findsOneWidget);
+    });
+
+    testWidgets('muestra campo de texto para notas', (tester) async {
+      await tester.pumpWidget(buildDetailWidget(
+        makeLink(url: 'https://flutter.dev'),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.byType(TextField), findsOneWidget);
+    });
+
+    testWidgets('guardar nota llama updateLinkNotes en DB', (tester) async {
+      final db = createTestDatabase();
+      addTearDown(db.close);
+      final id = await db.insertLink(LinksCompanion.insert(url: 'https://flutter.dev'));
+
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          linkTagsProvider(id).overrideWith((ref) => Future.value(<Tag>[])),
+        ],
+        child: MaterialApp(home: DetailScreen(link: makeLink(id: id, url: 'https://flutter.dev'))),
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'Nueva nota');
+      await tester.tap(find.text('Guardar'));
+      await tester.pumpAndSettle();
+
+      final links = await db.getAllLinks();
+      expect(links.first.notes, 'Nueva nota');
     });
   });
 }

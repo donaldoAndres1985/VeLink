@@ -4,15 +4,39 @@ import '../../../core/database/database.dart';
 import '../../../features/capture/services/platform_detector.dart';
 import '../providers/detail_provider.dart';
 
-class DetailScreen extends ConsumerWidget {
+class DetailScreen extends ConsumerStatefulWidget {
   final Link link;
 
   const DetailScreen({super.key, required this.link});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final tagsAsync = ref.watch(linkTagsProvider(link.id));
-    final platformInfo = PlatformInfo.forPlatform(PlatformDetector.detect(link.url));
+  ConsumerState<DetailScreen> createState() => _DetailScreenState();
+}
+
+class _DetailScreenState extends ConsumerState<DetailScreen> {
+  late final TextEditingController _notesController;
+
+  @override
+  void initState() {
+    super.initState();
+    _notesController = TextEditingController(text: widget.link.notes ?? '');
+  }
+
+  @override
+  void dispose() {
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  void _saveNotes() {
+    final notes = _notesController.text.trim().isEmpty ? null : _notesController.text.trim();
+    ref.read(databaseProvider).updateLinkNotes(widget.link.id, notes);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tagsAsync = ref.watch(linkTagsProvider(widget.link.id));
+    final platformInfo = PlatformInfo.forPlatform(PlatformDetector.detect(widget.link.url));
 
     return Scaffold(
       appBar: AppBar(title: const Text('Detalle')),
@@ -21,11 +45,11 @@ class DetailScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (link.previewImageUrl != null)
+            if (widget.link.previewImageUrl != null)
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: Image.network(
-                  link.previewImageUrl!,
+                  widget.link.previewImageUrl!,
                   width: double.infinity,
                   height: 180,
                   fit: BoxFit.cover,
@@ -48,23 +72,23 @@ class DetailScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 8),
-            if (link.title != null) ...[
+            if (widget.link.title != null) ...[
               Text(
-                link.title!,
+                widget.link.title!,
                 style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
               ),
               const SizedBox(height: 6),
             ],
             Text(
-              link.url,
+              widget.link.url,
               style: TextStyle(
                 color: Theme.of(context).colorScheme.primary,
                 fontSize: 13,
               ),
             ),
-            if (link.description != null) ...[
+            if (widget.link.description != null) ...[
               const SizedBox(height: 10),
-              Text(link.description!, style: const TextStyle(fontSize: 14)),
+              Text(widget.link.description!, style: const TextStyle(fontSize: 14)),
             ],
             const SizedBox(height: 16),
             const Text(
@@ -83,6 +107,25 @@ class DetailScreen extends ConsumerWidget {
                     ),
               loading: () => const SizedBox.shrink(),
               error: (_, __) => const SizedBox.shrink(),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Notas',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _notesController,
+              maxLines: 5,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: 'Escribe tus notas aquí...',
+              ),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: _saveNotes,
+              child: const Text('Guardar'),
             ),
           ],
         ),
