@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_theme.dart';
+import '../features/capture/providers/capture_provider.dart';
+import '../features/capture/screens/capture_screen.dart';
 import '../features/home/screens/home_screen.dart';
 import '../features/saved/screens/saved_screen.dart';
 import '../features/priority/screens/priority_screen.dart';
@@ -41,6 +43,17 @@ class _MainShellState extends ConsumerState<MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<String?>(
+      captureProvider.select((s) => s.pendingUrl),
+      (previous, next) {
+        if (next != null && previous != next) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => CaptureScreen(url: next)),
+          );
+        }
+      },
+    );
+
     return Scaffold(
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
