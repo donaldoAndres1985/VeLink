@@ -1,19 +1,26 @@
+import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
+import 'package:velink/features/capture/providers/capture_provider.dart';
 import 'package:velink/features/saved/providers/saved_provider.dart';
 import 'package:velink/features/saved/screens/saved_screen.dart';
 import '../../helpers/database_helper.dart';
 import '../../helpers/link_factory.dart';
+import '../../helpers/mock_capture_service.dart';
+import '../../helpers/mock_metadata_service.dart';
 
-Widget buildSavedWidget({List<Link> links = const []}) {
+Widget buildSavedWidget({List<Link> links = const [], List<Tag> tags = const []}) {
   final db = createTestDatabase();
   addTearDown(db.close);
   return ProviderScope(
     overrides: [
       databaseProvider.overrideWithValue(db),
-      savedLinksProvider.overrideWith((ref) => Stream.value(links)),
+      captureServiceProvider.overrideWithValue(MockCaptureService()),
+      metadataServiceProvider.overrideWithValue(MockMetadataService()),
+      filteredSavedLinksProvider.overrideWith((ref) => Stream.value(links)),
+      allTagsProvider.overrideWith((ref) => Stream.value(tags)),
     ],
     child: const MaterialApp(home: SavedScreen()),
   );
@@ -79,6 +86,57 @@ void main() {
       ));
       await tester.pumpAndSettle();
       expect(find.byIcon(Icons.link), findsWidgets);
+    });
+  });
+
+  group('SavedScreen — filtrado por tag', () {
+    testWidgets('muestra chips de los tags disponibles', (tester) async {
+      await tester.pumpWidget(buildSavedWidget(
+        tags: [
+          Tag(id: 1, name: 'flutter', color: '#000000', createdAt: DateTime.now()),
+          Tag(id: 2, name: 'dart', color: '#000000', createdAt: DateTime.now()),
+        ],
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text('flutter'), findsOneWidget);
+      expect(find.text('dart'), findsOneWidget);
+    });
+
+    testWidgets('chip no seleccionado está inactivo por defecto', (tester) async {
+      await tester.pumpWidget(buildSavedWidget(
+        tags: [Tag(id: 1, name: 'flutter', color: '#000000', createdAt: DateTime.now())],
+      ));
+      await tester.pumpAndSettle();
+      final chip = tester.widget<FilterChip>(find.byType(FilterChip).first);
+      expect(chip.selected, isFalse);
+    });
+
+    testWidgets('tap en chip lo marca como seleccionado', (tester) async {
+      await tester.pumpWidget(buildSavedWidget(
+        tags: [Tag(id: 1, name: 'flutter', color: '#000000', createdAt: DateTime.now())],
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('flutter'));
+      await tester.pump();
+
+      final chip = tester.widget<FilterChip>(find.byType(FilterChip).first);
+      expect(chip.selected, isTrue);
+    });
+
+    testWidgets('tap en chip seleccionado lo deselecciona', (tester) async {
+      await tester.pumpWidget(buildSavedWidget(
+        tags: [Tag(id: 1, name: 'flutter', color: '#000000', createdAt: DateTime.now())],
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('flutter'));
+      await tester.pump();
+      await tester.tap(find.text('flutter'));
+      await tester.pump();
+
+      final chip = tester.widget<FilterChip>(find.byType(FilterChip).first);
+      expect(chip.selected, isFalse);
     });
   });
 }

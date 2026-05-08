@@ -70,6 +70,15 @@ class AppDatabase extends _$AppDatabase {
         ..where((lt) => lt.linkId.equals(linkId) & lt.tagId.equals(tagId)))
           .go();
 
+  Stream<List<Link>> watchLinksByTag(int tagId) {
+    final query = select(links).join([
+      innerJoin(linkTags, linkTags.linkId.equalsExp(links.id)),
+    ])
+      ..where(linkTags.tagId.equals(tagId))
+      ..orderBy([OrderingTerm.desc(links.createdAt)]);
+    return query.map((row) => row.readTable(links)).watch();
+  }
+
   Future<List<Tag>> getTagsForLink(int linkId) {
     final query = select(tags).join([
       innerJoin(linkTags, linkTags.tagId.equalsExp(tags.id)),

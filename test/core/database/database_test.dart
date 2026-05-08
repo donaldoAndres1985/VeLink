@@ -251,4 +251,46 @@ void main() {
       expect(tags, isEmpty);
     });
   });
+
+  // ─── LINKS — FILTRADO POR TAG ─────────────────────────────────────────────────
+
+  group('Links — filtrado por tag', () {
+    test('watchLinksByTag retorna solo los links con ese tag', () async {
+      final tagId = await db.insertTag(TagsCompanion.insert(name: 'flutter'));
+      final id1 = await db.insertLink(LinksCompanion.insert(url: 'https://flutter.dev'));
+      await db.insertLink(LinksCompanion.insert(url: 'https://dart.dev'));
+      await db.addTagToLink(id1, tagId);
+
+      final links = await db.watchLinksByTag(tagId).first;
+      expect(links.length, 1);
+      expect(links.first.url, 'https://flutter.dev');
+    });
+
+    test('watchLinksByTag retorna lista vacía si ningún link tiene ese tag', () async {
+      final tagId = await db.insertTag(TagsCompanion.insert(name: 'flutter'));
+      await db.insertLink(LinksCompanion.insert(url: 'https://example.com'));
+
+      final links = await db.watchLinksByTag(tagId).first;
+      expect(links, isEmpty);
+    });
+
+    test('watchLinksByTag retorna links del tag en orden descendente por fecha', () async {
+      final tagId = await db.insertTag(TagsCompanion.insert(name: 'flutter'));
+      final now = DateTime.now();
+      final id1 = await db.insertLink(LinksCompanion(
+        url: const Value('https://flutter.dev'),
+        createdAt: Value(now.subtract(const Duration(hours: 2))),
+      ));
+      final id2 = await db.insertLink(LinksCompanion(
+        url: const Value('https://pub.dev'),
+        createdAt: Value(now.subtract(const Duration(hours: 1))),
+      ));
+      await db.addTagToLink(id1, tagId);
+      await db.addTagToLink(id2, tagId);
+
+      final links = await db.watchLinksByTag(tagId).first;
+      expect(links.first.url, 'https://pub.dev');
+      expect(links.last.url, 'https://flutter.dev');
+    });
+  });
 }
