@@ -165,6 +165,26 @@ void main() {
     });
   });
 
+  group('CaptureScreen — plataforma', () {
+    testWidgets('muestra el nombre de la plataforma detectada', (tester) async {
+      await tester.pumpWidget(buildCaptureWidget('https://youtube.com/watch?v=abc'));
+      await tester.pumpAndSettle();
+      expect(find.text('YouTube'), findsOneWidget);
+    });
+
+    testWidgets('muestra "Web" para links no reconocidos', (tester) async {
+      await tester.pumpWidget(buildCaptureWidget('https://example.com/page'));
+      await tester.pumpAndSettle();
+      expect(find.text('Web'), findsOneWidget);
+    });
+
+    testWidgets('detecta GitHub correctamente', (tester) async {
+      await tester.pumpWidget(buildCaptureWidget('https://github.com/flutter/flutter'));
+      await tester.pumpAndSettle();
+      expect(find.text('GitHub'), findsOneWidget);
+    });
+  });
+
   group('CaptureScreen — Cancelar', () {
     testWidgets('cierra la pantalla sin guardar al tocar Cancelar', (tester) async {
       final db = createTestDatabase();

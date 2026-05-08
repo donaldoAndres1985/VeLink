@@ -86,6 +86,42 @@ void main() {
     });
   });
 
+  group('CaptureProvider — saveLink con plataforma', () {
+    test('detecta y guarda la plataforma de un link de YouTube', () async {
+      final db = createTestDatabase();
+      final container = ProviderContainer(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          captureServiceProvider.overrideWithValue(MockCaptureService()),
+          metadataServiceProvider.overrideWithValue(MockMetadataService()),
+        ],
+      );
+
+      container.read(captureProvider.notifier).setUrl('https://youtube.com/watch?v=abc');
+      await container.read(captureProvider.notifier).saveLink();
+
+      final links = await db.getAllLinks();
+      expect(links.first.platform, 'youtube');
+    });
+
+    test('guarda plataforma "web" para URLs no reconocidas', () async {
+      final db = createTestDatabase();
+      final container = ProviderContainer(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          captureServiceProvider.overrideWithValue(MockCaptureService()),
+          metadataServiceProvider.overrideWithValue(MockMetadataService()),
+        ],
+      );
+
+      container.read(captureProvider.notifier).setUrl('https://example.com/page');
+      await container.read(captureProvider.notifier).saveLink();
+
+      final links = await db.getAllLinks();
+      expect(links.first.platform, 'web');
+    });
+  });
+
   group('CaptureProvider — saveLink', () {
     test('inserta el link en la base de datos', () async {
       final db = createTestDatabase();

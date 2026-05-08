@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/capture_provider.dart';
+import '../services/platform_detector.dart';
 
 class CaptureScreen extends ConsumerStatefulWidget {
   final String url;
@@ -26,6 +27,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     final isSaving = state.isSaving;
     final isFetching = state.isFetchingMetadata;
     final metadata = state.metadata;
+    final platformInfo = PlatformInfo.forPlatform(PlatformDetector.detect(widget.url));
 
     return Scaffold(
       appBar: AppBar(title: const Text('Guardar link')),
@@ -35,7 +37,9 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildPreview(context, isFetching, metadata?.imageUrl),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+            _buildPlatformBadge(platformInfo),
+            const SizedBox(height: 8),
             if (metadata?.title != null)
               Text(
                 metadata!.title!,
@@ -128,6 +132,23 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     }
 
     return _buildPlaceholder(context);
+  }
+
+  Widget _buildPlatformBadge(PlatformInfo info) {
+    return Row(
+      children: [
+        Icon(info.icon, size: 16, color: info.color),
+        const SizedBox(width: 6),
+        Text(
+          info.label,
+          style: TextStyle(
+            color: info.color,
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildPlaceholder(BuildContext context) {

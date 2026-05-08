@@ -5,6 +5,7 @@ import '../../../core/database/database.dart';
 import '../models/og_metadata.dart';
 import '../services/capture_service.dart';
 import '../services/metadata_service.dart';
+import '../services/platform_detector.dart';
 
 class CaptureState {
   final String? pendingUrl;
@@ -67,11 +68,13 @@ class CaptureNotifier extends StateNotifier<CaptureState> {
     final url = state.pendingUrl;
     if (url == null) return;
     state = state.copyWith(isSaving: true);
+    final platform = PlatformDetector.detect(url);
     await _db.insertLink(LinksCompanion(
       url: Value(url),
       title: Value(state.metadata?.title),
       description: Value(state.metadata?.description),
       previewImageUrl: Value(state.metadata?.imageUrl),
+      platform: Value(platform.name),
     ));
     _service.reset();
     state = const CaptureState();
