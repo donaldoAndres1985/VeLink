@@ -32,7 +32,7 @@ class SavedScreen extends ConsumerWidget {
                   : ListView.builder(
                       padding: const EdgeInsets.all(12),
                       itemCount: links.length,
-                      itemBuilder: (_, i) => LinkCard(link: links[i]),
+                      itemBuilder: (_, i) => _DismissibleLinkCard(link: links[i]),
                     ),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (_, __) =>
@@ -41,6 +41,30 @@ class SavedScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _DismissibleLinkCard extends ConsumerWidget {
+  final Link link;
+
+  const _DismissibleLinkCard({required this.link});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Dismissible(
+      key: ValueKey(link.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        color: Colors.red,
+        child: const Icon(Icons.delete_outline, color: Colors.white),
+      ),
+      onDismissed: (_) {
+        ref.read(databaseProvider).deleteLink(link.id);
+      },
+      child: LinkCard(link: link),
     );
   }
 }

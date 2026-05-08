@@ -139,4 +139,59 @@ void main() {
       expect(chip.selected, isFalse);
     });
   });
+
+  group('SavedScreen — eliminar link', () {
+    testWidgets('deslizar link lo elimina de la lista', (tester) async {
+      final db = createTestDatabase();
+      addTearDown(db.close);
+      await db.insertLink(LinksCompanion(url: const Value('https://flutter.dev')));
+
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          captureServiceProvider.overrideWithValue(MockCaptureService()),
+          metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
+        ],
+        child: const MaterialApp(home: SavedScreen()),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.text('https://flutter.dev'), findsOneWidget);
+
+      await tester.drag(find.text('https://flutter.dev'), const Offset(-500, 0));
+      await tester.pumpAndSettle();
+
+      final links = await db.getAllLinks();
+      expect(links, isEmpty);
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(Duration.zero);
+    });
+
+    testWidgets('link eliminado desaparece de la pantalla', (tester) async {
+      final db = createTestDatabase();
+      addTearDown(db.close);
+      await db.insertLink(LinksCompanion(url: const Value('https://flutter.dev')));
+      await db.insertLink(LinksCompanion(url: const Value('https://dart.dev')));
+
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          captureServiceProvider.overrideWithValue(MockCaptureService()),
+          metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
+        ],
+        child: const MaterialApp(home: SavedScreen()),
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.drag(find.text('https://flutter.dev'), const Offset(-500, 0));
+      await tester.pumpAndSettle();
+
+      expect(find.text('https://flutter.dev'), findsNothing);
+      expect(find.text('https://dart.dev'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(Duration.zero);
+    });
+  });
 }
