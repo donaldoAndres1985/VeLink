@@ -1,17 +1,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
+import 'package:velink/features/capture/models/og_metadata.dart';
 import 'package:velink/features/capture/providers/capture_provider.dart';
 import '../../../helpers/database_helper.dart';
 import '../../../helpers/mock_capture_service.dart';
+import '../../../helpers/mock_metadata_service.dart';
 
-ProviderContainer createCaptureContainer({MockCaptureService? service}) {
+ProviderContainer createCaptureContainer({
+  MockCaptureService? service,
+  MockMetadataService? metadataService,
+}) {
   final db = createTestDatabase();
-  final mock = service ?? MockCaptureService();
   return ProviderContainer(
     overrides: [
       databaseProvider.overrideWithValue(db),
-      captureServiceProvider.overrideWithValue(mock),
+      captureServiceProvider.overrideWithValue(service ?? MockCaptureService()),
+      metadataServiceProvider.overrideWithValue(metadataService ?? MockMetadataService()),
     ],
   );
 }
@@ -23,6 +28,8 @@ void main() {
       final state = container.read(captureProvider);
       expect(state.pendingUrl, equals(null));
       expect(state.isSaving, isFalse);
+      expect(state.isFetchingMetadata, isFalse);
+      expect(state.metadata, equals(null));
     });
   });
 
@@ -45,14 +52,48 @@ void main() {
     });
   });
 
+  group('CaptureProvider — fetchMetadata', () {
+    test('actualiza metadata y desactiva isFetchingMetadata al terminar', () async {
+      final mockMeta = OgMetadata(
+        title: 'Flutter Docs',
+        description: 'Documentacion oficial',
+        imageUrl: 'https://flutter.dev/img.png',
+      );
+      final container = createCaptureContainer(
+        metadataService: MockMetadataService(result: mockMeta),
+      );
+      container.read(captureProvider.notifier).setUrl('https://flutter.dev');
+
+      await container.read(captureProvider.notifier).fetchMetadata('https://flutter.dev');
+
+      final state = container.read(captureProvider);
+      expect(state.metadata?.title, 'Flutter Docs');
+      expect(state.metadata?.description, 'Documentacion oficial');
+      expect(state.isFetchingMetadata, isFalse);
+    });
+
+    test('metadata queda null si el servicio falla, sin bloquear', () async {
+      final container = createCaptureContainer(
+        metadataService: MockMetadataService(result: null),
+      );
+      container.read(captureProvider.notifier).setUrl('https://example.com');
+
+      await container.read(captureProvider.notifier).fetchMetadata('https://example.com');
+
+      final state = container.read(captureProvider);
+      expect(state.metadata, equals(null));
+      expect(state.isFetchingMetadata, isFalse);
+    });
+  });
+
   group('CaptureProvider — saveLink', () {
     test('inserta el link en la base de datos', () async {
       final db = createTestDatabase();
-      final mock = MockCaptureService();
       final container = ProviderContainer(
         overrides: [
           databaseProvider.overrideWithValue(db),
-          captureServiceProvider.overrideWithValue(mock),
+          captureServiceProvider.overrideWithValue(MockCaptureService()),
+          metadataServiceProvider.overrideWithValue(MockMetadataService()),
         ],
       );
 
@@ -64,13 +105,62 @@ void main() {
       expect(links.first.url, 'https://youtube.com/watch?v=test');
     });
 
-    test('resetea el estado después de guardar', () async {
-      final container = createCaptureContainer();
+    test('guarda titulo, descripcion e imagen de la metadata', () async {
+      final db = createTestDatabase();
+      final mockMeta = OgMetadata(
+        title: 'YouTube',
+        description: 'Un video de YouTube',
+        imageUrl: 'https://i.ytimg.com/vi/abc.jpg',
+      );
+      final container = ProviderContainer(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          captureServiceProvider.overrideWithValue(MockCaptureService()),
+          metadataServiceProvider.overrideWithValue(MockMetadataService(result: mockMeta)),
+        ],
+      );
+
+      container.read(captureProvider.notifier).setUrl('https://youtube.com/watch?v=abc');
+      await container.read(captureProvider.notifier).fetchMetadata('https://youtube.com/watch?v=abc');
+      await container.read(captureProvider.notifier).saveLink();
+
+      final links = await db.getAllLinks();
+      expect(links.first.title, 'YouTube');
+      expect(links.first.description, 'Un video de YouTube');
+      expect(links.first.previewImageUrl, 'https://i.ytimg.com/vi/abc.jpg');
+    });
+
+    test('guarda sin metadata si el scraping fallo', () async {
+      final db = createTestDatabase();
+      final container = ProviderContainer(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          captureServiceProvider.overrideWithValue(MockCaptureService()),
+          metadataServiceProvider.overrideWithValue(MockMetadataService(result: null)),
+        ],
+      );
+
       container.read(captureProvider.notifier).setUrl('https://example.com');
+      await container.read(captureProvider.notifier).saveLink();
+
+      final links = await db.getAllLinks();
+      expect(links.length, 1);
+      expect(links.first.url, 'https://example.com');
+      expect(links.first.title, equals(null));
+    });
+
+    test('resetea el estado completo después de guardar', () async {
+      final mockMeta = OgMetadata(title: 'Test');
+      final container = createCaptureContainer(
+        metadataService: MockMetadataService(result: mockMeta),
+      );
+      container.read(captureProvider.notifier).setUrl('https://example.com');
+      await container.read(captureProvider.notifier).fetchMetadata('https://example.com');
       await container.read(captureProvider.notifier).saveLink();
 
       final state = container.read(captureProvider);
       expect(state.pendingUrl, equals(null));
+      expect(state.metadata, equals(null));
       expect(state.isSaving, isFalse);
     });
 
@@ -79,33 +169,36 @@ void main() {
       final container = createCaptureContainer(service: mock);
       container.read(captureProvider.notifier).setUrl('https://example.com');
       await container.read(captureProvider.notifier).saveLink();
-
       expect(mock.resetCalled, isTrue);
     });
 
     test('no inserta si pendingUrl es null', () async {
       final db = createTestDatabase();
-      final mock = MockCaptureService();
       final container = ProviderContainer(
         overrides: [
           databaseProvider.overrideWithValue(db),
-          captureServiceProvider.overrideWithValue(mock),
+          captureServiceProvider.overrideWithValue(MockCaptureService()),
+          metadataServiceProvider.overrideWithValue(MockMetadataService()),
         ],
       );
-
       await container.read(captureProvider.notifier).saveLink();
-
-      final links = await db.getAllLinks();
-      expect(links, isEmpty);
+      expect(await db.getAllLinks(), isEmpty);
     });
   });
 
   group('CaptureProvider — dismiss', () {
-    test('limpia el pendingUrl', () {
-      final container = createCaptureContainer();
+    test('limpia pendingUrl y metadata', () async {
+      final mockMeta = OgMetadata(title: 'Test');
+      final container = createCaptureContainer(
+        metadataService: MockMetadataService(result: mockMeta),
+      );
       container.read(captureProvider.notifier).setUrl('https://example.com');
+      await container.read(captureProvider.notifier).fetchMetadata('https://example.com');
       container.read(captureProvider.notifier).dismiss();
-      expect(container.read(captureProvider).pendingUrl, equals(null));
+
+      final state = container.read(captureProvider);
+      expect(state.pendingUrl, equals(null));
+      expect(state.metadata, equals(null));
     });
 
     test('llama reset() en el servicio al descartar', () {
