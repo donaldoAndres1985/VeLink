@@ -293,4 +293,36 @@ void main() {
       expect(links.last.url, 'https://flutter.dev');
     });
   });
+
+  // ─── LINKS — PRIORIDAD ────────────────────────────────────────────────────────
+
+  group('Links — setLinkPriority', () {
+    test('setLinkPriority establece priority=1 en el link', () async {
+      final id = await db.insertLink(LinksCompanion.insert(url: 'https://example.com'));
+      await db.setLinkPriority(id, 1);
+      final links = await db.getAllLinks();
+      expect(links.first.priority, 1);
+    });
+
+    test('setLinkPriority establece priority=0 para quitar prioridad', () async {
+      final id = await db.insertLink(LinksCompanion.insert(
+        url: 'https://example.com',
+        priority: const Value(1),
+      ));
+      await db.setLinkPriority(id, 0);
+      final links = await db.getAllLinks();
+      expect(links.first.priority, 0);
+    });
+
+    test('setLinkPriority no afecta otros links', () async {
+      final id1 = await db.insertLink(LinksCompanion.insert(url: 'https://uno.com'));
+      await db.insertLink(LinksCompanion.insert(url: 'https://dos.com'));
+      await db.setLinkPriority(id1, 1);
+      final links = await db.getAllLinks();
+      final uno = links.firstWhere((l) => l.url == 'https://uno.com');
+      final dos = links.firstWhere((l) => l.url == 'https://dos.com');
+      expect(uno.priority, 1);
+      expect(dos.priority, 0);
+    });
+  });
 }

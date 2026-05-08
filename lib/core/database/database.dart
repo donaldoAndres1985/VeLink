@@ -40,6 +40,10 @@ class AppDatabase extends _$AppDatabase {
   Future<int> deleteLink(int id) =>
       (delete(links)..where((l) => l.id.equals(id))).go();
 
+  Future<void> setLinkPriority(int linkId, int priority) =>
+      (update(links)..where((l) => l.id.equals(linkId)))
+          .write(LinksCompanion(priority: Value(priority)));
+
   Future<List<Link>> searchLinks(String query) {
     final q = '%$query%';
     return (select(links)

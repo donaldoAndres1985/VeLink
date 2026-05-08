@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/database/database.dart';
 import '../../features/capture/services/platform_detector.dart';
 
-class LinkCard extends StatelessWidget {
+class LinkCard extends ConsumerWidget {
   final Link link;
 
   const LinkCard({super.key, required this.link});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final platformInfo = PlatformInfo.forPlatform(PlatformDetector.detect(link.url));
 
     return Card(
@@ -45,6 +46,16 @@ class LinkCard extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+            IconButton(
+              icon: Icon(
+                link.priority == 1 ? Icons.star : Icons.star_outline,
+                color: link.priority == 1 ? Colors.amber : null,
+              ),
+              onPressed: () {
+                final newPriority = link.priority == 1 ? 0 : 1;
+                ref.read(databaseProvider).setLinkPriority(link.id, newPriority);
+              },
             ),
           ],
         ),
