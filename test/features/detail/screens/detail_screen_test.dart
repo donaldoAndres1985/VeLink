@@ -128,4 +128,22 @@ void main() {
       expect(links.first.notes, 'Nueva nota');
     });
   });
+
+  group('DetailScreen — abrir link', () {
+    testWidgets('muestra botón para abrir el link original', (tester) async {
+      await tester.pumpWidget(buildDetailWidget(
+        makeLink(url: 'https://flutter.dev'),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text('Abrir'), findsOneWidget);
+    });
+
+    testWidgets('muestra ícono de enlace externo junto al botón Abrir', (tester) async {
+      await tester.pumpWidget(buildDetailWidget(
+        makeLink(url: 'https://flutter.dev'),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.open_in_new), findsOneWidget);
+    });
+  });
 }

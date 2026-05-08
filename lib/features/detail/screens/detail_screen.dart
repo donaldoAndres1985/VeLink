@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/database/database.dart';
 import '../../../features/capture/services/platform_detector.dart';
 import '../providers/detail_provider.dart';
@@ -79,12 +80,26 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
               ),
               const SizedBox(height: 6),
             ],
-            Text(
-              widget.link.url,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
-                fontSize: 13,
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.link.url,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                TextButton.icon(
+                  icon: const Icon(Icons.open_in_new, size: 16),
+                  label: const Text('Abrir'),
+                  onPressed: () => launchUrl(
+                    Uri.parse(widget.link.url),
+                    mode: LaunchMode.externalApplication,
+                  ),
+                ),
+              ],
             ),
             if (widget.link.description != null) ...[
               const SizedBox(height: 10),
