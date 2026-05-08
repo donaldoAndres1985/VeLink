@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
+import 'package:velink/features/detail/screens/detail_screen.dart';
 import 'package:velink/shared/widgets/link_card.dart';
 import '../../helpers/database_helper.dart';
 import '../../helpers/link_factory.dart';
@@ -69,6 +70,24 @@ void main() {
 
       final links = await db.getAllLinks();
       expect(links.first.priority, 0);
+    });
+  });
+
+  group('LinkCard — navegación', () {
+    testWidgets('tap en la card navega a DetailScreen', (tester) async {
+      final db = createTestDatabase();
+      addTearDown(db.close);
+      final link = makeLink(url: 'https://flutter.dev');
+      await tester.pumpWidget(ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(db)],
+        child: MaterialApp(home: Scaffold(body: LinkCard(link: link))),
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('https://flutter.dev'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DetailScreen), findsOneWidget);
     });
   });
 }
