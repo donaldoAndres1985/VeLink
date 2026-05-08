@@ -14,6 +14,8 @@ part 'database.g.dart';
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
+  AppDatabase.forTesting(super.executor);
+
   @override
   int get schemaVersion => 1;
 
@@ -52,7 +54,7 @@ class AppDatabase extends _$AppDatabase {
   Stream<List<Tag>> watchAllTags() => select(tags).watch();
 
   Future<int> insertTag(TagsCompanion tag) =>
-      into(tags).insertOnConflictUpdate(tag);
+      into(tags).insert(tag, onConflict: DoUpdate((old) => tag, target: [tags.name]));
 
   // Link + Tags
   Future<void> addTagToLink(int linkId, int tagId) =>
