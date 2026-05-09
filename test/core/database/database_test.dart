@@ -386,4 +386,56 @@ void main() {
       expect(tags.length, 1);
     });
   });
+
+  // ─── LINKS — FAVORITO ────────────────────────────────────────────────────────
+
+  group('Links — setLinkFavorite', () {
+    test('setLinkFavorite marca el link como favorito', () async {
+      final id = await db.insertLink(LinksCompanion.insert(url: 'https://example.com'));
+      await db.setLinkFavorite(id, true);
+      final links = await db.getAllLinks();
+      expect(links.first.isFavorite, true);
+    });
+
+    test('setLinkFavorite desmarca el link como favorito', () async {
+      final id = await db.insertLink(LinksCompanion.insert(
+        url: 'https://example.com',
+        isFavorite: const Value(true),
+      ));
+      await db.setLinkFavorite(id, false);
+      final links = await db.getAllLinks();
+      expect(links.first.isFavorite, false);
+    });
+
+    test('setLinkFavorite no afecta otros links', () async {
+      final id1 = await db.insertLink(LinksCompanion.insert(url: 'https://uno.com'));
+      await db.insertLink(LinksCompanion.insert(url: 'https://dos.com'));
+      await db.setLinkFavorite(id1, true);
+      final links = await db.getAllLinks();
+      final uno = links.firstWhere((l) => l.url == 'https://uno.com');
+      final dos = links.firstWhere((l) => l.url == 'https://dos.com');
+      expect(uno.isFavorite, true);
+      expect(dos.isFavorite, false);
+    });
+  });
+
+  // ─── TAGS — ELIMINAR ─────────────────────────────────────────────────────────
+
+  group('Tags — deleteTag', () {
+    test('deleteTag elimina el tag de la base de datos', () async {
+      final id = await db.insertTag(TagsCompanion.insert(name: 'flutter'));
+      await db.deleteTag(id);
+      final tags = await db.watchAllTags().first;
+      expect(tags, isEmpty);
+    });
+
+    test('deleteTag no afecta otros tags', () async {
+      final id1 = await db.insertTag(TagsCompanion.insert(name: 'flutter'));
+      await db.insertTag(TagsCompanion.insert(name: 'dart'));
+      await db.deleteTag(id1);
+      final tags = await db.watchAllTags().first;
+      expect(tags.length, 1);
+      expect(tags.first.name, 'dart');
+    });
+  });
 }

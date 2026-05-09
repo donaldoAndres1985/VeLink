@@ -79,4 +79,45 @@ void main() {
       expect(find.byIcon(Icons.link), findsWidgets);
     });
   });
+
+  group('HomeScreen — favorito', () {
+    testWidgets('muestra ícono de favorito vacío cuando link no es favorito', (tester) async {
+      await tester.pumpWidget(buildHomeWidget(
+        links: [makeLink(url: 'https://flutter.dev', isFavorite: false)],
+      ));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.favorite_border), findsOneWidget);
+    });
+
+    testWidgets('muestra ícono de favorito lleno cuando link es favorito', (tester) async {
+      await tester.pumpWidget(buildHomeWidget(
+        links: [makeLink(url: 'https://flutter.dev', isFavorite: true)],
+      ));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.favorite), findsOneWidget);
+    });
+
+    testWidgets('tap en favorito persiste el cambio en la base de datos', (tester) async {
+      final db = createTestDatabase();
+      addTearDown(db.close);
+      final id = await db.insertLink(LinksCompanion.insert(url: 'https://flutter.dev'));
+
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          recentLinksProvider.overrideWith(
+            (_) => Stream.value([makeLink(url: 'https://flutter.dev', id: id)]),
+          ),
+        ],
+        child: const MaterialApp(home: HomeScreen()),
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.favorite_border));
+      await tester.pumpAndSettle();
+
+      final links = await db.getAllLinks();
+      expect(links.first.isFavorite, true);
+    });
+  });
 }

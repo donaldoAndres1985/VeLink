@@ -44,6 +44,10 @@ class AppDatabase extends _$AppDatabase {
       (update(links)..where((l) => l.id.equals(linkId)))
           .write(LinksCompanion(priority: Value(priority)));
 
+  Future<void> setLinkFavorite(int linkId, bool value) =>
+      (update(links)..where((l) => l.id.equals(linkId)))
+          .write(LinksCompanion(isFavorite: Value(value)));
+
   Future<void> updateLinkNotes(int linkId, String? notes) =>
       (update(links)..where((l) => l.id.equals(linkId)))
           .write(LinksCompanion(notes: Value(notes)));
@@ -63,6 +67,9 @@ class AppDatabase extends _$AppDatabase {
 
   Future<int> insertTag(TagsCompanion tag) =>
       into(tags).insert(tag, onConflict: DoUpdate((old) => tag, target: [tags.name]));
+
+  Future<int> deleteTag(int id) =>
+      (delete(tags)..where((t) => t.id.equals(id))).go();
 
   // Link + Tags
   Future<void> addTagToLink(int linkId, int tagId) =>

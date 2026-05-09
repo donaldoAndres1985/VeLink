@@ -54,6 +54,15 @@ class LinkCard extends ConsumerWidget {
               ),
               IconButton(
                 icon: Icon(
+                  link.isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: link.isFavorite ? Colors.red : null,
+                ),
+                onPressed: () => ref
+                    .read(databaseProvider)
+                    .setLinkFavorite(link.id, !link.isFavorite),
+              ),
+              IconButton(
+                icon: Icon(
                   link.priority == 1 ? Icons.star : Icons.star_outline,
                   color: link.priority == 1 ? Colors.amber : null,
                 ),
