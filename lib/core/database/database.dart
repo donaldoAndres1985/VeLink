@@ -63,6 +63,8 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // Tags
+  Future<List<Tag>> getAllTags() => select(tags).get();
+
   Stream<List<Tag>> watchAllTags() => select(tags).watch();
 
   Future<int> insertTag(TagsCompanion tag) =>

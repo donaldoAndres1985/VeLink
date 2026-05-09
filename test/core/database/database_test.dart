@@ -387,6 +387,22 @@ void main() {
     });
   });
 
+  // ─── TAGS — GET ALL ──────────────────────────────────────────────────────────
+
+  group('Tags — getAllTags', () {
+    test('retorna lista vacía cuando no hay tags', () async {
+      final tags = await db.getAllTags();
+      expect(tags, isEmpty);
+    });
+
+    test('retorna todos los tags insertados', () async {
+      await db.insertTag(TagsCompanion.insert(name: 'flutter'));
+      await db.insertTag(TagsCompanion.insert(name: 'dart'));
+      final tags = await db.getAllTags();
+      expect(tags.length, 2);
+    });
+  });
+
   // ─── LINKS — FAVORITO ────────────────────────────────────────────────────────
 
   group('Links — setLinkFavorite', () {
