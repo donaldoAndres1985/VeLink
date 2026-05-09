@@ -10,6 +10,7 @@ Link makeLink({
   bool isFavorite = false,
   int priority = 0,
   String? notes,
+  DateTime? remindAt,
   DateTime? createdAt,
 }) =>
     Link(
@@ -24,7 +25,7 @@ Link makeLink({
       isFavorite: isFavorite,
       priority: priority,
       isRead: false,
-      remindAt: null,
+      remindAt: remindAt,
       notes: notes,
       createdAt: createdAt ?? DateTime.now(),
       updatedAt: DateTime.now(),

@@ -2,23 +2,31 @@ import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:velink/core/database/database.dart';
 import 'package:velink/features/capture/providers/capture_provider.dart';
 import 'package:velink/features/detail/providers/detail_provider.dart';
 import 'package:velink/features/detail/screens/detail_screen.dart';
+import 'package:velink/features/notifications/providers/notification_provider.dart';
+import 'package:velink/features/notifications/services/notification_service.dart';
 import '../../../helpers/database_helper.dart';
 import '../../../helpers/link_factory.dart';
+
+class MockNotificationService extends Mock implements NotificationService {}
 
 Widget buildDetailWidget(
   Link link, {
   List<Tag> tags = const [],
   List<Tag> allTags = const [],
+  NotificationService? notifService,
 }) {
   final db = createTestDatabase();
   addTearDown(db.close);
+  final mock = notifService ?? MockNotificationService();
   return ProviderScope(
     overrides: [
       databaseProvider.overrideWithValue(db),
+      notificationServiceProvider.overrideWithValue(mock),
       linkTagsProvider(link.id).overrideWith((ref) => Future.value(tags)),
       watchLinkTagsProvider(link.id).overrideWith((ref) => Stream.value(tags)),
       allTagsProvider.overrideWith((ref) => Stream.value(allTags)),
@@ -154,6 +162,78 @@ void main() {
       ));
       await tester.pumpAndSettle();
       expect(find.byIcon(Icons.open_in_new), findsOneWidget);
+    });
+  });
+
+  group('DetailScreen — recordatorio HU22', () {
+    testWidgets('muestra sección de recordatorio', (tester) async {
+      await tester.pumpWidget(buildDetailWidget(
+        makeLink(url: 'https://flutter.dev'),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text('Recordatorio'), findsOneWidget);
+    });
+
+    testWidgets('muestra botón para agregar recordatorio cuando no hay remindAt',
+        (tester) async {
+      await tester.pumpWidget(buildDetailWidget(
+        makeLink(url: 'https://flutter.dev'),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text('Agregar recordatorio'), findsOneWidget);
+    });
+
+    testWidgets('muestra la fecha del recordatorio cuando está configurado',
+        (tester) async {
+      final remindAt = DateTime(2026, 12, 25, 9, 0);
+      await tester.pumpWidget(buildDetailWidget(
+        makeLink(url: 'https://flutter.dev', remindAt: remindAt),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text('25/12/2026 09:00'), findsOneWidget);
+    });
+
+    testWidgets('muestra botón para eliminar recordatorio cuando hay remindAt',
+        (tester) async {
+      final remindAt = DateTime(2026, 12, 25, 9, 0);
+      await tester.pumpWidget(buildDetailWidget(
+        makeLink(url: 'https://flutter.dev', remindAt: remindAt),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text('Eliminar recordatorio'), findsOneWidget);
+    });
+
+    testWidgets('tap en eliminar recordatorio llama cancelReminder', (tester) async {
+      final mockService = MockNotificationService();
+      when(() => mockService.cancelReminder(any())).thenAnswer((_) async {});
+
+      final db = createTestDatabase();
+      addTearDown(db.close);
+      final remindAt = DateTime(2026, 12, 25, 9, 0);
+      final id = await db.insertLink(LinksCompanion.insert(
+        url: 'https://flutter.dev',
+        remindAt: Value(remindAt),
+      ));
+
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          notificationServiceProvider.overrideWithValue(mockService),
+          linkTagsProvider(id).overrideWith((ref) => Future.value(<Tag>[])),
+          watchLinkTagsProvider(id)
+              .overrideWith((ref) => Stream.value(<Tag>[])),
+          allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
+        ],
+        child: MaterialApp(
+          home: DetailScreen(link: makeLink(id: id, url: 'https://flutter.dev', remindAt: remindAt)),
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Eliminar recordatorio'));
+      await tester.pump();
+
+      verify(() => mockService.cancelReminder(id)).called(1);
     });
   });
 

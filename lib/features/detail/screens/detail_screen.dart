@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/database/database.dart';
 import '../../../features/capture/providers/capture_provider.dart';
 import '../../../features/capture/services/platform_detector.dart';
+import '../../../features/notifications/providers/notification_provider.dart';
 import '../providers/detail_provider.dart';
 
 class DetailScreen extends ConsumerStatefulWidget {
@@ -33,6 +34,40 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
   void _saveNotes() {
     final notes = _notesController.text.trim().isEmpty ? null : _notesController.text.trim();
     ref.read(databaseProvider).updateLinkNotes(widget.link.id, notes);
+  }
+
+  Future<void> _pickReminder() async {
+    final now = DateTime.now();
+    final date = await showDatePicker(
+      context: context,
+      initialDate: widget.link.remindAt ?? now,
+      firstDate: now,
+      lastDate: DateTime(now.year + 5),
+    );
+    if (date == null || !mounted) return;
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(widget.link.remindAt ?? now),
+    );
+    if (time == null || !mounted) return;
+    final scheduledAt =
+        DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    final title = widget.link.title ?? widget.link.url;
+    await ref
+        .read(linkReminderUseCaseProvider)
+        .schedule(linkId: widget.link.id, title: title, scheduledAt: scheduledAt);
+  }
+
+  Future<void> _clearReminder() async {
+    await ref.read(linkReminderUseCaseProvider).cancel(linkId: widget.link.id);
+  }
+
+  String _formatRemindAt(DateTime dt) {
+    final d = dt.day.toString().padLeft(2, '0');
+    final m = dt.month.toString().padLeft(2, '0');
+    final h = dt.hour.toString().padLeft(2, '0');
+    final min = dt.minute.toString().padLeft(2, '0');
+    return '$d/$m/${dt.year} $h:$min';
   }
 
   @override
@@ -161,6 +196,29 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
               onPressed: _saveNotes,
               child: const Text('Guardar'),
             ),
+            const SizedBox(height: 16),
+            const Text(
+              'Recordatorio',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            if (widget.link.remindAt != null) ...[
+              Text(
+                _formatRemindAt(widget.link.remindAt!),
+                style: const TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.alarm_off, size: 16),
+                label: const Text('Eliminar recordatorio'),
+                onPressed: _clearReminder,
+              ),
+            ] else
+              OutlinedButton.icon(
+                icon: const Icon(Icons.alarm_add, size: 16),
+                label: const Text('Agregar recordatorio'),
+                onPressed: _pickReminder,
+              ),
           ],
         ),
       ),
