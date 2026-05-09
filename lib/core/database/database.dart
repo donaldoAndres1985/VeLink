@@ -25,6 +25,9 @@ class AppDatabase extends _$AppDatabase {
   Stream<List<Link>> watchAllLinks() =>
       (select(links)..orderBy([(l) => OrderingTerm.desc(l.createdAt)])).watch();
 
+  Future<List<Link>> getPriorityLinks() =>
+      (select(links)..where((l) => l.priority.equals(1))).get();
+
   Stream<List<Link>> watchPriorityLinks() =>
       (select(links)..where((l) => l.priority.equals(1))
         ..orderBy([(l) => OrderingTerm.desc(l.createdAt)])).watch();
@@ -47,6 +50,10 @@ class AppDatabase extends _$AppDatabase {
   Future<void> setLinkFavorite(int linkId, bool value) =>
       (update(links)..where((l) => l.id.equals(linkId)))
           .write(LinksCompanion(isFavorite: Value(value)));
+
+  Future<void> setLinkReminder(int linkId, DateTime? remindAt) =>
+      (update(links)..where((l) => l.id.equals(linkId)))
+          .write(LinksCompanion(remindAt: Value(remindAt)));
 
   Future<void> updateLinkNotes(int linkId, String? notes) =>
       (update(links)..where((l) => l.id.equals(linkId)))

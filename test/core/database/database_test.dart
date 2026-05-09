@@ -387,6 +387,39 @@ void main() {
     });
   });
 
+  // ─── LINKS — RECORDATORIO ────────────────────────────────────────────────────
+
+  group('Links — setLinkReminder', () {
+    test('setLinkReminder guarda la fecha en remindAt', () async {
+      final id = await db.insertLink(LinksCompanion.insert(url: 'https://example.com'));
+      final when = DateTime(2026, 6, 1, 10, 0);
+      await db.setLinkReminder(id, when);
+      final links = await db.getAllLinks();
+      expect(links.first.remindAt, when);
+    });
+
+    test('setLinkReminder acepta null para borrar el recordatorio', () async {
+      final id = await db.insertLink(LinksCompanion.insert(url: 'https://example.com'));
+      final when = DateTime(2026, 6, 1, 10, 0);
+      await db.setLinkReminder(id, when);
+      await db.setLinkReminder(id, null);
+      final links = await db.getAllLinks();
+      expect(links.first.remindAt, null);
+    });
+
+    test('setLinkReminder no afecta otros links', () async {
+      final id1 = await db.insertLink(LinksCompanion.insert(url: 'https://uno.com'));
+      await db.insertLink(LinksCompanion.insert(url: 'https://dos.com'));
+      final when = DateTime(2026, 6, 1, 10, 0);
+      await db.setLinkReminder(id1, when);
+      final links = await db.getAllLinks();
+      final uno = links.firstWhere((l) => l.url == 'https://uno.com');
+      final dos = links.firstWhere((l) => l.url == 'https://dos.com');
+      expect(uno.remindAt, when);
+      expect(dos.remindAt, null);
+    });
+  });
+
   // ─── TAGS — GET ALL ──────────────────────────────────────────────────────────
 
   group('Tags — getAllTags', () {

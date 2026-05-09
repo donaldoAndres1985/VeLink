@@ -8,6 +8,8 @@ import '../features/saved/screens/saved_screen.dart';
 import '../features/priority/screens/priority_screen.dart';
 import '../features/search/screens/search_screen.dart';
 import '../features/tags/screens/tags_screen.dart';
+import '../core/database/database.dart';
+import '../features/notifications/providers/notification_provider.dart';
 
 class VeLinkApp extends StatelessWidget {
   const VeLinkApp({super.key});
@@ -34,6 +36,21 @@ class MainShell extends ConsumerStatefulWidget {
 
 class _MainShellState extends ConsumerState<MainShell> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(_checkPriorityLinks);
+  }
+
+  Future<void> _checkPriorityLinks() async {
+    final db = ref.read(databaseProvider);
+    final service = ref.read(notificationServiceProvider);
+    final links = await db.getPriorityLinks();
+    if (links.isNotEmpty && mounted) {
+      await service.showPriorityLinksNotification(links.length);
+    }
+  }
 
   final _screens = const [
     HomeScreen(),
