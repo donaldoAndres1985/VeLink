@@ -7,6 +7,10 @@ import '../services/capture_service.dart';
 import '../services/metadata_service.dart';
 import '../services/platform_detector.dart';
 
+class DuplicateUrlException implements Exception {
+  const DuplicateUrlException();
+}
+
 class CaptureState {
   final String? pendingUrl;
   final bool isSaving;
@@ -14,6 +18,7 @@ class CaptureState {
   final OgMetadata? metadata;
   final Set<int> selectedTagIds;
   final bool isPriority;
+  final String? manualTitle;
 
   CaptureState({
     this.pendingUrl,
@@ -22,6 +27,7 @@ class CaptureState {
     this.metadata,
     Set<int>? selectedTagIds,
     this.isPriority = false,
+    this.manualTitle,
   }) : selectedTagIds = selectedTagIds ?? {};
 
   CaptureState copyWith({
@@ -31,8 +37,10 @@ class CaptureState {
     OgMetadata? metadata,
     Set<int>? selectedTagIds,
     bool? isPriority,
+    String? manualTitle,
     bool clearUrl = false,
     bool clearMetadata = false,
+    bool clearManualTitle = false,
   }) =>
       CaptureState(
         pendingUrl: clearUrl ? null : (pendingUrl ?? this.pendingUrl),
@@ -41,6 +49,7 @@ class CaptureState {
         metadata: clearMetadata ? null : (metadata ?? this.metadata),
         selectedTagIds: selectedTagIds ?? Set.from(this.selectedTagIds),
         isPriority: isPriority ?? this.isPriority,
+        manualTitle: clearManualTitle ? null : (manualTitle ?? this.manualTitle),
       );
 }
 
@@ -64,6 +73,15 @@ class CaptureNotifier extends StateNotifier<CaptureState> {
   }
 
   void setUrl(String url) => state = state.copyWith(pendingUrl: url);
+
+  void setTitle(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      state = state.copyWith(clearManualTitle: true);
+    } else {
+      state = state.copyWith(manualTitle: trimmed);
+    }
+  }
 
   Future<void> fetchMetadata(String url) async {
     state = state.copyWith(isFetchingMetadata: true);
@@ -91,11 +109,14 @@ class CaptureNotifier extends StateNotifier<CaptureState> {
   Future<void> saveLink() async {
     final url = state.pendingUrl;
     if (url == null) return;
+    final existing = await _db.getLinkByUrl(url);
+    if (existing != null) throw const DuplicateUrlException();
     state = state.copyWith(isSaving: true);
     final platform = PlatformDetector.detect(url);
+    final effectiveTitle = state.manualTitle ?? state.metadata?.title;
     final linkId = await _db.insertLink(LinksCompanion(
       url: Value(url),
-      title: Value(state.metadata?.title),
+      title: Value(effectiveTitle),
       description: Value(state.metadata?.description),
       previewImageUrl: Value(state.metadata?.imageUrl),
       platform: Value(platform.name),

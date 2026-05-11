@@ -55,7 +55,14 @@ void main() {
         metadataService: MockMetadataService(result: mockMeta),
       ));
       await tester.pumpAndSettle();
-      expect(find.text('Flutter — Beautiful UI toolkit'), findsOneWidget);
+      // El título se pre-llena en el TextField de título
+      final titleField = tester.widget<EditableText>(
+        find.descendant(
+          of: find.byKey(const Key('title_field')),
+          matching: find.byType(EditableText),
+        ),
+      );
+      expect(titleField.controller.text, 'Flutter — Beautiful UI toolkit');
     });
 
     testWidgets('muestra la descripcion cuando la metadata está disponible', (tester) async {
@@ -175,7 +182,7 @@ void main() {
       await tester.tap(find.byIcon(Icons.add));
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.byType(TextField), 'nuevo-tag');
+      await tester.enterText(find.byKey(const Key('tag_name_field')), 'nuevo-tag');
       await tester.tap(find.text('Crear'));
       await tester.pumpAndSettle();
 

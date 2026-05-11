@@ -286,6 +286,58 @@ void main() {
     });
   });
 
+  group('CaptureProvider — setTitle', () {
+    test('actualiza manualTitle con el texto proporcionado', () {
+      final container = createCaptureContainer();
+      container.read(captureProvider.notifier).setTitle('Mi título');
+      expect(container.read(captureProvider).manualTitle, 'Mi título');
+    });
+
+    test('establece manualTitle en null cuando el texto está vacío', () {
+      final container = createCaptureContainer();
+      container.read(captureProvider.notifier).setTitle('algo');
+      container.read(captureProvider.notifier).setTitle('');
+      expect(container.read(captureProvider).manualTitle, isNull);
+    });
+  });
+
+  group('CaptureProvider — saveLink con manualTitle', () {
+    test('usa manualTitle cuando está disponible', () async {
+      final db = createTestDatabase();
+      final container = ProviderContainer(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          captureServiceProvider.overrideWithValue(MockCaptureService()),
+          metadataServiceProvider.overrideWithValue(MockMetadataService()),
+        ],
+      );
+      container.read(captureProvider.notifier).setUrl('https://example.com');
+      container.read(captureProvider.notifier).setTitle('Título manual');
+      await container.read(captureProvider.notifier).saveLink();
+      final links = await db.getAllLinks();
+      expect(links.first.title, 'Título manual');
+    });
+
+    test('lanza DuplicateUrlException si la URL ya existe', () async {
+      final db = createTestDatabase();
+      await db.insertLink(LinksCompanion.insert(url: 'https://example.com'));
+      final container = ProviderContainer(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          captureServiceProvider.overrideWithValue(MockCaptureService()),
+          metadataServiceProvider.overrideWithValue(MockMetadataService()),
+        ],
+      );
+      container.read(captureProvider.notifier).setUrl('https://example.com');
+      await expectLater(
+        container.read(captureProvider.notifier).saveLink(),
+        throwsA(isA<DuplicateUrlException>()),
+      );
+      final links = await db.getAllLinks();
+      expect(links.length, 1);
+    });
+  });
+
   group('CaptureProvider — createTag', () {
     test('inserta un nuevo tag en la base de datos', () async {
       final db = createTestDatabase();

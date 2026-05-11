@@ -138,9 +138,11 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
+      await tester.ensureVisible(find.byType(TextField));
       await tester.enterText(find.byType(TextField), 'Nueva nota');
+      await tester.ensureVisible(find.text('Guardar'));
       await tester.tap(find.text('Guardar'));
-      await tester.pumpAndSettle();
+      await tester.pump();
 
       final links = await db.getAllLinks();
       expect(links.first.notes, 'Nueva nota');
@@ -230,6 +232,7 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
+      await tester.ensureVisible(find.text('Eliminar recordatorio'));
       await tester.tap(find.text('Eliminar recordatorio'));
       await tester.pump();
 

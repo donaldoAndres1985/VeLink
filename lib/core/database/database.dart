@@ -36,6 +36,9 @@ class AppDatabase extends _$AppDatabase {
       (select(links)..where((l) => l.isFavorite.equals(true))
         ..orderBy([(l) => OrderingTerm.desc(l.createdAt)])).watch();
 
+  Future<Link?> getLinkByUrl(String url) =>
+      (select(links)..where((l) => l.url.equals(url))).getSingleOrNull();
+
   Future<int> insertLink(LinksCompanion link) => into(links).insert(link);
 
   Future<bool> updateLink(LinksCompanion link) => update(links).replace(link);
@@ -128,6 +131,6 @@ LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
     final file = File(p.join(dbFolder.path, 'velink.db'));
-    return NativeDatabase.createInBackground(file);
+    return NativeDatabase(file);
   });
 }

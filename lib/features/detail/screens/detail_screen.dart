@@ -62,6 +62,19 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
     await ref.read(linkReminderUseCaseProvider).cancel(linkId: widget.link.id);
   }
 
+  Widget _buildImagePlaceholder(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: 180,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: Icon(
+        Icons.image_outlined,
+        size: 48,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+    );
+  }
+
   String _formatRemindAt(DateTime dt) {
     final d = dt.day.toString().padLeft(2, '0');
     final m = dt.month.toString().padLeft(2, '0');
@@ -83,17 +96,18 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (widget.link.previewImageUrl != null)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  widget.link.previewImageUrl!,
-                  width: double.infinity,
-                  height: 180,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                ),
-              ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: widget.link.previewImageUrl != null
+                  ? Image.network(
+                      widget.link.previewImageUrl!,
+                      width: double.infinity,
+                      height: 180,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _buildImagePlaceholder(context),
+                    )
+                  : _buildImagePlaceholder(context),
+            ),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -110,13 +124,13 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            if (widget.link.title != null) ...[
-              Text(
-                widget.link.title!,
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
-              ),
-              const SizedBox(height: 6),
-            ],
+            Text(
+              widget.link.title ??
+                  Uri.tryParse(widget.link.url)?.host ??
+                  widget.link.url,
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+            ),
+            const SizedBox(height: 6),
             Row(
               children: [
                 Expanded(

@@ -32,13 +32,12 @@ class LinkCard extends ConsumerWidget {
                   children: [
                     _buildPlatformBadge(platformInfo),
                     const SizedBox(height: 4),
-                    if (link.title != null)
-                      Text(
-                        link.title!,
-                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                    Text(
+                      link.title ?? Uri.tryParse(link.url)?.host ?? link.url,
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     const SizedBox(height: 2),
                     Text(
                       link.url,

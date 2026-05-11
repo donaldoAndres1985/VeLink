@@ -6,7 +6,6 @@ import '../features/capture/screens/capture_screen.dart';
 import '../features/home/screens/home_screen.dart';
 import '../features/saved/screens/saved_screen.dart';
 import '../features/priority/screens/priority_screen.dart';
-import '../features/search/screens/search_screen.dart';
 import '../features/tags/screens/tags_screen.dart';
 import '../core/database/database.dart';
 import '../features/notifications/providers/notification_provider.dart';
@@ -56,7 +55,6 @@ class _MainShellState extends ConsumerState<MainShell> {
     HomeScreen(),
     SavedScreen(),
     PriorityScreen(),
-    SearchScreen(),
     TagsScreen(),
   ];
 
@@ -82,7 +80,6 @@ class _MainShellState extends ConsumerState<MainShell> {
           BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(icon: Icon(Icons.bookmark_outline), activeIcon: Icon(Icons.bookmark), label: 'Guardados'),
           BottomNavigationBarItem(icon: Icon(Icons.star_outline), activeIcon: Icon(Icons.star), label: 'Prioritarios'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Buscar'),
           BottomNavigationBarItem(icon: Icon(Icons.label_outline), activeIcon: Icon(Icons.label), label: 'Etiquetas'),
         ],
       ),

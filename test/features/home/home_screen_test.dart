@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
 import 'package:velink/features/home/providers/home_provider.dart';
 import 'package:velink/features/home/screens/home_screen.dart';
+import 'package:velink/features/search/providers/search_provider.dart';
 import '../../helpers/database_helper.dart';
 import '../../helpers/link_factory.dart';
 
@@ -77,6 +78,40 @@ void main() {
       ));
       await tester.pumpAndSettle();
       expect(find.byIcon(Icons.link), findsWidgets);
+    });
+  });
+
+  group('HomeScreen — búsqueda', () {
+    testWidgets('muestra campo de búsqueda', (tester) async {
+      await tester.pumpWidget(buildHomeWidget());
+      await tester.pumpAndSettle();
+      expect(find.byType(TextField), findsOneWidget);
+    });
+
+    testWidgets('filtra links al escribir en búsqueda', (tester) async {
+      final link1 = makeLink(url: 'https://flutter.dev', id: 1);
+      final link2 = makeLink(url: 'https://dart.dev', id: 2);
+      final db = createTestDatabase();
+      addTearDown(db.close);
+
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          recentLinksProvider.overrideWith((_) => Stream.value([link1, link2])),
+          searchResultsProvider.overrideWith((_) async => [link1]),
+        ],
+        child: const MaterialApp(home: HomeScreen()),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.text('https://flutter.dev'), findsOneWidget);
+      expect(find.text('https://dart.dev'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), 'flutter');
+      await tester.pumpAndSettle();
+
+      expect(find.text('https://flutter.dev'), findsOneWidget);
+      expect(find.text('https://dart.dev'), findsNothing);
     });
   });
 

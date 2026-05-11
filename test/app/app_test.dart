@@ -62,7 +62,7 @@ void main() {
       expect(find.byType(BottomNavigationBar), findsOneWidget);
       final bar = tester.widget<BottomNavigationBar>(
           find.byType(BottomNavigationBar));
-      expect(bar.items.length, 5);
+      expect(bar.items.length, 4);
     });
   });
 

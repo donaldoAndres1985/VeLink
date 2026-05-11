@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
 import '../../helpers/database_helper.dart';
@@ -72,6 +72,22 @@ void main() {
       ));
       final updated = await db.getAllLinks();
       expect(updated.first.isFavorite, true);
+    });
+  });
+
+  // ─── LINKS — getLinkByUrl ────────────────────────────────────────────────────
+
+  group('Links — getLinkByUrl', () {
+    test('retorna null si la URL no existe', () async {
+      final link = await db.getLinkByUrl('https://example.com');
+      expect(link, isNull);
+    });
+
+    test('retorna el link si la URL existe', () async {
+      await db.insertLink(LinksCompanion.insert(url: 'https://flutter.dev'));
+      final link = await db.getLinkByUrl('https://flutter.dev');
+      expect(link, isNotNull);
+      expect(link!.url, 'https://flutter.dev');
     });
   });
 

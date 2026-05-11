@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/og_metadata.dart';
 import '../providers/capture_provider.dart';
 import '../services/platform_detector.dart';
 
@@ -13,12 +14,21 @@ class CaptureScreen extends ConsumerStatefulWidget {
 }
 
 class _CaptureScreenState extends ConsumerState<CaptureScreen> {
+  late final TextEditingController _titleController;
+
   @override
   void initState() {
     super.initState();
+    _titleController = TextEditingController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) ref.read(captureProvider.notifier).fetchMetadata(widget.url);
     });
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    super.dispose();
   }
 
   @override
@@ -26,6 +36,18 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     final state = ref.watch(captureProvider);
     final tagsAsync = ref.watch(allTagsProvider);
     final platformInfo = PlatformInfo.forPlatform(PlatformDetector.detect(widget.url));
+
+    // Pre-llenar el título con el metadata cuando llega (si el usuario no ha escrito nada)
+    ref.listen<OgMetadata?>(
+      captureProvider.select((s) => s.metadata),
+      (prev, next) {
+        if (next?.title != null && _titleController.text.isEmpty) {
+          _titleController.text = next!.title!;
+          _titleController.selection =
+              TextSelection.collapsed(offset: next.title!.length);
+        }
+      },
+    );
 
     return Scaffold(
       appBar: AppBar(title: const Text('Guardar link')),
@@ -37,16 +59,20 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
             _buildPreview(context, state.isFetchingMetadata, state.metadata?.imageUrl),
             const SizedBox(height: 12),
             _buildPlatformBadge(platformInfo),
-            const SizedBox(height: 8),
-            if (state.metadata?.title != null)
-              Text(
-                state.metadata!.title!,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+            const SizedBox(height: 12),
+            TextField(
+              key: const Key('title_field'),
+              controller: _titleController,
+              decoration: const InputDecoration(
+                labelText: 'Título',
+                hintText: 'Ingresa el título...',
+                border: OutlineInputBorder(),
               ),
+              maxLines: 2,
+              onChanged: (value) => ref.read(captureProvider.notifier).setTitle(value),
+            ),
             if (state.metadata?.description != null) ...[
-              const SizedBox(height: 4),
+              const SizedBox(height: 8),
               Text(
                 state.metadata!.description!,
                 style: TextStyle(
@@ -92,8 +118,18 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                         ? null
                         : () async {
                             ref.read(captureProvider.notifier).setUrl(widget.url);
-                            await ref.read(captureProvider.notifier).saveLink();
-                            if (context.mounted) Navigator.pop(context);
+                            try {
+                              await ref.read(captureProvider.notifier).saveLink();
+                              if (context.mounted) Navigator.pop(context);
+                            } on DuplicateUrlException {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Este link ya está guardado'),
+                                  ),
+                                );
+                              }
+                            }
                           },
                     child: state.isSaving
                         ? const SizedBox(
@@ -188,6 +224,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
       builder: (_) => AlertDialog(
         title: const Text('Nuevo tag'),
         content: TextField(
+          key: const Key('tag_name_field'),
           controller: controller,
           autofocus: true,
           decoration: const InputDecoration(hintText: 'Nombre del tag'),
