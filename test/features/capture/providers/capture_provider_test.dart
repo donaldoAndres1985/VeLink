@@ -53,6 +53,31 @@ void main() {
     });
   });
 
+  group('CaptureProvider — título del intent', () {
+    test('recibe título del titleStream del servicio', () async {
+      final mock = MockCaptureService();
+      final container = createCaptureContainer(service: mock);
+      container.read(captureProvider);
+
+      mock.emitTitle('Título desde el intent de Facebook');
+      await Future.microtask(() {});
+
+      expect(container.read(captureProvider).manualTitle,
+          'Título desde el intent de Facebook');
+    });
+
+    test('título vacío del stream no sobreescribe el estado', () async {
+      final mock = MockCaptureService();
+      final container = createCaptureContainer(service: mock);
+      container.read(captureProvider.notifier).setTitle('Título manual');
+
+      mock.emitTitle('');
+      await Future.microtask(() {});
+
+      expect(container.read(captureProvider).manualTitle, 'Título manual');
+    });
+  });
+
   group('CaptureProvider — fetchMetadata', () {
     test('actualiza metadata y desactiva isFetchingMetadata al terminar', () async {
       final mockMeta = OgMetadata(

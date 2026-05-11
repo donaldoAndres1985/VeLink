@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/database/database.dart';
@@ -17,23 +18,53 @@ class DetailScreen extends ConsumerStatefulWidget {
 }
 
 class _DetailScreenState extends ConsumerState<DetailScreen> {
+  late final TextEditingController _titleController;
   late final TextEditingController _notesController;
+  late final FocusNode _titleFocusNode;
 
   @override
   void initState() {
     super.initState();
-    _notesController = TextEditingController(text: widget.link.notes ?? '');
+    _titleController =
+        TextEditingController(text: widget.link.title ?? '');
+    _notesController =
+        TextEditingController(text: widget.link.notes ?? '');
+    _titleFocusNode = FocusNode();
+    _titleFocusNode.addListener(() {
+      if (!_titleFocusNode.hasFocus) _saveTitle();
+    });
   }
 
   @override
   void dispose() {
+    _titleFocusNode.dispose();
+    _titleController.dispose();
     _notesController.dispose();
     super.dispose();
   }
 
+  void _saveTitle() {
+    final title = _titleController.text.trim().isEmpty
+        ? null
+        : _titleController.text.trim();
+    ref.read(databaseProvider).updateLinkTitle(widget.link.id, title);
+  }
+
   void _saveNotes() {
-    final notes = _notesController.text.trim().isEmpty ? null : _notesController.text.trim();
+    final notes = _notesController.text.trim().isEmpty
+        ? null
+        : _notesController.text.trim();
     ref.read(databaseProvider).updateLinkNotes(widget.link.id, notes);
+  }
+
+  void _copyUrl() {
+    Clipboard.setData(ClipboardData(text: widget.link.url));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('URL copiada'),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   Future<void> _pickReminder() async {
@@ -62,19 +93,6 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
     await ref.read(linkReminderUseCaseProvider).cancel(linkId: widget.link.id);
   }
 
-  Widget _buildImagePlaceholder(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: 180,
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: Icon(
-        Icons.image_outlined,
-        size: 48,
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
-    );
-  }
-
   String _formatRemindAt(DateTime dt) {
     final d = dt.day.toString().padLeft(2, '0');
     final m = dt.month.toString().padLeft(2, '0');
@@ -83,158 +101,408 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
     return '$d/$m/${dt.year} $h:$min';
   }
 
+  String _formatCreatedAt(DateTime dt) {
+    const months = [
+      '', 'ene', 'feb', 'mar', 'abr', 'may',
+      'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic',
+    ];
+    return '${dt.day} ${months[dt.month]} ${dt.year}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final tagsAsync = ref.watch(watchLinkTagsProvider(widget.link.id));
     final allTagsAsync = ref.watch(allTagsProvider);
-    final platformInfo = PlatformInfo.forPlatform(PlatformDetector.detect(widget.link.url));
+    final platformInfo =
+        PlatformInfo.forPlatform(PlatformDetector.detect(widget.link.url));
+    final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Detalle')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: widget.link.previewImageUrl != null
-                  ? Image.network(
-                      widget.link.previewImageUrl!,
-                      width: double.infinity,
-                      height: 180,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _buildImagePlaceholder(context),
-                    )
-                  : _buildImagePlaceholder(context),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Icon(platformInfo.icon, size: 16, color: platformInfo.color),
-                const SizedBox(width: 6),
-                Text(
-                  platformInfo.label,
-                  style: TextStyle(
-                    color: platformInfo.color,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              widget.link.title ??
-                  Uri.tryParse(widget.link.url)?.host ??
-                  widget.link.url,
-              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
-            ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    widget.link.url,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-                TextButton.icon(
-                  icon: const Icon(Icons.open_in_new, size: 16),
-                  label: const Text('Abrir'),
-                  onPressed: () => launchUrl(
-                    Uri.parse(widget.link.url),
-                    mode: LaunchMode.externalApplication,
-                  ),
-                ),
-              ],
-            ),
-            if (widget.link.description != null) ...[
-              const SizedBox(height: 10),
-              Text(widget.link.description!, style: const TextStyle(fontSize: 14)),
+      appBar: AppBar(
+        title: const Text('Detalle'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.more_vert),
+            onPressed: () {},
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildLinkCard(context, platformInfo, theme),
+              const SizedBox(height: 20),
+              _buildTagsSection(context, tagsAsync, allTagsAsync, theme),
+              const SizedBox(height: 20),
+              _buildNotesSection(context, theme),
+              const SizedBox(height: 20),
+              _buildReminderSection(context, theme),
+              const SizedBox(height: 20),
+              _buildInfoSection(platformInfo, theme),
             ],
-            const SizedBox(height: 16),
-            const Text(
-              'Etiquetas',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-            ),
-            const SizedBox(height: 8),
-            allTagsAsync.when(
-              data: (allTags) => allTags.isEmpty
-                  ? const Text('Sin etiquetas', style: TextStyle(fontSize: 13))
-                  : tagsAsync.when(
-                      data: (linkTags) {
-                        final linkTagIds = linkTags.map((t) => t.id).toSet();
-                        return Wrap(
-                          spacing: 8,
-                          children: allTags
-                              .map((tag) => FilterChip(
-                                    label: Text(tag.name),
-                                    selected: linkTagIds.contains(tag.id),
-                                    onSelected: (selected) {
-                                      if (selected) {
-                                        ref.read(databaseProvider).addTagToLink(widget.link.id, tag.id);
-                                      } else {
-                                        ref.read(databaseProvider).removeTagFromLink(widget.link.id, tag.id);
-                                      }
-                                    },
-                                  ))
-                              .toList(),
-                        );
-                      },
-                      loading: () => const SizedBox.shrink(),
-                      error: (_, __) => const SizedBox.shrink(),
-                    ),
-              loading: () => const SizedBox.shrink(),
-              error: (_, __) => const SizedBox.shrink(),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Notas',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _notesController,
-              maxLines: 5,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Escribe tus notas aquí...',
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLinkCard(
+    BuildContext context,
+    PlatformInfo platformInfo,
+    ThemeData theme,
+  ) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.link.previewImageUrl != null)
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(12)),
+              child: Image.network(
+                widget.link.previewImageUrl!,
+                width: double.infinity,
+                height: 120,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
               ),
             ),
-            const SizedBox(height: 8),
-            ElevatedButton(
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(platformInfo.icon, size: 13, color: platformInfo.color),
+                    const SizedBox(width: 4),
+                    Text(
+                      platformInfo.label,
+                      style: TextStyle(
+                        color: platformInfo.color,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                TextField(
+                  key: const Key('title_field'),
+                  controller: _titleController,
+                  focusNode: _titleFocusNode,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 17,
+                  ),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                    isDense: true,
+                    hintText: 'Sin título',
+                  ),
+                  maxLines: 3,
+                  minLines: 1,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _saveTitle(),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  widget.link.url,
+                  style: TextStyle(
+                    color: theme.colorScheme.primary,
+                    fontSize: 12,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (widget.link.description != null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    widget.link.description!,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    FilledButton.icon(
+                      icon: const Icon(Icons.open_in_new, size: 15),
+                      label: const Text('Abrir'),
+                      onPressed: () => launchUrl(
+                        Uri.parse(widget.link.url),
+                        mode: LaunchMode.externalApplication,
+                      ),
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 8),
+                        textStyle: const TextStyle(fontSize: 13),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.copy_outlined, size: 15),
+                      label: const Text('Copiar'),
+                      onPressed: _copyUrl,
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 8),
+                        textStyle: const TextStyle(fontSize: 13),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTagsSection(
+    BuildContext context,
+    AsyncValue<List<Tag>> tagsAsync,
+    AsyncValue<List<Tag>> allTagsAsync,
+    ThemeData theme,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Etiquetas',
+          style: theme.textTheme.titleSmall
+              ?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        allTagsAsync.when(
+          data: (allTags) => allTags.isEmpty
+              ? Text(
+                  'Sin etiquetas',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                )
+              : tagsAsync.when(
+                  data: (linkTags) {
+                    final linkTagIds = linkTags.map((t) => t.id).toSet();
+                    return Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: allTags
+                          .map((tag) => FilterChip(
+                                label: Text(
+                                  tag.name,
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                                selected: linkTagIds.contains(tag.id),
+                                onSelected: (selected) {
+                                  if (selected) {
+                                    ref
+                                        .read(databaseProvider)
+                                        .addTagToLink(widget.link.id, tag.id);
+                                  } else {
+                                    ref
+                                        .read(databaseProvider)
+                                        .removeTagFromLink(
+                                            widget.link.id, tag.id);
+                                  }
+                                },
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 4),
+                                visualDensity: VisualDensity.compact,
+                              ))
+                          .toList(),
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                ),
+          loading: () => const SizedBox.shrink(),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNotesSection(BuildContext context, ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Notas',
+              style: theme.textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            TextButton(
               onPressed: _saveNotes,
+              style: TextButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
               child: const Text('Guardar'),
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'Recordatorio',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-            ),
-            const SizedBox(height: 8),
-            if (widget.link.remindAt != null) ...[
-              Text(
-                _formatRemindAt(widget.link.remindAt!),
-                style: const TextStyle(fontSize: 14),
-              ),
-              const SizedBox(height: 8),
-              OutlinedButton.icon(
-                icon: const Icon(Icons.alarm_off, size: 16),
-                label: const Text('Eliminar recordatorio'),
-                onPressed: _clearReminder,
-              ),
-            ] else
-              OutlinedButton.icon(
-                icon: const Icon(Icons.alarm_add, size: 16),
-                label: const Text('Agregar recordatorio'),
-                onPressed: _pickReminder,
-              ),
           ],
         ),
+        const SizedBox(height: 6),
+        TextField(
+          key: const Key('notes_field'),
+          controller: _notesController,
+          maxLines: null,
+          minLines: 3,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            hintText: 'Escribe una nota sobre este link...',
+            contentPadding: const EdgeInsets.all(12),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildReminderSection(BuildContext context, ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Recordatorio',
+          style: theme.textTheme.titleSmall
+              ?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: theme.colorScheme.outlineVariant),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: widget.link.remindAt != null
+              ? _buildReminderActive(theme)
+              : _buildReminderEmpty(theme),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildReminderActive(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(
+        children: [
+          Icon(Icons.alarm, size: 18, color: theme.colorScheme.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              _formatRemindAt(widget.link.remindAt!),
+              style: const TextStyle(fontSize: 14),
+            ),
+          ),
+          TextButton(
+            onPressed: _clearReminder,
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: const Text(
+              'Eliminar recordatorio',
+              style: TextStyle(fontSize: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReminderEmpty(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(
+        children: [
+          Icon(
+            Icons.alarm_outlined,
+            size: 18,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Sin recordatorio configurado',
+              style: TextStyle(
+                fontSize: 14,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          TextButton.icon(
+            icon: const Icon(Icons.add, size: 15),
+            label: const Text(
+              'Agregar recordatorio',
+              style: TextStyle(fontSize: 12),
+            ),
+            onPressed: _pickReminder,
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoSection(PlatformInfo platformInfo, ThemeData theme) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Row(
+        children: [
+          Icon(
+            platformInfo.icon,
+            size: 14,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              '${platformInfo.label} · Guardado el ${_formatCreatedAt(widget.link.createdAt)}',
+              style: TextStyle(
+                fontSize: 12,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -58,6 +58,10 @@ class AppDatabase extends _$AppDatabase {
       (update(links)..where((l) => l.id.equals(linkId)))
           .write(LinksCompanion(remindAt: Value(remindAt)));
 
+  Future<void> updateLinkTitle(int linkId, String? title) =>
+      (update(links)..where((l) => l.id.equals(linkId)))
+          .write(LinksCompanion(title: Value(title)));
+
   Future<void> updateLinkNotes(int linkId, String? notes) =>
       (update(links)..where((l) => l.id.equals(linkId)))
           .write(LinksCompanion(notes: Value(notes)));

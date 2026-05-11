@@ -360,6 +360,40 @@ void main() {
       expect(links.first.notes, null);
     });
 
+  // ─── LINKS — updateLinkTitle ──────────────────────────────────────────────────
+
+  group('Links — updateLinkTitle', () {
+    test('actualiza el título del link', () async {
+      final id = await db.insertLink(LinksCompanion.insert(
+        url: 'https://example.com',
+        title: const Value('Título viejo'),
+      ));
+      await db.updateLinkTitle(id, 'Título nuevo');
+      final links = await db.getAllLinks();
+      expect(links.first.title, 'Título nuevo');
+    });
+
+    test('acepta null para borrar el título', () async {
+      final id = await db.insertLink(LinksCompanion.insert(
+        url: 'https://example.com',
+        title: const Value('Título'),
+      ));
+      await db.updateLinkTitle(id, null);
+      final links = await db.getAllLinks();
+      expect(links.first.title, null);
+    });
+
+    test('no afecta otros campos del link', () async {
+      final id = await db.insertLink(LinksCompanion.insert(
+        url: 'https://example.com',
+        notes: const Value('Nota existente'),
+      ));
+      await db.updateLinkTitle(id, 'Nuevo título');
+      final links = await db.getAllLinks();
+      expect(links.first.notes, 'Nota existente');
+    });
+  });
+
     test('updateLinkNotes no afecta otros campos del link', () async {
       final id = await db.insertLink(LinksCompanion.insert(
         url: 'https://example.com',

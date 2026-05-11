@@ -105,6 +105,48 @@ void main() {
     });
   });
 
+  group('DetailScreen — título editable', () {
+    testWidgets('muestra el título en un campo editable', (tester) async {
+      await tester.pumpWidget(buildDetailWidget(
+        makeLink(url: 'https://flutter.dev', title: 'Flutter Docs'),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('title_field')), findsOneWidget);
+      expect(find.text('Flutter Docs'), findsOneWidget);
+    });
+
+    testWidgets('guardar título actualiza la DB al perder el foco', (tester) async {
+      final db = createTestDatabase();
+      addTearDown(db.close);
+      final id = await db.insertLink(LinksCompanion.insert(
+        url: 'https://flutter.dev',
+        title: const Value('Título viejo'),
+      ));
+
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          linkTagsProvider(id).overrideWith((ref) => Future.value(<Tag>[])),
+          watchLinkTagsProvider(id).overrideWith((ref) => Stream.value(<Tag>[])),
+          allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
+        ],
+        child: MaterialApp(
+          home: DetailScreen(
+              link: makeLink(id: id, url: 'https://flutter.dev', title: 'Título viejo')),
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.byKey(const Key('title_field')));
+      await tester.enterText(find.byKey(const Key('title_field')), 'Título nuevo');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+
+      final links = await db.getAllLinks();
+      expect(links.first.title, 'Título nuevo');
+    });
+  });
+
   group('DetailScreen — notas', () {
     testWidgets('muestra notas existentes del link', (tester) async {
       await tester.pumpWidget(buildDetailWidget(
@@ -119,7 +161,7 @@ void main() {
         makeLink(url: 'https://flutter.dev'),
       ));
       await tester.pumpAndSettle();
-      expect(find.byType(TextField), findsOneWidget);
+      expect(find.byKey(const Key('notes_field')), findsOneWidget);
     });
 
     testWidgets('guardar nota llama updateLinkNotes en DB', (tester) async {
@@ -138,8 +180,8 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      await tester.ensureVisible(find.byType(TextField));
-      await tester.enterText(find.byType(TextField), 'Nueva nota');
+      await tester.ensureVisible(find.byKey(const Key('notes_field')));
+      await tester.enterText(find.byKey(const Key('notes_field')), 'Nueva nota');
       await tester.ensureVisible(find.text('Guardar'));
       await tester.tap(find.text('Guardar'));
       await tester.pump();

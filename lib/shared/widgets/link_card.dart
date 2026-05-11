@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/database/database.dart';
 import '../../features/capture/services/platform_detector.dart';
 import '../../features/detail/screens/detail_screen.dart';
 
 class LinkCard extends ConsumerWidget {
   final Link link;
+  final bool showOpenButton;
 
-  const LinkCard({super.key, required this.link});
+  const LinkCard({super.key, required this.link, this.showOpenButton = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -51,15 +53,24 @@ class LinkCard extends ConsumerWidget {
                   ],
                 ),
               ),
-              IconButton(
-                icon: Icon(
-                  link.isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: link.isFavorite ? Colors.red : null,
+              if (showOpenButton)
+                IconButton(
+                  icon: const Icon(Icons.open_in_new),
+                  onPressed: () => launchUrl(
+                    Uri.parse(link.url),
+                    mode: LaunchMode.externalApplication,
+                  ),
+                )
+              else
+                IconButton(
+                  icon: Icon(
+                    link.isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: link.isFavorite ? Colors.red : null,
+                  ),
+                  onPressed: () => ref
+                      .read(databaseProvider)
+                      .setLinkFavorite(link.id, !link.isFavorite),
                 ),
-                onPressed: () => ref
-                    .read(databaseProvider)
-                    .setLinkFavorite(link.id, !link.isFavorite),
-              ),
               IconButton(
                 icon: Icon(
                   link.priority == 1 ? Icons.star : Icons.star_outline,

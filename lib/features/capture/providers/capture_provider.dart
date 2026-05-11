@@ -58,6 +58,7 @@ class CaptureNotifier extends StateNotifier<CaptureState> {
   final CaptureService _service;
   final MetadataService _metadataService;
   StreamSubscription<String?>? _sub;
+  StreamSubscription<String?>? _titleSub;
 
   CaptureNotifier(this._db, this._service, this._metadataService)
       : super(CaptureState()) {
@@ -68,8 +69,13 @@ class CaptureNotifier extends StateNotifier<CaptureState> {
     _sub = _service.urlStream.listen((url) {
       if (url != null && url.isNotEmpty) setUrl(url);
     });
+    _titleSub = _service.titleStream.listen((title) {
+      if (title != null && title.isNotEmpty) setTitle(title);
+    });
     final initial = await _service.getInitialUrl();
     if (initial != null && initial.isNotEmpty) setUrl(initial);
+    final initialTitle = await _service.getInitialTitle();
+    if (initialTitle != null && initialTitle.isNotEmpty) setTitle(initialTitle);
   }
 
   void setUrl(String url) => state = state.copyWith(pendingUrl: url);
@@ -137,6 +143,7 @@ class CaptureNotifier extends StateNotifier<CaptureState> {
   @override
   void dispose() {
     _sub?.cancel();
+    _titleSub?.cancel();
     super.dispose();
   }
 }

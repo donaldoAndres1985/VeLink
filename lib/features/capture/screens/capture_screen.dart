@@ -51,7 +51,8 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Guardar link')),
-      body: SingleChildScrollView(
+      body: SafeArea(
+        child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -144,6 +145,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
