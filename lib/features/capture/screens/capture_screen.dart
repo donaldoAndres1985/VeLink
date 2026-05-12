@@ -97,7 +97,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
             const SizedBox(height: 20),
             _buildTagsSection(context, state, tagsAsync),
             const SizedBox(height: 16),
-            _buildPriorityRow(context, state),
+            _buildFavoriteRow(context, state),
             const SizedBox(height: 24),
             Row(
               children: [
@@ -197,28 +197,28 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     );
   }
 
-  Widget _buildPriorityRow(BuildContext context, CaptureState state) {
+  Widget _buildFavoriteRow(BuildContext context, CaptureState state) {
     return Row(
       children: [
         Icon(
           Icons.star_outline,
           size: 20,
-          color: state.isPriority
+          color: state.isFavorite
               ? Colors.amber
               : Theme.of(context).colorScheme.onSurfaceVariant,
         ),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
-            'Marcar como prioritario',
+            'Marcar como favorito',
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
         ),
         Switch(
-          value: state.isPriority,
-          onChanged: (_) => ref.read(captureProvider.notifier).togglePriority(),
+          value: state.isFavorite,
+          onChanged: (_) => ref.read(captureProvider.notifier).toggleFavorite(),
         ),
       ],
     );

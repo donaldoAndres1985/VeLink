@@ -295,19 +295,19 @@ void main() {
     });
   });
 
-  group('CaptureProvider — togglePriority', () {
-    test('cambia isPriority de false a true', () {
+  group('CaptureProvider — toggleFavorite', () {
+    test('cambia isFavorite de false a true', () {
       final container = createCaptureContainer();
-      expect(container.read(captureProvider).isPriority, isFalse);
-      container.read(captureProvider.notifier).togglePriority();
-      expect(container.read(captureProvider).isPriority, isTrue);
+      expect(container.read(captureProvider).isFavorite, isFalse);
+      container.read(captureProvider.notifier).toggleFavorite();
+      expect(container.read(captureProvider).isFavorite, isTrue);
     });
 
-    test('alterna isPriority en cada llamada', () {
+    test('alterna isFavorite en cada llamada', () {
       final container = createCaptureContainer();
-      container.read(captureProvider.notifier).togglePriority();
-      container.read(captureProvider.notifier).togglePriority();
-      expect(container.read(captureProvider).isPriority, isFalse);
+      container.read(captureProvider.notifier).toggleFavorite();
+      container.read(captureProvider.notifier).toggleFavorite();
+      expect(container.read(captureProvider).isFavorite, isFalse);
     });
   });
 
@@ -382,8 +382,8 @@ void main() {
     });
   });
 
-  group('CaptureProvider — saveLink con tags y prioridad', () {
-    test('guarda el link como prioritario cuando isPriority es true', () async {
+  group('CaptureProvider — saveLink con tags y favorito', () {
+    test('guarda el link como favorito cuando isFavorite es true', () async {
       final db = createTestDatabase();
       final container = ProviderContainer(
         overrides: [
@@ -394,14 +394,14 @@ void main() {
       );
 
       container.read(captureProvider.notifier).setUrl('https://example.com');
-      container.read(captureProvider.notifier).togglePriority();
+      container.read(captureProvider.notifier).toggleFavorite();
       await container.read(captureProvider.notifier).saveLink();
 
       final links = await db.getAllLinks();
-      expect(links.first.priority, 1);
+      expect(links.first.isFavorite, isTrue);
     });
 
-    test('guarda el link como no prioritario por defecto', () async {
+    test('guarda el link como no favorito por defecto', () async {
       final db = createTestDatabase();
       final container = ProviderContainer(
         overrides: [
@@ -415,7 +415,7 @@ void main() {
       await container.read(captureProvider.notifier).saveLink();
 
       final links = await db.getAllLinks();
-      expect(links.first.priority, 0);
+      expect(links.first.isFavorite, isFalse);
     });
 
     test('asocia los tags seleccionados al link guardado', () async {
@@ -442,7 +442,7 @@ void main() {
       expect(tags.map((t) => t.name), containsAll(['flutter', 'dart']));
     });
 
-    test('resetea selectedTagIds e isPriority después de guardar', () async {
+    test('resetea selectedTagIds e isFavorite después de guardar', () async {
       final db = createTestDatabase();
       final tagId = await db.insertTag(TagsCompanion(name: Value('test')));
       final container = ProviderContainer(
@@ -455,12 +455,12 @@ void main() {
 
       container.read(captureProvider.notifier).setUrl('https://example.com');
       container.read(captureProvider.notifier).toggleTag(tagId);
-      container.read(captureProvider.notifier).togglePriority();
+      container.read(captureProvider.notifier).toggleFavorite();
       await container.read(captureProvider.notifier).saveLink();
 
       final state = container.read(captureProvider);
       expect(state.selectedTagIds, isEmpty);
-      expect(state.isPriority, isFalse);
+      expect(state.isFavorite, isFalse);
     });
   });
 }

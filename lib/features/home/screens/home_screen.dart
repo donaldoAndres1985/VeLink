@@ -45,7 +45,7 @@ class HomeScreen extends ConsumerWidget {
                     data: (links) => links.isEmpty
                         ? const Center(child: Text('No hay links guardados aún'))
                         : ListView.builder(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.only(left: 12, top: 12, right: 12, bottom: 80),
                             itemCount: links.length,
                             itemBuilder: (_, i) => LinkCard(link: links[i]),
                           ),
@@ -59,7 +59,7 @@ class HomeScreen extends ConsumerWidget {
                     data: (links) => links.isEmpty
                         ? const Center(child: Text('Sin resultados'))
                         : ListView.builder(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.only(left: 12, top: 12, right: 12, bottom: 80),
                             itemCount: links.length,
                             itemBuilder: (_, i) => LinkCard(link: links[i]),
                           ),

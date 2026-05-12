@@ -54,5 +54,22 @@ void main() {
       expect(find.text('https://flutter.dev'), findsOneWidget);
       expect(find.text('https://dart.dev'), findsOneWidget);
     });
+
+    testWidgets('muestra botón Marcar revisado por cada link', (tester) async {
+      await tester.pumpWidget(buildPendingWidget(
+        links: [makeLink(url: 'https://flutter.dev', isRead: false)],
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text('Marcar revisado'), findsOneWidget);
+    });
+
+    testWidgets('muestra botón Marcar revisado para cada link en la lista', (tester) async {
+      await tester.pumpWidget(buildPendingWidget(links: [
+        makeLink(url: 'https://flutter.dev', id: 1, isRead: false),
+        makeLink(url: 'https://dart.dev', id: 2, isRead: false),
+      ]));
+      await tester.pumpAndSettle();
+      expect(find.text('Marcar revisado'), findsNWidgets(2));
+    });
   });
 }

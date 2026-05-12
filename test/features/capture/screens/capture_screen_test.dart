@@ -199,6 +199,12 @@ void main() {
       expect(find.byType(Switch), findsOneWidget);
     });
 
+    testWidgets('muestra texto Marcar como favorito', (tester) async {
+      await tester.pumpWidget(buildCaptureWidget('https://example.com'));
+      await tester.pumpAndSettle();
+      expect(find.text('Marcar como favorito'), findsOneWidget);
+    });
+
     testWidgets('switch de prioridad inicia en false', (tester) async {
       await tester.pumpWidget(buildCaptureWidget('https://example.com'));
       await tester.pumpAndSettle();

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/database/database.dart';
 import '../../../shared/widgets/link_card.dart';
 import '../providers/pending_provider.dart';
 
@@ -41,13 +42,42 @@ class PendientesScreen extends ConsumerWidget {
                 ),
               )
             : ListView.builder(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.only(left: 12, top: 12, right: 12, bottom: 80),
                 itemCount: links.length,
-                itemBuilder: (_, i) => LinkCard(link: links[i]),
+                itemBuilder: (_, i) => _PendingItem(link: links[i]),
               ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, __) => const Center(child: Text('Error al cargar los links')),
       ),
+    );
+  }
+}
+
+class _PendingItem extends ConsumerWidget {
+  final Link link;
+
+  const _PendingItem({required this.link});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        LinkCard(link: link),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+          child: OutlinedButton.icon(
+            icon: const Icon(Icons.check_circle_outline, size: 16),
+            label: const Text('Marcar revisado'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              textStyle: const TextStyle(fontSize: 13),
+            ),
+            onPressed: () =>
+                ref.read(databaseProvider).setLinkReviewed(link.id, true),
+          ),
+        ),
+      ],
     );
   }
 }

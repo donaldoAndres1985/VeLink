@@ -17,7 +17,7 @@ class CaptureState {
   final bool isFetchingMetadata;
   final OgMetadata? metadata;
   final Set<int> selectedTagIds;
-  final bool isPriority;
+  final bool isFavorite;
   final String? manualTitle;
 
   CaptureState({
@@ -26,7 +26,7 @@ class CaptureState {
     this.isFetchingMetadata = false,
     this.metadata,
     Set<int>? selectedTagIds,
-    this.isPriority = false,
+    this.isFavorite = false,
     this.manualTitle,
   }) : selectedTagIds = selectedTagIds ?? {};
 
@@ -36,7 +36,7 @@ class CaptureState {
     bool? isFetchingMetadata,
     OgMetadata? metadata,
     Set<int>? selectedTagIds,
-    bool? isPriority,
+    bool? isFavorite,
     String? manualTitle,
     bool clearUrl = false,
     bool clearMetadata = false,
@@ -48,7 +48,7 @@ class CaptureState {
         isFetchingMetadata: isFetchingMetadata ?? this.isFetchingMetadata,
         metadata: clearMetadata ? null : (metadata ?? this.metadata),
         selectedTagIds: selectedTagIds ?? Set.from(this.selectedTagIds),
-        isPriority: isPriority ?? this.isPriority,
+        isFavorite: isFavorite ?? this.isFavorite,
         manualTitle: clearManualTitle ? null : (manualTitle ?? this.manualTitle),
       );
 }
@@ -106,7 +106,7 @@ class CaptureNotifier extends StateNotifier<CaptureState> {
     state = state.copyWith(selectedTagIds: updated);
   }
 
-  void togglePriority() => state = state.copyWith(isPriority: !state.isPriority);
+  void toggleFavorite() => state = state.copyWith(isFavorite: !state.isFavorite);
 
   Future<void> createTag(String name) async {
     await _db.insertTag(TagsCompanion(name: Value(name)));
@@ -126,7 +126,7 @@ class CaptureNotifier extends StateNotifier<CaptureState> {
       description: Value(state.metadata?.description),
       previewImageUrl: Value(state.metadata?.imageUrl),
       platform: Value(platform.name),
-      priority: Value(state.isPriority ? 1 : 0),
+      isFavorite: Value(state.isFavorite),
     ));
     for (final tagId in state.selectedTagIds) {
       await _db.addTagToLink(linkId, tagId);
