@@ -193,18 +193,18 @@ class CaptureNotifier extends StateNotifier<CaptureState> {
 
   void dismissOgImage() => state = state.copyWith(ogImageDismissed: true);
 
-  Future<void> saveLink() async {
-    final url = state.pendingUrl;
-    if (url == null) return;
-    final existing = await _db.getLinkByUrl(url);
+  Future<void> saveLink({String? url}) async {
+    final resolvedUrl = url ?? state.pendingUrl;
+    if (resolvedUrl == null) return;
+    final existing = await _db.getLinkByUrl(resolvedUrl);
     if (existing != null) throw const DuplicateUrlException();
     state = state.copyWith(isSaving: true);
-    final platform = PlatformDetector.detect(url);
+    final platform = PlatformDetector.detect(resolvedUrl);
     final effectiveTitle = state.manualTitle ?? state.metadata?.title;
     final effectiveImageUrl =
         state.ogImageDismissed ? null : state.metadata?.imageUrl;
     final linkId = await _db.insertLink(LinksCompanion(
-      url: Value(url),
+      url: Value(resolvedUrl),
       title: Value(effectiveTitle),
       description: Value(state.metadata?.description),
       previewImageUrl: Value(effectiveImageUrl),

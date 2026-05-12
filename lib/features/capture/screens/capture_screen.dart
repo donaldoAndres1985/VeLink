@@ -119,13 +119,10 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                       onPressed: state.isSaving
                           ? null
                           : () async {
-                              ref
-                                  .read(captureProvider.notifier)
-                                  .setUrl(widget.url);
                               try {
                                 await ref
                                     .read(captureProvider.notifier)
-                                    .saveLink();
+                                    .saveLink(url: widget.url);
                                 if (context.mounted) {
                                   Navigator.of(context)
                                       .popUntil((route) => route.isFirst);
