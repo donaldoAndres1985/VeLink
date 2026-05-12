@@ -12,7 +12,6 @@ class TagsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tagsAsync = ref.watch(allTagsProvider);
     final s = ref.watch(appStringsProvider);
 
     return Scaffold(
@@ -26,47 +25,7 @@ class TagsScreen extends ConsumerWidget {
           child: const Icon(Icons.add),
         ),
       ),
-      body: tagsAsync.when(
-        data: (tags) => tags.isEmpty
-            ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.label_outline,
-                        size: 56,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        s.noTagsYet,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        s.noTagsDesc,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            : ListView.builder(
-                padding: const EdgeInsets.all(12),
-                itemCount: tags.length,
-                itemBuilder: (_, i) => _TagCard(tag: tags[i]),
-              ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => Center(
-          child: Text(ref.read(appStringsProvider).errorLoadTags),
-        ),
-      ),
+      body: const TagsContent(),
     );
   }
 
@@ -75,6 +34,58 @@ class TagsScreen extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       builder: (_) => const CreateTagDialog(),
+    );
+  }
+}
+
+class TagsContent extends ConsumerWidget {
+  const TagsContent({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tagsAsync = ref.watch(allTagsProvider);
+    final s = ref.watch(appStringsProvider);
+
+    return tagsAsync.when(
+      data: (tags) => tags.isEmpty
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.label_outline,
+                      size: 56,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      s.noTagsYet,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      s.noTagsDesc,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: tags.length,
+              itemBuilder: (_, i) => _TagCard(tag: tags[i]),
+            ),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, __) => Center(
+        child: Text(ref.read(appStringsProvider).errorLoadTags),
+      ),
     );
   }
 }

@@ -8,7 +8,7 @@ import '../features/capture/screens/capture_screen.dart';
 import '../features/home/screens/home_screen.dart';
 import '../features/pending/screens/pending_screen.dart';
 import '../features/settings/screens/settings_screen.dart';
-import '../features/tags/screens/tags_screen.dart';
+import '../features/collections/screens/organize_screen.dart';
 import '../core/database/database.dart';
 import '../features/notifications/providers/notification_provider.dart';
 
@@ -108,7 +108,7 @@ class _MainShellState extends ConsumerState<MainShell> {
         children: const [
           _KeepAlivePage(child: HomeScreen()),
           _KeepAlivePage(child: PendientesScreen()),
-          _KeepAlivePage(child: TagsScreen()),
+          _KeepAlivePage(child: OrganizeScreen()),
           _KeepAlivePage(child: AjustesScreen()),
         ],
       ),
@@ -136,10 +136,10 @@ class _MainShellState extends ConsumerState<MainShell> {
             tooltip: s.navPending,
           ),
           BottomNavigationBarItem(
-            icon: const Icon(Icons.label_outline),
-            activeIcon: const Icon(Icons.label),
-            label: s.navTags,
-            tooltip: s.navTags,
+            icon: const Icon(Icons.folder_outlined),
+            activeIcon: const Icon(Icons.folder),
+            label: s.navOrganize,
+            tooltip: s.navOrganize,
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.settings_outlined),

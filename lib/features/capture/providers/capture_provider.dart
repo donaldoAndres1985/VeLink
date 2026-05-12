@@ -18,6 +18,7 @@ class CaptureState {
   final bool isFetchingMetadata;
   final OgMetadata? metadata;
   final Set<int> selectedTagIds;
+  final Set<int> selectedCollectionIds;
   final bool isFavorite;
   final String? manualTitle;
   final String? pickedImagePath;
@@ -31,13 +32,15 @@ class CaptureState {
     this.isFetchingMetadata = false,
     this.metadata,
     Set<int>? selectedTagIds,
+    Set<int>? selectedCollectionIds,
     this.isFavorite = false,
     this.manualTitle,
     this.pickedImagePath,
     this.isPickingImage = false,
     this.pickImageError = false,
     this.ogImageDismissed = false,
-  }) : selectedTagIds = selectedTagIds ?? {};
+  })  : selectedTagIds = selectedTagIds ?? {},
+        selectedCollectionIds = selectedCollectionIds ?? {};
 
   CaptureState copyWith({
     String? pendingUrl,
@@ -45,6 +48,7 @@ class CaptureState {
     bool? isFetchingMetadata,
     OgMetadata? metadata,
     Set<int>? selectedTagIds,
+    Set<int>? selectedCollectionIds,
     bool? isFavorite,
     String? manualTitle,
     String? pickedImagePath,
@@ -62,6 +66,7 @@ class CaptureState {
         isFetchingMetadata: isFetchingMetadata ?? this.isFetchingMetadata,
         metadata: clearMetadata ? null : (metadata ?? this.metadata),
         selectedTagIds: selectedTagIds ?? Set.from(this.selectedTagIds),
+        selectedCollectionIds: selectedCollectionIds ?? Set.from(this.selectedCollectionIds),
         isFavorite: isFavorite ?? this.isFavorite,
         manualTitle: clearManualTitle ? null : (manualTitle ?? this.manualTitle),
         pickedImagePath:
@@ -130,6 +135,24 @@ class CaptureNotifier extends StateNotifier<CaptureState> {
   void toggleFavorite() =>
       state = state.copyWith(isFavorite: !state.isFavorite);
 
+  void toggleCollection(int collectionId) {
+    final updated = Set<int>.from(state.selectedCollectionIds);
+    if (updated.contains(collectionId)) {
+      updated.remove(collectionId);
+    } else {
+      updated.add(collectionId);
+    }
+    state = state.copyWith(selectedCollectionIds: updated);
+  }
+
+  Future<int> createCollection(String name, {String color = '#6366F1', String icon = 'folder'}) async {
+    return await _db.insertCollection(CollectionsCompanion(
+      name: Value(name),
+      color: Value(color),
+      icon: Value(icon),
+    ));
+  }
+
   Future<void> createTag(String name) async {
     await _db.insertTag(TagsCompanion(name: Value(name)));
   }
@@ -191,6 +214,9 @@ class CaptureNotifier extends StateNotifier<CaptureState> {
     ));
     for (final tagId in state.selectedTagIds) {
       await _db.addTagToLink(linkId, tagId);
+    }
+    for (final collectionId in state.selectedCollectionIds) {
+      await _db.addLinkToCollection(linkId, collectionId);
     }
     _service.reset();
     state = CaptureState();

@@ -1357,17 +1357,692 @@ class LinkTagsCompanion extends UpdateCompanion<LinkTag> {
   }
 }
 
+class $CollectionsTable extends Collections
+    with TableInfo<$CollectionsTable, Collection> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CollectionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
+    'color',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('#6366F1'),
+  );
+  static const VerificationMeta _iconMeta = const VerificationMeta('icon');
+  @override
+  late final GeneratedColumn<String> icon = GeneratedColumn<String>(
+    'icon',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('folder'),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    description,
+    color,
+    icon,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'collections';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Collection> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('color')) {
+      context.handle(
+        _colorMeta,
+        color.isAcceptableOrUnknown(data['color']!, _colorMeta),
+      );
+    }
+    if (data.containsKey('icon')) {
+      context.handle(
+        _iconMeta,
+        icon.isAcceptableOrUnknown(data['icon']!, _iconMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Collection map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Collection(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      color: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}color'],
+      )!,
+      icon: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}icon'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CollectionsTable createAlias(String alias) {
+    return $CollectionsTable(attachedDatabase, alias);
+  }
+}
+
+class Collection extends DataClass implements Insertable<Collection> {
+  final int id;
+  final String name;
+  final String? description;
+  final String color;
+  final String icon;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const Collection({
+    required this.id,
+    required this.name,
+    this.description,
+    required this.color,
+    required this.icon,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    map['color'] = Variable<String>(color);
+    map['icon'] = Variable<String>(icon);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  CollectionsCompanion toCompanion(bool nullToAbsent) {
+    return CollectionsCompanion(
+      id: Value(id),
+      name: Value(name),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      color: Value(color),
+      icon: Value(icon),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory Collection.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Collection(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      description: serializer.fromJson<String?>(json['description']),
+      color: serializer.fromJson<String>(json['color']),
+      icon: serializer.fromJson<String>(json['icon']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'description': serializer.toJson<String?>(description),
+      'color': serializer.toJson<String>(color),
+      'icon': serializer.toJson<String>(icon),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  Collection copyWith({
+    int? id,
+    String? name,
+    Value<String?> description = const Value.absent(),
+    String? color,
+    String? icon,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => Collection(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    description: description.present ? description.value : this.description,
+    color: color ?? this.color,
+    icon: icon ?? this.icon,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  Collection copyWithCompanion(CollectionsCompanion data) {
+    return Collection(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      color: data.color.present ? data.color.value : this.color,
+      icon: data.icon.present ? data.icon.value : this.icon,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Collection(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('color: $color, ')
+          ..write('icon: $icon, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, name, description, color, icon, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Collection &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.description == this.description &&
+          other.color == this.color &&
+          other.icon == this.icon &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class CollectionsCompanion extends UpdateCompanion<Collection> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<String?> description;
+  final Value<String> color;
+  final Value<String> icon;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const CollectionsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.description = const Value.absent(),
+    this.color = const Value.absent(),
+    this.icon = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  CollectionsCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    this.description = const Value.absent(),
+    this.color = const Value.absent(),
+    this.icon = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : name = Value(name);
+  static Insertable<Collection> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<String>? description,
+    Expression<String>? color,
+    Expression<String>? icon,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (description != null) 'description': description,
+      if (color != null) 'color': color,
+      if (icon != null) 'icon': icon,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  CollectionsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<String?>? description,
+    Value<String>? color,
+    Value<String>? icon,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return CollectionsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      color: color ?? this.color,
+      icon: icon ?? this.icon,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
+    }
+    if (icon.present) {
+      map['icon'] = Variable<String>(icon.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CollectionsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('color: $color, ')
+          ..write('icon: $icon, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LinkCollectionsTable extends LinkCollections
+    with TableInfo<$LinkCollectionsTable, LinkCollection> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LinkCollectionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _linkIdMeta = const VerificationMeta('linkId');
+  @override
+  late final GeneratedColumn<int> linkId = GeneratedColumn<int>(
+    'link_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES links (id)',
+    ),
+  );
+  static const VerificationMeta _collectionIdMeta = const VerificationMeta(
+    'collectionId',
+  );
+  @override
+  late final GeneratedColumn<int> collectionId = GeneratedColumn<int>(
+    'collection_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES collections (id)',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [linkId, collectionId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'link_collections';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LinkCollection> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('link_id')) {
+      context.handle(
+        _linkIdMeta,
+        linkId.isAcceptableOrUnknown(data['link_id']!, _linkIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_linkIdMeta);
+    }
+    if (data.containsKey('collection_id')) {
+      context.handle(
+        _collectionIdMeta,
+        collectionId.isAcceptableOrUnknown(
+          data['collection_id']!,
+          _collectionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_collectionIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {linkId, collectionId};
+  @override
+  LinkCollection map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LinkCollection(
+      linkId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}link_id'],
+      )!,
+      collectionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}collection_id'],
+      )!,
+    );
+  }
+
+  @override
+  $LinkCollectionsTable createAlias(String alias) {
+    return $LinkCollectionsTable(attachedDatabase, alias);
+  }
+}
+
+class LinkCollection extends DataClass implements Insertable<LinkCollection> {
+  final int linkId;
+  final int collectionId;
+  const LinkCollection({required this.linkId, required this.collectionId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['link_id'] = Variable<int>(linkId);
+    map['collection_id'] = Variable<int>(collectionId);
+    return map;
+  }
+
+  LinkCollectionsCompanion toCompanion(bool nullToAbsent) {
+    return LinkCollectionsCompanion(
+      linkId: Value(linkId),
+      collectionId: Value(collectionId),
+    );
+  }
+
+  factory LinkCollection.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LinkCollection(
+      linkId: serializer.fromJson<int>(json['linkId']),
+      collectionId: serializer.fromJson<int>(json['collectionId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'linkId': serializer.toJson<int>(linkId),
+      'collectionId': serializer.toJson<int>(collectionId),
+    };
+  }
+
+  LinkCollection copyWith({int? linkId, int? collectionId}) => LinkCollection(
+    linkId: linkId ?? this.linkId,
+    collectionId: collectionId ?? this.collectionId,
+  );
+  LinkCollection copyWithCompanion(LinkCollectionsCompanion data) {
+    return LinkCollection(
+      linkId: data.linkId.present ? data.linkId.value : this.linkId,
+      collectionId: data.collectionId.present
+          ? data.collectionId.value
+          : this.collectionId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LinkCollection(')
+          ..write('linkId: $linkId, ')
+          ..write('collectionId: $collectionId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(linkId, collectionId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LinkCollection &&
+          other.linkId == this.linkId &&
+          other.collectionId == this.collectionId);
+}
+
+class LinkCollectionsCompanion extends UpdateCompanion<LinkCollection> {
+  final Value<int> linkId;
+  final Value<int> collectionId;
+  final Value<int> rowid;
+  const LinkCollectionsCompanion({
+    this.linkId = const Value.absent(),
+    this.collectionId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LinkCollectionsCompanion.insert({
+    required int linkId,
+    required int collectionId,
+    this.rowid = const Value.absent(),
+  }) : linkId = Value(linkId),
+       collectionId = Value(collectionId);
+  static Insertable<LinkCollection> custom({
+    Expression<int>? linkId,
+    Expression<int>? collectionId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (linkId != null) 'link_id': linkId,
+      if (collectionId != null) 'collection_id': collectionId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LinkCollectionsCompanion copyWith({
+    Value<int>? linkId,
+    Value<int>? collectionId,
+    Value<int>? rowid,
+  }) {
+    return LinkCollectionsCompanion(
+      linkId: linkId ?? this.linkId,
+      collectionId: collectionId ?? this.collectionId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (linkId.present) {
+      map['link_id'] = Variable<int>(linkId.value);
+    }
+    if (collectionId.present) {
+      map['collection_id'] = Variable<int>(collectionId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LinkCollectionsCompanion(')
+          ..write('linkId: $linkId, ')
+          ..write('collectionId: $collectionId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $LinksTable links = $LinksTable(this);
   late final $TagsTable tags = $TagsTable(this);
   late final $LinkTagsTable linkTags = $LinkTagsTable(this);
+  late final $CollectionsTable collections = $CollectionsTable(this);
+  late final $LinkCollectionsTable linkCollections = $LinkCollectionsTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [links, tags, linkTags];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    links,
+    tags,
+    linkTags,
+    collections,
+    linkCollections,
+  ];
 }
 
 typedef $$LinksTableCreateCompanionBuilder =
@@ -1425,6 +2100,26 @@ final class $$LinksTableReferences
     ).filter((f) => f.linkId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_linkTagsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$LinkCollectionsTable, List<LinkCollection>>
+  _linkCollectionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.linkCollections,
+    aliasName: $_aliasNameGenerator(db.links.id, db.linkCollections.linkId),
+  );
+
+  $$LinkCollectionsTableProcessedTableManager get linkCollectionsRefs {
+    final manager = $$LinkCollectionsTableTableManager(
+      $_db,
+      $_db.linkCollections,
+    ).filter((f) => f.linkId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _linkCollectionsRefsTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -1530,6 +2225,31 @@ class $$LinksTableFilterComposer extends Composer<_$AppDatabase, $LinksTable> {
           }) => $$LinkTagsTableFilterComposer(
             $db: $db,
             $table: $db.linkTags,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> linkCollectionsRefs(
+    Expression<bool> Function($$LinkCollectionsTableFilterComposer f) f,
+  ) {
+    final $$LinkCollectionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.linkCollections,
+      getReferencedColumn: (t) => t.linkId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LinkCollectionsTableFilterComposer(
+            $db: $db,
+            $table: $db.linkCollections,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -1713,6 +2433,31 @@ class $$LinksTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> linkCollectionsRefs<T extends Object>(
+    Expression<T> Function($$LinkCollectionsTableAnnotationComposer a) f,
+  ) {
+    final $$LinkCollectionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.linkCollections,
+      getReferencedColumn: (t) => t.linkId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LinkCollectionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.linkCollections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$LinksTableTableManager
@@ -1728,7 +2473,7 @@ class $$LinksTableTableManager
           $$LinksTableUpdateCompanionBuilder,
           (Link, $$LinksTableReferences),
           Link,
-          PrefetchHooks Function({bool linkTagsRefs})
+          PrefetchHooks Function({bool linkTagsRefs, bool linkCollectionsRefs})
         > {
   $$LinksTableTableManager(_$AppDatabase db, $LinksTable table)
     : super(
@@ -1815,28 +2560,59 @@ class $$LinksTableTableManager
                     (e.readTable(table), $$LinksTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({linkTagsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (linkTagsRefs) db.linkTags],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (linkTagsRefs)
-                    await $_getPrefetchedData<Link, $LinksTable, LinkTag>(
-                      currentTable: table,
-                      referencedTable: $$LinksTableReferences
-                          ._linkTagsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$LinksTableReferences(db, table, p0).linkTagsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.linkId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({linkTagsRefs = false, linkCollectionsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (linkTagsRefs) db.linkTags,
+                    if (linkCollectionsRefs) db.linkCollections,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (linkTagsRefs)
+                        await $_getPrefetchedData<Link, $LinksTable, LinkTag>(
+                          currentTable: table,
+                          referencedTable: $$LinksTableReferences
+                              ._linkTagsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LinksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).linkTagsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.linkId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (linkCollectionsRefs)
+                        await $_getPrefetchedData<
+                          Link,
+                          $LinksTable,
+                          LinkCollection
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LinksTableReferences
+                              ._linkCollectionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LinksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).linkCollectionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.linkId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -1853,7 +2629,7 @@ typedef $$LinksTableProcessedTableManager =
       $$LinksTableUpdateCompanionBuilder,
       (Link, $$LinksTableReferences),
       Link,
-      PrefetchHooks Function({bool linkTagsRefs})
+      PrefetchHooks Function({bool linkTagsRefs, bool linkCollectionsRefs})
     >;
 typedef $$TagsTableCreateCompanionBuilder =
     TagsCompanion Function({
@@ -2465,6 +3241,713 @@ typedef $$LinkTagsTableProcessedTableManager =
       LinkTag,
       PrefetchHooks Function({bool linkId, bool tagId})
     >;
+typedef $$CollectionsTableCreateCompanionBuilder =
+    CollectionsCompanion Function({
+      Value<int> id,
+      required String name,
+      Value<String?> description,
+      Value<String> color,
+      Value<String> icon,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+typedef $$CollectionsTableUpdateCompanionBuilder =
+    CollectionsCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<String?> description,
+      Value<String> color,
+      Value<String> icon,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+
+final class $$CollectionsTableReferences
+    extends BaseReferences<_$AppDatabase, $CollectionsTable, Collection> {
+  $$CollectionsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$LinkCollectionsTable, List<LinkCollection>>
+  _linkCollectionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.linkCollections,
+    aliasName: $_aliasNameGenerator(
+      db.collections.id,
+      db.linkCollections.collectionId,
+    ),
+  );
+
+  $$LinkCollectionsTableProcessedTableManager get linkCollectionsRefs {
+    final manager = $$LinkCollectionsTableTableManager(
+      $_db,
+      $_db.linkCollections,
+    ).filter((f) => f.collectionId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _linkCollectionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$CollectionsTableFilterComposer
+    extends Composer<_$AppDatabase, $CollectionsTable> {
+  $$CollectionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get icon => $composableBuilder(
+    column: $table.icon,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> linkCollectionsRefs(
+    Expression<bool> Function($$LinkCollectionsTableFilterComposer f) f,
+  ) {
+    final $$LinkCollectionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.linkCollections,
+      getReferencedColumn: (t) => t.collectionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LinkCollectionsTableFilterComposer(
+            $db: $db,
+            $table: $db.linkCollections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$CollectionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CollectionsTable> {
+  $$CollectionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get icon => $composableBuilder(
+    column: $table.icon,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CollectionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CollectionsTable> {
+  $$CollectionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
+
+  GeneratedColumn<String> get icon =>
+      $composableBuilder(column: $table.icon, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  Expression<T> linkCollectionsRefs<T extends Object>(
+    Expression<T> Function($$LinkCollectionsTableAnnotationComposer a) f,
+  ) {
+    final $$LinkCollectionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.linkCollections,
+      getReferencedColumn: (t) => t.collectionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LinkCollectionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.linkCollections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$CollectionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CollectionsTable,
+          Collection,
+          $$CollectionsTableFilterComposer,
+          $$CollectionsTableOrderingComposer,
+          $$CollectionsTableAnnotationComposer,
+          $$CollectionsTableCreateCompanionBuilder,
+          $$CollectionsTableUpdateCompanionBuilder,
+          (Collection, $$CollectionsTableReferences),
+          Collection,
+          PrefetchHooks Function({bool linkCollectionsRefs})
+        > {
+  $$CollectionsTableTableManager(_$AppDatabase db, $CollectionsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CollectionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CollectionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CollectionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String> color = const Value.absent(),
+                Value<String> icon = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => CollectionsCompanion(
+                id: id,
+                name: name,
+                description: description,
+                color: color,
+                icon: icon,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                Value<String?> description = const Value.absent(),
+                Value<String> color = const Value.absent(),
+                Value<String> icon = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => CollectionsCompanion.insert(
+                id: id,
+                name: name,
+                description: description,
+                color: color,
+                icon: icon,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$CollectionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({linkCollectionsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (linkCollectionsRefs) db.linkCollections,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (linkCollectionsRefs)
+                    await $_getPrefetchedData<
+                      Collection,
+                      $CollectionsTable,
+                      LinkCollection
+                    >(
+                      currentTable: table,
+                      referencedTable: $$CollectionsTableReferences
+                          ._linkCollectionsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$CollectionsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).linkCollectionsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where(
+                            (e) => e.collectionId == item.id,
+                          ),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$CollectionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CollectionsTable,
+      Collection,
+      $$CollectionsTableFilterComposer,
+      $$CollectionsTableOrderingComposer,
+      $$CollectionsTableAnnotationComposer,
+      $$CollectionsTableCreateCompanionBuilder,
+      $$CollectionsTableUpdateCompanionBuilder,
+      (Collection, $$CollectionsTableReferences),
+      Collection,
+      PrefetchHooks Function({bool linkCollectionsRefs})
+    >;
+typedef $$LinkCollectionsTableCreateCompanionBuilder =
+    LinkCollectionsCompanion Function({
+      required int linkId,
+      required int collectionId,
+      Value<int> rowid,
+    });
+typedef $$LinkCollectionsTableUpdateCompanionBuilder =
+    LinkCollectionsCompanion Function({
+      Value<int> linkId,
+      Value<int> collectionId,
+      Value<int> rowid,
+    });
+
+final class $$LinkCollectionsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $LinkCollectionsTable, LinkCollection> {
+  $$LinkCollectionsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $LinksTable _linkIdTable(_$AppDatabase db) => db.links.createAlias(
+    $_aliasNameGenerator(db.linkCollections.linkId, db.links.id),
+  );
+
+  $$LinksTableProcessedTableManager get linkId {
+    final $_column = $_itemColumn<int>('link_id')!;
+
+    final manager = $$LinksTableTableManager(
+      $_db,
+      $_db.links,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_linkIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $CollectionsTable _collectionIdTable(_$AppDatabase db) =>
+      db.collections.createAlias(
+        $_aliasNameGenerator(
+          db.linkCollections.collectionId,
+          db.collections.id,
+        ),
+      );
+
+  $$CollectionsTableProcessedTableManager get collectionId {
+    final $_column = $_itemColumn<int>('collection_id')!;
+
+    final manager = $$CollectionsTableTableManager(
+      $_db,
+      $_db.collections,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_collectionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$LinkCollectionsTableFilterComposer
+    extends Composer<_$AppDatabase, $LinkCollectionsTable> {
+  $$LinkCollectionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$LinksTableFilterComposer get linkId {
+    final $$LinksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.linkId,
+      referencedTable: $db.links,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LinksTableFilterComposer(
+            $db: $db,
+            $table: $db.links,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CollectionsTableFilterComposer get collectionId {
+    final $$CollectionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collectionId,
+      referencedTable: $db.collections,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CollectionsTableFilterComposer(
+            $db: $db,
+            $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LinkCollectionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $LinkCollectionsTable> {
+  $$LinkCollectionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$LinksTableOrderingComposer get linkId {
+    final $$LinksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.linkId,
+      referencedTable: $db.links,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LinksTableOrderingComposer(
+            $db: $db,
+            $table: $db.links,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CollectionsTableOrderingComposer get collectionId {
+    final $$CollectionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collectionId,
+      referencedTable: $db.collections,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CollectionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LinkCollectionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LinkCollectionsTable> {
+  $$LinkCollectionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$LinksTableAnnotationComposer get linkId {
+    final $$LinksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.linkId,
+      referencedTable: $db.links,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LinksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.links,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CollectionsTableAnnotationComposer get collectionId {
+    final $$CollectionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collectionId,
+      referencedTable: $db.collections,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CollectionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LinkCollectionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LinkCollectionsTable,
+          LinkCollection,
+          $$LinkCollectionsTableFilterComposer,
+          $$LinkCollectionsTableOrderingComposer,
+          $$LinkCollectionsTableAnnotationComposer,
+          $$LinkCollectionsTableCreateCompanionBuilder,
+          $$LinkCollectionsTableUpdateCompanionBuilder,
+          (LinkCollection, $$LinkCollectionsTableReferences),
+          LinkCollection,
+          PrefetchHooks Function({bool linkId, bool collectionId})
+        > {
+  $$LinkCollectionsTableTableManager(
+    _$AppDatabase db,
+    $LinkCollectionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LinkCollectionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LinkCollectionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LinkCollectionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> linkId = const Value.absent(),
+                Value<int> collectionId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LinkCollectionsCompanion(
+                linkId: linkId,
+                collectionId: collectionId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required int linkId,
+                required int collectionId,
+                Value<int> rowid = const Value.absent(),
+              }) => LinkCollectionsCompanion.insert(
+                linkId: linkId,
+                collectionId: collectionId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$LinkCollectionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({linkId = false, collectionId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (linkId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.linkId,
+                                referencedTable:
+                                    $$LinkCollectionsTableReferences
+                                        ._linkIdTable(db),
+                                referencedColumn:
+                                    $$LinkCollectionsTableReferences
+                                        ._linkIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+                    if (collectionId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.collectionId,
+                                referencedTable:
+                                    $$LinkCollectionsTableReferences
+                                        ._collectionIdTable(db),
+                                referencedColumn:
+                                    $$LinkCollectionsTableReferences
+                                        ._collectionIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$LinkCollectionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LinkCollectionsTable,
+      LinkCollection,
+      $$LinkCollectionsTableFilterComposer,
+      $$LinkCollectionsTableOrderingComposer,
+      $$LinkCollectionsTableAnnotationComposer,
+      $$LinkCollectionsTableCreateCompanionBuilder,
+      $$LinkCollectionsTableUpdateCompanionBuilder,
+      (LinkCollection, $$LinkCollectionsTableReferences),
+      LinkCollection,
+      PrefetchHooks Function({bool linkId, bool collectionId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2474,4 +3957,8 @@ class $AppDatabaseManager {
   $$TagsTableTableManager get tags => $$TagsTableTableManager(_db, _db.tags);
   $$LinkTagsTableTableManager get linkTags =>
       $$LinkTagsTableTableManager(_db, _db.linkTags);
+  $$CollectionsTableTableManager get collections =>
+      $$CollectionsTableTableManager(_db, _db.collections);
+  $$LinkCollectionsTableTableManager get linkCollections =>
+      $$LinkCollectionsTableTableManager(_db, _db.linkCollections);
 }

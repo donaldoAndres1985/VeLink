@@ -5,6 +5,7 @@ import '../../../core/preferences/preferences_provider.dart';
 import '../models/og_metadata.dart';
 import '../providers/capture_provider.dart';
 import '../services/platform_detector.dart';
+import '../../collections/providers/collection_providers.dart';
 
 class CaptureScreen extends ConsumerStatefulWidget {
   final String url;
@@ -37,6 +38,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(captureProvider);
     final tagsAsync = ref.watch(allTagsProvider);
+    final collectionsAsync = ref.watch(allCollectionsProvider);
     final platformInfo =
         PlatformInfo.forPlatform(PlatformDetector.detect(widget.url));
     final s = ref.watch(appStringsProvider);
@@ -92,6 +94,8 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
               _buildLinkSection(context, s),
               const SizedBox(height: 20),
               _buildTagsSection(context, state, tagsAsync, s),
+              const SizedBox(height: 16),
+              _buildCollectionsSection(context, state, collectionsAsync, s),
               const SizedBox(height: 16),
               _buildFavoriteRow(context, state, s),
               const SizedBox(height: 24),
@@ -454,6 +458,56 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
               ),
             ],
           ),
+          loading: () => const SizedBox.shrink(),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
+  // ── Collections ──────────────────────────────────────────────────────────
+
+  Widget _buildCollectionsSection(
+    BuildContext context,
+    CaptureState state,
+    AsyncValue collectionsAsync,
+    dynamic s,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          s.collectionInSection,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 13,
+          ),
+        ),
+        const SizedBox(height: 8),
+        collectionsAsync.when(
+          data: (collections) => collections.isEmpty
+              ? Text(
+                  s.noCollectionsYet,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                )
+              : Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: collections
+                      .map((col) => FilterChip(
+                            label: Text(col.name),
+                            selected: state.selectedCollectionIds
+                                .contains(col.id),
+                            onSelected: (_) => ref
+                                .read(captureProvider.notifier)
+                                .toggleCollection(col.id),
+                          ))
+                      .toList(),
+                ),
           loading: () => const SizedBox.shrink(),
           error: (_, __) => const SizedBox.shrink(),
         ),

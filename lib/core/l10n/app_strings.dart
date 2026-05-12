@@ -117,6 +117,47 @@ class AppStrings {
   String get favoriteSemantics => _s(es: 'Link favorito', en: 'Favorite link');
   String platformSemantics(String platform) => _s(es: 'Plataforma: $platform', en: 'Platform: $platform');
 
+  // ── Collections ──────────────────────────────────────────────────────────
+  String get navOrganize => _s(es: 'Organizar', en: 'Organize');
+  String get tabCollections => _s(es: 'Colecciones', en: 'Collections');
+  String get tabLabels => _s(es: 'Etiquetas', en: 'Labels');
+  String get collectionsTitle => _s(es: 'Colecciones', en: 'Collections');
+  String get noCollectionsYet => _s(es: 'No hay colecciones aún', en: 'No collections yet');
+  String get noCollectionsDesc => _s(
+    es: 'Crea colecciones para agrupar tus links.',
+    en: 'Create collections to group your links.',
+  );
+  String get createCollection => _s(es: 'Nueva colección', en: 'New collection');
+  String get editCollection => _s(es: 'Editar colección', en: 'Edit collection');
+  String get deleteCollectionTitle => _s(es: 'Eliminar colección', en: 'Delete collection');
+  String confirmDeleteCollection(String name) => _s(
+    es: '¿Eliminar la colección "$name"? Los links no serán eliminados.',
+    en: 'Delete the collection "$name"? Links will not be deleted.',
+  );
+  String get collectionNameLabel => _s(es: 'Nombre', en: 'Name');
+  String get collectionNameHint => _s(es: 'Nombre de la colección', en: 'Collection name');
+  String get collectionNameRequired => _s(es: 'El nombre es obligatorio', en: 'Name is required');
+  String get collectionNameDuplicate => _s(es: 'Ya existe una colección con ese nombre', en: 'A collection with that name already exists');
+  String get collectionDescLabel => _s(es: 'Descripción (opcional)', en: 'Description (optional)');
+  String get collectionDescHint => _s(es: 'Describe esta colección...', en: 'Describe this collection...');
+  String get collectionColorLabel => _s(es: 'Color', en: 'Color');
+  String get collectionIconLabel => _s(es: 'Ícono', en: 'Icon');
+  String get collectionInSection => _s(es: 'COLECCIONES', en: 'COLLECTIONS');
+  String get noCollectionsAssigned => _s(es: 'Sin colecciones', en: 'No collections');
+  String get removeFromCollection => _s(es: 'Quitar de colección', en: 'Remove from collection');
+  String get linkRemovedFromCollection => _s(es: 'Link removido de la colección', en: 'Link removed from collection');
+  String collectionLinkCount(int count) => _s(
+    es: '$count link${count != 1 ? "s" : ""}',
+    en: '$count link${count != 1 ? "s" : ""}',
+  );
+  String get searchInCollection => _s(es: 'Buscar en colección...', en: 'Search in collection...');
+  String get noLinksInCollection => _s(es: 'No hay links en esta colección', en: 'No links in this collection');
+  String get noLinksInCollectionDesc => _s(
+    es: 'Agrega links a esta colección desde la pantalla de captura.',
+    en: 'Add links to this collection from the capture screen.',
+  );
+  String get errorLoadCollections => _s(es: 'Error al cargar colecciones', en: 'Error loading collections');
+
   // ── Settings ─────────────────────────────────────────────────────────────
   String get settingsTitle => _s(es: 'Ajustes', en: 'Settings');
   String get settingsLanguage => _s(es: 'Idioma', en: 'Language');
