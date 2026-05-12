@@ -283,6 +283,93 @@ void main() {
     });
   });
 
+  group('DetailScreen — auto-cierre al regresar de URL', () {
+    testWidgets('al regresar a la app después de abrir URL, cierra el detalle',
+        (tester) async {
+      final link = makeLink(url: 'https://flutter.dev');
+      final db = createTestDatabase();
+      addTearDown(db.close);
+
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          notificationServiceProvider
+              .overrideWithValue(MockNotificationService()),
+          linkTagsProvider(link.id)
+              .overrideWith((ref) => Future.value(<Tag>[])),
+          watchLinkTagsProvider(link.id)
+              .overrideWith((ref) => Stream.value(<Tag>[])),
+          allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
+        ],
+        child: MaterialApp(
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => DetailScreen(link: link)),
+              ),
+              child: const Text('ir al detalle'),
+            ),
+          ),
+        ),
+      ));
+
+      await tester.tap(find.text('ir al detalle'));
+      await tester.pumpAndSettle();
+      expect(find.byType(DetailScreen), findsOneWidget);
+
+      await tester.ensureVisible(find.text('Abrir'));
+      await tester.tap(find.text('Abrir'));
+      await tester.pump();
+
+      tester.binding
+          .handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DetailScreen), findsNothing);
+    });
+
+    testWidgets('sin abrir URL, regresar a la app no cierra el detalle',
+        (tester) async {
+      final link = makeLink(url: 'https://flutter.dev');
+      final db = createTestDatabase();
+      addTearDown(db.close);
+
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          notificationServiceProvider
+              .overrideWithValue(MockNotificationService()),
+          linkTagsProvider(link.id)
+              .overrideWith((ref) => Future.value(<Tag>[])),
+          watchLinkTagsProvider(link.id)
+              .overrideWith((ref) => Stream.value(<Tag>[])),
+          allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
+        ],
+        child: MaterialApp(
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => DetailScreen(link: link)),
+              ),
+              child: const Text('ir al detalle'),
+            ),
+          ),
+        ),
+      ));
+
+      await tester.tap(find.text('ir al detalle'));
+      await tester.pumpAndSettle();
+
+      tester.binding
+          .handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DetailScreen), findsOneWidget);
+    });
+  });
+
   group('DetailScreen — gestión de tags', () {
     testWidgets('muestra todos los tags disponibles como FilterChips', (tester) async {
       final allTags = [

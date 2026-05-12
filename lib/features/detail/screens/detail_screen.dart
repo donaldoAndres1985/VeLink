@@ -17,14 +17,17 @@ class DetailScreen extends ConsumerStatefulWidget {
   ConsumerState<DetailScreen> createState() => _DetailScreenState();
 }
 
-class _DetailScreenState extends ConsumerState<DetailScreen> {
+class _DetailScreenState extends ConsumerState<DetailScreen>
+    with WidgetsBindingObserver {
   late final TextEditingController _titleController;
   late final TextEditingController _notesController;
   late final FocusNode _titleFocusNode;
+  bool _urlWasOpened = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _titleController =
         TextEditingController(text: widget.link.title ?? '');
     _notesController =
@@ -37,10 +40,19 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _titleFocusNode.dispose();
     _titleController.dispose();
     _notesController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _urlWasOpened && mounted) {
+      _urlWasOpened = false;
+      Navigator.of(context).pop();
+    }
   }
 
   void _saveTitle() {
@@ -242,10 +254,15 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                     FilledButton.icon(
                       icon: const Icon(Icons.open_in_new, size: 15),
                       label: const Text('Abrir'),
-                      onPressed: () => launchUrl(
-                        Uri.parse(widget.link.url),
-                        mode: LaunchMode.externalApplication,
-                      ),
+                      onPressed: () async {
+                        _urlWasOpened = true;
+                        try {
+                          await launchUrl(
+                            Uri.parse(widget.link.url),
+                            mode: LaunchMode.externalApplication,
+                          );
+                        } catch (_) {}
+                      },
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 8),

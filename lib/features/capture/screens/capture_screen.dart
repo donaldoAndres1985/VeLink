@@ -107,7 +107,8 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                         ? null
                         : () {
                             ref.read(captureProvider.notifier).dismiss();
-                            Navigator.pop(context);
+                            Navigator.of(context)
+                                .popUntil((route) => route.isFirst);
                           },
                     child: const Text('Cancelar'),
                   ),

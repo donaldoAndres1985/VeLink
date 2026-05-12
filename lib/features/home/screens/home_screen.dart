@@ -20,7 +20,7 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('VeLink')),
       floatingActionButton: FloatingActionButton(
         key: const Key('add_link_fab'),
-        onPressed: () => _showAddLinkDialog(context),
+        onPressed: () => _handleFabTap(context),
         child: const Icon(Icons.add),
       ),
       body: Column(
@@ -41,6 +41,7 @@ class HomeScreen extends ConsumerWidget {
           Expanded(
             child: query.trim().isEmpty
                 ? linksAsync.when(
+                    skipLoadingOnRefresh: true,
                     data: (links) => links.isEmpty
                         ? const Center(child: Text('No hay links guardados aún'))
                         : ListView.builder(
@@ -54,6 +55,7 @@ class HomeScreen extends ConsumerWidget {
                         const Center(child: Text('Error al cargar los links')),
                   )
                 : searchAsync.when(
+                    skipLoadingOnRefresh: true,
                     data: (links) => links.isEmpty
                         ? const Center(child: Text('Sin resultados'))
                         : ListView.builder(
@@ -72,54 +74,38 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildFilterBar(BuildContext context, WidgetRef ref, HomeFilter filter) {
-    return SizedBox(
-      height: 44,
-      child: ListView(
-        key: const Key('platform_filter'),
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+  Widget _buildFilterBar(
+      BuildContext context, WidgetRef ref, HomeFilter filter) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+      child: Row(
         children: [
-          Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: ChoiceChip(
-              label: const Text('Todos'),
+          Expanded(
+            child: _FilterBtn(
+              label: 'Todos',
               selected: filter == HomeFilter.todos,
-              onSelected: (_) {
+              onTap: () {
                 ref.read(homeFilterProvider.notifier).state = HomeFilter.todos;
                 ref.read(selectedPlatformProvider.notifier).state = null;
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: ChoiceChip(
-              label: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Icon(Icons.star_outline, size: 13),
-                  SizedBox(width: 4),
-                  Text('Prioritarios'),
-                ],
-              ),
-              selected: filter == HomeFilter.prioritarios,
-              onSelected: (_) => ref
-                  .read(homeFilterProvider.notifier)
-                  .state = HomeFilter.prioritarios,
+          const SizedBox(width: 8),
+          Expanded(
+            child: _FilterBtn(
+              label: 'Favoritos',
+              leadingIcon: Icons.favorite_outline,
+              selected: filter == HomeFilter.favoritos,
+              onTap: () => ref.read(homeFilterProvider.notifier).state =
+                  HomeFilter.favoritos,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: ActionChip(
-              label: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Icon(Icons.filter_list, size: 13),
-                  SizedBox(width: 4),
-                  Text('Filtrar'),
-                ],
-              ),
-              onPressed: () => _showFilterSheet(context, ref),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _FilterBtn(
+              label: 'Filtrar',
+              leadingIcon: Icons.filter_list,
+              onTap: () => _showFilterSheet(context, ref),
             ),
           ),
         ],
@@ -141,9 +127,30 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
+  void _handleFabTap(BuildContext context) {
+    _showAddLinkDialog(context);
+  }
+
+  // Verifica el portapapeles luego de mostrar el dialog;
+  // si hay una URL válida, cierra el dialog y navega directo a CaptureScreen.
+  void _checkClipboardForCapture(BuildContext context) async {
+    try {
+      final data = await Clipboard.getData(Clipboard.kTextPlain);
+      final text = data?.text?.trim() ?? '';
+      if (text.startsWith('http://') || text.startsWith('https://')) {
+        if (!context.mounted) return;
+        Navigator.of(context).pop();
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => CaptureScreen(url: text)),
+        );
+      }
+    } catch (_) {}
+  }
+
   void _showAddLinkDialog(BuildContext context) {
     final controller = TextEditingController();
-    _prefillFromClipboard(controller);
+    _checkClipboardForCapture(context);
 
     showDialog(
       context: context,
@@ -204,17 +211,63 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
+}
 
-  void _prefillFromClipboard(TextEditingController controller) async {
-    try {
-      final data = await Clipboard.getData(Clipboard.kTextPlain);
-      final text = data?.text?.trim() ?? '';
-      if (text.startsWith('http://') || text.startsWith('https://')) {
-        controller.text = text;
-        controller.selection =
-            TextSelection.collapsed(offset: text.length);
-      }
-    } catch (_) {}
+// Botón de filtro con ancho expandible (igual distribución horizontal)
+class _FilterBtn extends StatelessWidget {
+  final String label;
+  final IconData? leadingIcon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _FilterBtn({
+    required this.label,
+    this.leadingIcon,
+    this.selected = false,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return SizedBox(
+      height: 36,
+      child: Material(
+        color:
+            selected ? colors.primaryContainer : colors.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (leadingIcon != null) ...[
+                Icon(
+                  leadingIcon,
+                  size: 14,
+                  color: selected
+                      ? colors.onPrimaryContainer
+                      : colors.onSurfaceVariant,
+                ),
+                const SizedBox(width: 4),
+              ],
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight:
+                      selected ? FontWeight.w600 : FontWeight.w400,
+                  color: selected
+                      ? colors.onPrimaryContainer
+                      : colors.onSurface,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

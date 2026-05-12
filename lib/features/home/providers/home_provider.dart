@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database.dart';
 
-enum HomeFilter { todos, prioritarios }
+enum HomeFilter { todos, favoritos }
 
 final homeFilterProvider =
     StateProvider<HomeFilter>((ref) => HomeFilter.todos);
@@ -17,8 +17,8 @@ final filteredHomeLinksProvider = StreamProvider<List<Link>>((ref) {
   final platform = ref.watch(selectedPlatformProvider);
   final db = ref.watch(databaseProvider);
 
-  if (filter == HomeFilter.prioritarios) {
-    return db.watchPriorityLinks();
+  if (filter == HomeFilter.favoritos) {
+    return db.watchFavoriteLinks();
   }
   if (platform != null) {
     return db.watchLinksByPlatform(platform);

@@ -302,6 +302,57 @@ void main() {
   });
 
   group('CaptureScreen — Cancelar', () {
+    testWidgets('Cancelar regresa a la raíz aunque haya pantallas intermedias',
+        (tester) async {
+      final db = createTestDatabase();
+      addTearDown(db.close);
+
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          captureServiceProvider.overrideWithValue(MockCaptureService()),
+          metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
+        ],
+        child: MaterialApp(
+          home: Builder(
+            builder: (rootCtx) => TextButton(
+              onPressed: () => Navigator.push(
+                rootCtx,
+                MaterialPageRoute(
+                  builder: (midCtx) => Scaffold(
+                    body: TextButton(
+                      onPressed: () => Navigator.push(
+                        midCtx,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              const CaptureScreen(url: 'https://example.com'),
+                        ),
+                      ),
+                      child: const Text('abrir capture'),
+                    ),
+                  ),
+                ),
+              ),
+              child: const Text('ir a intermedia'),
+            ),
+          ),
+        ),
+      ));
+
+      await tester.tap(find.text('ir a intermedia'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('abrir capture'));
+      await tester.pumpAndSettle();
+      expect(find.byType(CaptureScreen), findsOneWidget);
+
+      await tester.tap(find.text('Cancelar'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CaptureScreen), findsNothing);
+      expect(find.text('ir a intermedia'), findsOneWidget);
+    });
+
     testWidgets('cierra la pantalla sin guardar al tocar Cancelar', (tester) async {
       final db = createTestDatabase();
       addTearDown(db.close);

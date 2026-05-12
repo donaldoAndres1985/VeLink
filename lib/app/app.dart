@@ -35,11 +35,19 @@ class MainShell extends ConsumerStatefulWidget {
 
 class _MainShellState extends ConsumerState<MainShell> {
   int _currentIndex = 0;
+  late final PageController _pageController;
 
   @override
   void initState() {
     super.initState();
+    _pageController = PageController();
     Future.microtask(_startUp);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> _startUp() async {
@@ -57,13 +65,6 @@ class _MainShellState extends ConsumerState<MainShell> {
     }
   }
 
-  final _screens = const [
-    HomeScreen(),
-    PendientesScreen(),
-    TagsScreen(),
-    AjustesScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
     ref.listen<String?>(
@@ -78,10 +79,26 @@ class _MainShellState extends ConsumerState<MainShell> {
     );
 
     return Scaffold(
-      body: _screens[_currentIndex],
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) => setState(() => _currentIndex = index),
+        children: const [
+          HomeScreen(),
+          PendientesScreen(),
+          TagsScreen(),
+          AjustesScreen(),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+        onTap: (index) {
+          setState(() => _currentIndex = index);
+          _pageController.animateToPage(
+            index,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        },
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.link_outlined),

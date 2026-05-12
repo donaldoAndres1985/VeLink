@@ -54,16 +54,16 @@ void main() {
   });
 
   group('HomeScreen — filtros', () {
-    testWidgets('muestra chip Todos', (tester) async {
+    testWidgets('muestra botón Todos', (tester) async {
       await tester.pumpWidget(buildHomeWidget());
       await tester.pumpAndSettle();
       expect(find.text('Todos'), findsOneWidget);
     });
 
-    testWidgets('muestra chip Prioritarios', (tester) async {
+    testWidgets('muestra botón Favoritos', (tester) async {
       await tester.pumpWidget(buildHomeWidget());
       await tester.pumpAndSettle();
-      expect(find.text('Prioritarios'), findsOneWidget);
+      expect(find.text('Favoritos'), findsOneWidget);
     });
 
     testWidgets('muestra botón Filtrar', (tester) async {
@@ -72,22 +72,15 @@ void main() {
       expect(find.text('Filtrar'), findsOneWidget);
     });
 
-    testWidgets('chip Todos está seleccionado por defecto', (tester) async {
+    testWidgets('los tres botones están distribuidos horizontalmente', (tester) async {
       await tester.pumpWidget(buildHomeWidget());
       await tester.pumpAndSettle();
-      final todosChip = tester.widget<ChoiceChip>(
-        find.widgetWithText(ChoiceChip, 'Todos'),
-      );
-      expect(todosChip.selected, isTrue);
-    });
-
-    testWidgets('chip Prioritarios no está seleccionado por defecto', (tester) async {
-      await tester.pumpWidget(buildHomeWidget());
-      await tester.pumpAndSettle();
-      final chip = tester.widget<ChoiceChip>(
-        find.widgetWithText(ChoiceChip, 'Prioritarios'),
-      );
-      expect(chip.selected, isFalse);
+      final todosPos = tester.getCenter(find.text('Todos'));
+      final favoritosPos = tester.getCenter(find.text('Favoritos'));
+      final filtrarPos = tester.getCenter(find.text('Filtrar'));
+      // Todos debe estar a la izquierda de Favoritos, y este a la izquierda de Filtrar
+      expect(todosPos.dx, lessThan(favoritosPos.dx));
+      expect(favoritosPos.dx, lessThan(filtrarPos.dx));
     });
   });
 

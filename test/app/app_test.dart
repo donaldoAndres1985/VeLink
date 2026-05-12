@@ -65,6 +65,38 @@ void main() {
     });
   });
 
+  group('MainShell — navegación por deslizamiento', () {
+    testWidgets('deslizar hacia la izquierda pasa a la pantalla Pendientes',
+        (tester) async {
+      await tester.pumpWidget(buildApp());
+      await tester.pump();
+
+      final barBefore = tester.widget<BottomNavigationBar>(
+          find.byType(BottomNavigationBar));
+      expect(barBefore.currentIndex, 0);
+
+      await tester.fling(
+          find.byType(PageView), const Offset(-500, 0), 1500);
+      await tester.pumpAndSettle();
+
+      final barAfter = tester.widget<BottomNavigationBar>(
+          find.byType(BottomNavigationBar));
+      expect(barAfter.currentIndex, 1);
+    });
+
+    testWidgets('tap en tab inferior sincroniza el PageView', (tester) async {
+      await tester.pumpWidget(buildApp());
+      await tester.pump();
+
+      await tester.tap(find.text('Pendientes'));
+      await tester.pumpAndSettle();
+
+      final bar = tester.widget<BottomNavigationBar>(
+          find.byType(BottomNavigationBar));
+      expect(bar.currentIndex, 1);
+    });
+  });
+
   group('MainShell — notificación HU21', () {
     testWidgets('muestra notificación al arrancar si hay links prioritarios',
         (tester) async {
