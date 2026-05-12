@@ -566,6 +566,32 @@ void main() {
     });
   });
 
+  // ─── TAGS — ACTUALIZAR ───────────────────────────────────────────────────────
+
+  group('Tags — updateTag', () {
+    test('updateTag actualiza el nombre del tag', () async {
+      final id = await db.insertTag(TagsCompanion.insert(name: 'flutter'));
+      await db.updateTag(id, 'flutter-nuevo', '#6366F1');
+      final tags = await db.watchAllTags().first;
+      expect(tags.first.name, 'flutter-nuevo');
+    });
+
+    test('updateTag actualiza el color del tag', () async {
+      final id = await db.insertTag(TagsCompanion.insert(name: 'flutter'));
+      await db.updateTag(id, 'flutter', '#EF4444');
+      final tags = await db.watchAllTags().first;
+      expect(tags.first.color, '#EF4444');
+    });
+
+    test('updateTag no afecta otros tags', () async {
+      final id1 = await db.insertTag(TagsCompanion.insert(name: 'flutter'));
+      await db.insertTag(TagsCompanion.insert(name: 'dart'));
+      await db.updateTag(id1, 'flutter-nuevo', '#6366F1');
+      final tags = await db.watchAllTags().first;
+      expect(tags.where((t) => t.name == 'dart').length, 1);
+    });
+  });
+
   // ─── LINKS — watchLinksByPlatform ───────────────────────────────────────────
 
   group('Links — watchLinksByPlatform', () {

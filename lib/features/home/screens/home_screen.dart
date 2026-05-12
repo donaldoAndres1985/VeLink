@@ -6,11 +6,35 @@ import '../providers/home_provider.dart';
 import '../../capture/screens/capture_screen.dart';
 import '../../search/providers/search_provider.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  late final TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    ref.read(searchQueryProvider.notifier).state = '';
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final query = ref.watch(searchQueryProvider);
     final linksAsync = ref.watch(filteredHomeLinksProvider);
     final searchAsync = ref.watch(searchResultsProvider);
@@ -28,6 +52,7 @@ class HomeScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
             child: TextField(
+              controller: _searchController,
               decoration: const InputDecoration(
                 hintText: 'Buscar links...',
                 prefixIcon: Icon(Icons.search),
@@ -45,7 +70,8 @@ class HomeScreen extends ConsumerWidget {
                     data: (links) => links.isEmpty
                         ? const Center(child: Text('No hay links guardados aún'))
                         : ListView.builder(
-                            padding: const EdgeInsets.only(left: 12, top: 12, right: 12, bottom: 80),
+                            padding: const EdgeInsets.only(
+                                left: 12, top: 12, right: 12, bottom: 80),
                             itemCount: links.length,
                             itemBuilder: (_, i) => LinkCard(link: links[i]),
                           ),
@@ -59,7 +85,8 @@ class HomeScreen extends ConsumerWidget {
                     data: (links) => links.isEmpty
                         ? const Center(child: Text('Sin resultados'))
                         : ListView.builder(
-                            padding: const EdgeInsets.only(left: 12, top: 12, right: 12, bottom: 80),
+                            padding: const EdgeInsets.only(
+                                left: 12, top: 12, right: 12, bottom: 80),
                             itemCount: links.length,
                             itemBuilder: (_, i) => LinkCard(link: links[i]),
                           ),
@@ -87,6 +114,7 @@ class HomeScreen extends ConsumerWidget {
               onTap: () {
                 ref.read(homeFilterProvider.notifier).state = HomeFilter.todos;
                 ref.read(selectedPlatformProvider.notifier).state = null;
+                _clearSearch();
               },
             ),
           ),

@@ -128,6 +128,27 @@ void main() {
     });
   });
 
+  group('HomeScreen — filtros limpian búsqueda', () {
+    testWidgets('tap en Todos limpia el texto del campo de búsqueda', (tester) async {
+      await tester.pumpWidget(buildHomeWidget());
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'flutter');
+      await tester.pump();
+
+      await tester.tap(find.text('Todos'));
+      await tester.pump();
+
+      final editableText = tester.firstWidget<EditableText>(
+        find.descendant(
+          of: find.byType(TextField),
+          matching: find.byType(EditableText),
+        ),
+      );
+      expect(editableText.controller.text, isEmpty);
+    });
+  });
+
   group('HomeScreen — búsqueda', () {
     testWidgets('muestra campo de búsqueda', (tester) async {
       await tester.pumpWidget(buildHomeWidget());

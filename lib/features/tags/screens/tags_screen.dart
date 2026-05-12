@@ -4,6 +4,7 @@ import '../../../core/database/database.dart';
 import '../../../features/capture/providers/capture_provider.dart';
 import '../providers/tag_providers.dart';
 import 'create_tag_dialog.dart';
+import 'edit_tag_dialog.dart';
 
 class TagsScreen extends ConsumerWidget {
   const TagsScreen({super.key});
@@ -102,11 +103,28 @@ class _TagCard extends ConsumerWidget {
           loading: () => const SizedBox.shrink(),
           error: (_, __) => const SizedBox.shrink(),
         ),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete_outline),
-          onPressed: () => _confirmDelete(context, ref),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              onPressed: () => _showEditDialog(context),
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              onPressed: () => _confirmDelete(context, ref),
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  void _showEditDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => EditTagDialog(tag: tag),
     );
   }
 

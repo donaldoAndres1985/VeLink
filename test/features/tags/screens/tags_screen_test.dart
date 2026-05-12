@@ -153,4 +153,73 @@ void main() {
       expect(find.byType(FloatingActionButton), findsOneWidget);
     });
   });
+
+  group('TagsScreen — editar', () {
+    testWidgets('muestra botón de editar por cada tag', (tester) async {
+      final tags = [
+        Tag(id: 1, name: 'flutter', color: '#6366F1', createdAt: DateTime.now()),
+      ];
+      await tester.pumpWidget(buildTagsWidget(tags: tags));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
+    });
+
+    testWidgets('tap en editar abre diálogo de edición', (tester) async {
+      final tags = [
+        Tag(id: 1, name: 'flutter', color: '#6366F1', createdAt: DateTime.now()),
+      ];
+      await tester.pumpWidget(buildTagsWidget(tags: tags));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Editar etiqueta'), findsOneWidget);
+    });
+
+    testWidgets('el diálogo de edición muestra el nombre actual del tag', (tester) async {
+      final tags = [
+        Tag(id: 1, name: 'flutter', color: '#6366F1', createdAt: DateTime.now()),
+      ];
+      await tester.pumpWidget(buildTagsWidget(tags: tags));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await tester.pumpAndSettle();
+
+      final editableText = tester.firstWidget<EditableText>(
+        find.descendant(
+          of: find.byType(TextField),
+          matching: find.byType(EditableText),
+        ),
+      );
+      expect(editableText.controller.text, 'flutter');
+    });
+
+    testWidgets('guardar edición actualiza el tag en DB', (tester) async {
+      final db = createTestDatabase();
+      addTearDown(db.close);
+      final id = await db.insertTag(TagsCompanion.insert(name: 'flutter'));
+      final tag = Tag(id: id, name: 'flutter', color: '#6366F1', createdAt: DateTime.now());
+
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          allTagsProvider.overrideWith((ref) => Stream.value([tag])),
+        ],
+        child: const MaterialApp(home: TagsScreen()),
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField).first, 'flutter-editado');
+      await tester.tap(find.text('Guardar'));
+      await tester.pumpAndSettle();
+
+      final tags = await db.getAllTags();
+      expect(tags.first.name, 'flutter-editado');
+    });
+  });
 }

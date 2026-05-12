@@ -87,6 +87,10 @@ class AppDatabase extends _$AppDatabase {
   Future<int> deleteTag(int id) =>
       (delete(tags)..where((t) => t.id.equals(id))).go();
 
+  Future<void> updateTag(int id, String name, String color) =>
+      (update(tags)..where((t) => t.id.equals(id)))
+          .write(TagsCompanion(name: Value(name), color: Value(color)));
+
   // Link + Tags
   Future<void> addTagToLink(int linkId, int tagId) =>
       into(linkTags).insertOnConflictUpdate(
