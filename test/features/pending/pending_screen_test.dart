@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -91,21 +92,92 @@ void main() {
       expect(find.text('dart.dev'), findsWidgets);
     });
 
-    testWidgets('muestra botón Marcar revisado por cada link', (tester) async {
+    testWidgets('no muestra botón independiente Marcar revisado bajo la card', (tester) async {
       await tester.pumpWidget(buildPendingWidget(
         links: [makeLink(url: 'https://flutter.dev', isRead: false)],
       ));
       await tester.pumpAndSettle();
-      expect(find.text('Marcar revisado'), findsOneWidget);
+      expect(find.byType(OutlinedButton), findsNothing);
+    });
+  });
+
+  group('PendientesScreen — marcar revisado por swipe', () {
+    testWidgets('deslizar card actualiza isRead=true en DB', (tester) async {
+      final db = createTestDatabase();
+      addTearDown(db.close);
+      await db.insertLink(LinksCompanion.insert(url: 'https://flutter.dev'));
+
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
+          pendingLinksProvider.overrideWith((ref) => db.watchPendingLinks()),
+        ],
+        child: const MaterialApp(home: PendientesScreen()),
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.drag(find.byType(Dismissible).first, const Offset(500, 0));
+      await tester.pumpAndSettle();
+
+      final links = await db.getAllLinks();
+      expect(links.first.isRead, true);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(Duration.zero);
     });
 
-    testWidgets('muestra botón Marcar revisado para cada link en la lista', (tester) async {
-      await tester.pumpWidget(buildPendingWidget(links: [
-        makeLink(url: 'https://flutter.dev', id: 1, isRead: false),
-        makeLink(url: 'https://dart.dev', id: 2, isRead: false),
-      ]));
+    testWidgets('muestra snackbar con mensaje y acción Deshacer tras deslizar', (tester) async {
+      final db = createTestDatabase();
+      addTearDown(db.close);
+      await db.insertLink(LinksCompanion.insert(url: 'https://flutter.dev'));
+
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
+          pendingLinksProvider.overrideWith((ref) => db.watchPendingLinks()),
+        ],
+        child: const MaterialApp(home: PendientesScreen()),
+      ));
       await tester.pumpAndSettle();
-      expect(find.text('Marcar revisado'), findsNWidgets(2));
+
+      await tester.drag(find.byType(Dismissible).first, const Offset(500, 0));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Link marcado como revisado'), findsOneWidget);
+      expect(find.text('Deshacer'), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(Duration.zero);
+    });
+
+    testWidgets('Deshacer revierte isRead a false en DB', (tester) async {
+      final db = createTestDatabase();
+      addTearDown(db.close);
+      await db.insertLink(LinksCompanion.insert(url: 'https://flutter.dev'));
+
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
+          pendingLinksProvider.overrideWith((ref) => db.watchPendingLinks()),
+        ],
+        child: const MaterialApp(home: PendientesScreen()),
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.drag(find.byType(Dismissible).first, const Offset(500, 0));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Deshacer'));
+      await tester.pumpAndSettle();
+
+      final links = await db.getAllLinks();
+      expect(links.first.isRead, false);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(Duration.zero);
     });
   });
 }

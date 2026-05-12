@@ -18,16 +18,20 @@ class PendientesScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(s.pendingTitle)),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: s.searchPending,
-                prefixIcon: const Icon(Icons.search),
-                isDense: true,
+          Material(
+            elevation: 2,
+            color: Theme.of(context).colorScheme.surface,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: s.searchPending,
+                  prefixIcon: const Icon(Icons.search),
+                  isDense: true,
+                ),
+                onChanged: (v) =>
+                    ref.read(pendingSearchQueryProvider.notifier).state = v,
               ),
-              onChanged: (v) =>
-                  ref.read(pendingSearchQueryProvider.notifier).state = v,
             ),
           ),
           Expanded(
@@ -86,48 +90,56 @@ class PendientesScreen extends ConsumerWidget {
 
                 return ListView.builder(
                   padding: const EdgeInsets.only(
-                      left: 12, top: 12, right: 12, bottom: 80),
+                      left: 12,
+                      top: 8,
+                      right: 12,
+                      bottom: kBottomNavigationBarHeight + 56.0 + 24.0),
                   itemCount: links.length,
-                  itemBuilder: (_, i) => _PendingItem(link: links[i], s: s),
+                  itemBuilder: (_, i) {
+                    final link = links[i];
+                    return Dismissible(
+                      key: ValueKey(link.id),
+                      direction: DismissDirection.startToEnd,
+                      background: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade600,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        alignment: Alignment.centerLeft,
+                        padding: const EdgeInsets.only(left: 20),
+                        child: const Icon(
+                          Icons.check_circle_outline,
+                          color: Colors.white,
+                        ),
+                      ),
+                      onDismissed: (_) {
+                        ref
+                            .read(databaseProvider)
+                            .setLinkReviewed(link.id, true);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(s.markedAsReviewed),
+                            action: SnackBarAction(
+                              label: s.undo,
+                              onPressed: () => ref
+                                  .read(databaseProvider)
+                                  .setLinkReviewed(link.id, false),
+                            ),
+                            duration: const Duration(seconds: 4),
+                          ),
+                        );
+                      },
+                      child: LinkCard(link: link),
+                    );
+                  },
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (_, __) =>
-                  Center(child: Text(s.errorLoadLinks)),
+              error: (_, __) => Center(child: Text(s.errorLoadLinks)),
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _PendingItem extends ConsumerWidget {
-  final Link link;
-  final dynamic s;
-
-  const _PendingItem({required this.link, required this.s});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        LinkCard(link: link),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-          child: OutlinedButton.icon(
-            icon: const Icon(Icons.check_circle_outline, size: 16),
-            label: Text(s.markReviewed),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              textStyle: const TextStyle(fontSize: 13),
-            ),
-            onPressed: () =>
-                ref.read(databaseProvider).setLinkReviewed(link.id, true),
-          ),
-        ),
-      ],
     );
   }
 }
