@@ -52,7 +52,7 @@ void main() {
         links: [makeLink(url: 'https://flutter.dev')],
       ));
       await tester.pumpAndSettle();
-      expect(find.text('https://flutter.dev'), findsOneWidget);
+      expect(find.text('flutter.dev'), findsWidgets);
     });
 
     testWidgets('muestra el título cuando está disponible', (tester) async {
@@ -70,9 +70,9 @@ void main() {
         makeLink(url: 'https://pub.dev', id: 3),
       ]));
       await tester.pumpAndSettle();
-      expect(find.text('https://flutter.dev'), findsOneWidget);
-      expect(find.text('https://dart.dev'), findsOneWidget);
-      expect(find.text('https://pub.dev'), findsOneWidget);
+      expect(find.text('flutter.dev'), findsWidgets);
+      expect(find.text('dart.dev'), findsWidgets);
+      expect(find.text('pub.dev'), findsWidgets);
     });
 
     testWidgets('muestra el badge de plataforma de cada link', (tester) async {
@@ -173,9 +173,9 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      expect(find.text('https://flutter.dev'), findsOneWidget);
+      expect(find.text('flutter.dev'), findsWidgets);
 
-      await tester.drag(find.text('https://flutter.dev'), const Offset(-500, 0));
+      await tester.drag(find.text('flutter.dev').first, const Offset(-500, 0));
       await tester.pumpAndSettle();
 
       final links = await db.getAllLinks();
@@ -202,11 +202,11 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      await tester.drag(find.text('https://flutter.dev'), const Offset(-500, 0));
+      await tester.drag(find.text('flutter.dev').first, const Offset(-500, 0));
       await tester.pumpAndSettle();
 
-      expect(find.text('https://flutter.dev'), findsNothing);
-      expect(find.text('https://dart.dev'), findsOneWidget);
+      expect(find.text('flutter.dev'), findsNothing);
+      expect(find.text('dart.dev'), findsWidgets);
       await tester.pumpWidget(const SizedBox());
       await tester.pump(Duration.zero);
     });

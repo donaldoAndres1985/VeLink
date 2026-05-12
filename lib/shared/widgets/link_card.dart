@@ -38,7 +38,7 @@ class LinkCard extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        _buildPlatformBadge(platformInfo),
+                        _buildPlatformBadge(platformInfo, s),
                         if (link.isFavorite) ...[
                           const SizedBox(width: 6),
                           Semantics(
@@ -57,7 +57,7 @@ class LinkCard extends ConsumerWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      link.url,
+                      _cleanDisplayUrl(link.url),
                       style: TextStyle(
                         color: theme.colorScheme.primary,
                         fontSize: 12,
@@ -202,18 +202,34 @@ class LinkCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildPlatformBadge(PlatformInfo info) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(info.icon, size: 12, color: info.color),
-        const SizedBox(width: 3),
-        Text(
-          info.label,
-          style: TextStyle(color: info.color, fontSize: 11, fontWeight: FontWeight.w500),
-        ),
-      ],
+  Widget _buildPlatformBadge(PlatformInfo info, dynamic s) {
+    return Semantics(
+      label: s.platformSemantics(info.label),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(info.icon, size: 12, color: info.color),
+          const SizedBox(width: 3),
+          Text(
+            info.label,
+            style: TextStyle(color: info.color, fontSize: 11, fontWeight: FontWeight.w500),
+          ),
+        ],
+      ),
     );
+  }
+
+  static String _cleanDisplayUrl(String url) {
+    try {
+      final uri = Uri.parse(url);
+      var host = uri.host;
+      if (host.startsWith('www.')) host = host.substring(4);
+      final path = (uri.path.isEmpty || uri.path == '/') ? '' : uri.path;
+      final query = uri.query.isEmpty ? '' : '?${uri.query}';
+      return '$host$path$query';
+    } catch (_) {
+      return url;
+    }
   }
 }
 

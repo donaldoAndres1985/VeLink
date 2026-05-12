@@ -45,7 +45,7 @@ void main() {
         links: [makeLink(url: 'https://flutter.dev', priority: 1)],
       ));
       await tester.pumpAndSettle();
-      expect(find.text('https://flutter.dev'), findsOneWidget);
+      expect(find.text('flutter.dev'), findsWidgets);
     });
 
     testWidgets('muestra el título cuando está disponible', (tester) async {
@@ -62,8 +62,8 @@ void main() {
         makeLink(url: 'https://dart.dev', priority: 1, id: 2),
       ]));
       await tester.pumpAndSettle();
-      expect(find.text('https://flutter.dev'), findsOneWidget);
-      expect(find.text('https://dart.dev'), findsOneWidget);
+      expect(find.text('flutter.dev'), findsWidgets);
+      expect(find.text('dart.dev'), findsWidgets);
     });
 
     testWidgets('muestra icono de estrella cuando el link es favorito', (tester) async {

@@ -93,7 +93,7 @@ void main() {
         links: [makeLink(url: 'https://flutter.dev')],
       ));
       await tester.pumpAndSettle();
-      expect(find.text('https://flutter.dev'), findsOneWidget);
+      expect(find.text('flutter.dev'), findsWidgets);
     });
 
     testWidgets('muestra el título cuando está disponible', (tester) async {
@@ -110,8 +110,8 @@ void main() {
         makeLink(url: 'https://dart.dev', id: 2),
       ]));
       await tester.pumpAndSettle();
-      expect(find.text('https://flutter.dev'), findsOneWidget);
-      expect(find.text('https://dart.dev'), findsOneWidget);
+      expect(find.text('flutter.dev'), findsWidgets);
+      expect(find.text('dart.dev'), findsWidgets);
     });
 
     testWidgets('muestra el badge de plataforma de cada link', (tester) async {
@@ -152,6 +152,17 @@ void main() {
     });
   });
 
+  group('HomeScreen — padding de lista', () {
+    testWidgets('lista tiene padding inferior correcto para FAB y barra de navegación', (tester) async {
+      await tester.pumpWidget(buildHomeWidget(
+        links: [makeLink(url: 'https://flutter.dev', id: 1)],
+      ));
+      await tester.pumpAndSettle();
+      final listView = tester.widget<ListView>(find.byType(ListView).first);
+      expect((listView.padding as EdgeInsets).bottom, kBottomNavigationBarHeight + 56.0 + 24.0);
+    });
+  });
+
   group('HomeScreen — búsqueda', () {
     testWidgets('muestra campo de búsqueda', (tester) async {
       await tester.pumpWidget(buildHomeWidget());
@@ -176,14 +187,14 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      expect(find.text('https://flutter.dev'), findsOneWidget);
-      expect(find.text('https://dart.dev'), findsOneWidget);
+      expect(find.text('flutter.dev'), findsWidgets);
+      expect(find.text('dart.dev'), findsWidgets);
 
       await tester.enterText(find.byType(TextField), 'flutter');
       await tester.pumpAndSettle();
 
-      expect(find.text('https://flutter.dev'), findsOneWidget);
-      expect(find.text('https://dart.dev'), findsNothing);
+      expect(find.text('flutter.dev'), findsWidgets);
+      expect(find.text('dart.dev'), findsNothing);
     });
   });
 }

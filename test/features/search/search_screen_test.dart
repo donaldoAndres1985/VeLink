@@ -94,8 +94,8 @@ void main() {
         child: const MaterialApp(home: SearchScreen()),
       ));
       await tester.pumpAndSettle();
-      expect(find.text('https://flutter.dev'), findsOneWidget);
-      expect(find.text('https://dart.dev'), findsOneWidget);
+      expect(find.text('flutter.dev'), findsOneWidget);
+      expect(find.text('dart.dev'), findsOneWidget);
     });
 
     testWidgets('muestra el título de cada resultado', (tester) async {

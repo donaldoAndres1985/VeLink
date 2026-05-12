@@ -38,10 +38,10 @@ void main() {
   group('LinkCard — contenido', () {
     testWidgets('muestra la URL del link', (tester) async {
       await tester.pumpWidget(buildLinkCardWidget(
-        makeLink(url: 'https://example.com'),
+        makeLink(url: 'https://example.com', title: 'Example'),
       ));
       await tester.pumpAndSettle();
-      expect(find.text('https://example.com'), findsOneWidget);
+      expect(find.text('example.com'), findsOneWidget);
     });
 
     testWidgets('muestra el título cuando está disponible', (tester) async {
@@ -98,6 +98,89 @@ void main() {
       ));
       await tester.pumpAndSettle();
       expect(find.byIcon(Icons.star), findsNothing);
+    });
+  });
+
+  group('LinkCard — URL limpia', () {
+    testWidgets('muestra URL sin scheme https://', (tester) async {
+      await tester.pumpWidget(buildLinkCardWidget(
+        makeLink(url: 'https://instagram.com/reel/abc123/', title: 'Mi reel'),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text('instagram.com/reel/abc123/'), findsOneWidget);
+      expect(find.text('https://instagram.com/reel/abc123/'), findsNothing);
+    });
+
+    testWidgets('muestra URL sin www.', (tester) async {
+      await tester.pumpWidget(buildLinkCardWidget(
+        makeLink(url: 'https://www.youtube.com/watch?v=abc', title: 'Video'),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text('youtube.com/watch?v=abc'), findsOneWidget);
+    });
+
+    testWidgets('URL completa se mantiene en DB', (tester) async {
+      final db = createTestDatabase();
+      addTearDown(db.close);
+      await db.insertLink(
+        LinksCompanion.insert(url: 'https://instagram.com/reel/abc123/'),
+      );
+      final links = await db.getAllLinks();
+      expect(links.first.url, 'https://instagram.com/reel/abc123/');
+    });
+  });
+
+  group('LinkCard — semantics', () {
+    testWidgets('badge de plataforma tiene label de semantics correcto', (tester) async {
+      await tester.pumpWidget(buildLinkCardWidget(
+        makeLink(url: 'https://instagram.com/p/abc', platform: 'instagram'),
+      ));
+      await tester.pumpAndSettle();
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is Semantics && w.properties.label == 'Plataforma: Instagram',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('ícono favorito tiene label semantics actualizado', (tester) async {
+      await tester.pumpWidget(buildLinkCardWidget(
+        makeLink(url: 'https://example.com', isFavorite: true),
+      ));
+      await tester.pumpAndSettle();
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is Semantics && w.properties.label == 'Link favorito',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('botón Abrir tiene label semantics correcto', (tester) async {
+      await tester.pumpWidget(buildLinkCardWidget(
+        makeLink(url: 'https://example.com'),
+      ));
+      await tester.pumpAndSettle();
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is Semantics && w.properties.label == 'Abrir enlace',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('menú tiene label semantics actualizado', (tester) async {
+      await tester.pumpWidget(buildLinkCardWidget(
+        makeLink(url: 'https://example.com'),
+      ));
+      await tester.pumpAndSettle();
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is Semantics && w.properties.label == 'Más opciones para este link',
+        ),
+        findsOneWidget,
+      );
     });
   });
 
@@ -252,7 +335,7 @@ void main() {
     testWidgets('tap en la card navega a DetailScreen', (tester) async {
       final db = createTestDatabase();
       addTearDown(db.close);
-      final link = makeLink(url: 'https://flutter.dev');
+      final link = makeLink(url: 'https://flutter.dev', title: 'Flutter');
       final mock = MockNotificationService();
       when(() => mock.cancelReminder(any())).thenAnswer((_) async {});
       await tester.pumpWidget(ProviderScope(
@@ -267,7 +350,7 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('https://flutter.dev'));
+      await tester.tap(find.text('flutter.dev'));
       await tester.pumpAndSettle();
 
       expect(find.byType(DetailScreen), findsOneWidget);

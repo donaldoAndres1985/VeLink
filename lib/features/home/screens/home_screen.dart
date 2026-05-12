@@ -83,7 +83,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           )
                         : ListView.builder(
                             padding: const EdgeInsets.only(
-                                left: 12, top: 12, right: 12, bottom: 80),
+                                left: 12, top: 12, right: 12, bottom: kBottomNavigationBarHeight + 56.0 + 24.0),
                             itemCount: links.length,
                             itemBuilder: (_, i) => LinkCard(link: links[i]),
                           ),
@@ -98,7 +98,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ? Center(child: Text(s.noResults))
                         : ListView.builder(
                             padding: const EdgeInsets.only(
-                                left: 12, top: 12, right: 12, bottom: 80),
+                                left: 12, top: 12, right: 12, bottom: kBottomNavigationBarHeight + 56.0 + 24.0),
                             itemCount: links.length,
                             itemBuilder: (_, i) => LinkCard(link: links[i]),
                           ),

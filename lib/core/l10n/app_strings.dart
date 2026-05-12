@@ -112,8 +112,9 @@ class AppStrings {
   String get markedAsPending => _s(es: 'Marcado como pendiente', en: 'Marked as pending');
   String get markedAsReviewed => _s(es: 'Link marcado como revisado', en: 'Link marked as reviewed');
   String get openLinkTooltip => _s(es: 'Abrir enlace', en: 'Open link');
-  String get linkMenuTooltip => _s(es: 'Más opciones', en: 'More options');
-  String get favoriteSemantics => _s(es: 'Favorito', en: 'Favorite');
+  String get linkMenuTooltip => _s(es: 'Más opciones para este link', en: 'More options for this link');
+  String get favoriteSemantics => _s(es: 'Link favorito', en: 'Favorite link');
+  String platformSemantics(String platform) => _s(es: 'Plataforma: $platform', en: 'Platform: $platform');
 
   // ── Settings ─────────────────────────────────────────────────────────────
   String get settingsTitle => _s(es: 'Ajustes', en: 'Settings');

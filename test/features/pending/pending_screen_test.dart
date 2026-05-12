@@ -56,8 +56,8 @@ void main() {
       await tester.enterText(find.byType(TextField), 'flutter');
       await tester.pumpAndSettle();
 
-      expect(find.text('https://flutter.dev'), findsOneWidget);
-      expect(find.text('https://dart.dev'), findsNothing);
+      expect(find.text('flutter.dev'), findsWidgets);
+      expect(find.text('dart.dev'), findsNothing);
     });
 
     testWidgets('muestra todos los links cuando búsqueda está vacía', (tester) async {
@@ -67,8 +67,8 @@ void main() {
       ]));
       await tester.pumpAndSettle();
 
-      expect(find.text('https://flutter.dev'), findsOneWidget);
-      expect(find.text('https://dart.dev'), findsOneWidget);
+      expect(find.text('flutter.dev'), findsWidgets);
+      expect(find.text('dart.dev'), findsWidgets);
     });
   });
 
@@ -78,7 +78,7 @@ void main() {
         links: [makeLink(url: 'https://flutter.dev', isRead: false)],
       ));
       await tester.pumpAndSettle();
-      expect(find.text('https://flutter.dev'), findsOneWidget);
+      expect(find.text('flutter.dev'), findsWidgets);
     });
 
     testWidgets('muestra múltiples links pendientes', (tester) async {
@@ -87,8 +87,8 @@ void main() {
         makeLink(url: 'https://dart.dev', id: 2, isRead: false),
       ]));
       await tester.pumpAndSettle();
-      expect(find.text('https://flutter.dev'), findsOneWidget);
-      expect(find.text('https://dart.dev'), findsOneWidget);
+      expect(find.text('flutter.dev'), findsWidgets);
+      expect(find.text('dart.dev'), findsWidgets);
     });
 
     testWidgets('muestra botón Marcar revisado por cada link', (tester) async {
