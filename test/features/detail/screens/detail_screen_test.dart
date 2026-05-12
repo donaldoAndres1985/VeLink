@@ -182,6 +182,7 @@ void main() {
 
       await tester.ensureVisible(find.byKey(const Key('notes_field')));
       await tester.enterText(find.byKey(const Key('notes_field')), 'Nueva nota');
+      await tester.pump();
       await tester.ensureVisible(find.text('Guardar'));
       await tester.tap(find.text('Guardar'));
       await tester.pump();

@@ -349,27 +349,12 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Notas',
-              style: theme.textTheme.titleSmall
-                  ?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            TextButton(
-              onPressed: _saveNotes,
-              style: TextButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: const Text('Guardar'),
-            ),
-          ],
+        Text(
+          'Notas',
+          style: theme.textTheme.titleSmall
+              ?.copyWith(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         TextField(
           key: const Key('notes_field'),
           controller: _notesController,
@@ -381,6 +366,19 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
             ),
             hintText: 'Escribe una nota sobre este link...',
             contentPadding: const EdgeInsets.all(12),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: _saveNotes,
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: const Text('Guardar'),
           ),
         ),
       ],

@@ -39,7 +39,13 @@ class _MainShellState extends ConsumerState<MainShell> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(_checkPriorityLinks);
+    Future.microtask(_startUp);
+  }
+
+  Future<void> _startUp() async {
+    final service = ref.read(notificationServiceProvider);
+    await service.init();
+    await _checkPriorityLinks();
   }
 
   Future<void> _checkPriorityLinks() async {

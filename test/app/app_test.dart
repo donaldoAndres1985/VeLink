@@ -25,6 +25,7 @@ void main() {
   setUp(() {
     db = createTestDatabase();
     mockService = MockNotificationService();
+    when(() => mockService.init()).thenAnswer((_) async {});
     when(() => mockService.showPriorityLinksNotification(any()))
         .thenAnswer((_) async {});
   });
