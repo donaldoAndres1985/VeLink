@@ -101,6 +101,20 @@ class AppDatabase extends _$AppDatabase {
         ..where((lt) => lt.linkId.equals(linkId) & lt.tagId.equals(tagId)))
           .go();
 
+  Stream<List<Link>> watchLinksByPlatform(String platform) =>
+      (select(links)
+        ..where((l) => l.platform.equals(platform))
+        ..orderBy([(l) => OrderingTerm.desc(l.createdAt)])).watch();
+
+  Future<int> countLinksForTag(int tagId) async {
+    final countExpr = linkTags.tagId.count();
+    final query = selectOnly(linkTags)
+      ..addColumns([countExpr])
+      ..where(linkTags.tagId.equals(tagId));
+    final result = await query.getSingle();
+    return result.read(countExpr) ?? 0;
+  }
+
   Stream<List<Link>> watchLinksByTag(int tagId) {
     final query = select(links).join([
       innerJoin(linkTags, linkTags.linkId.equalsExp(links.id)),

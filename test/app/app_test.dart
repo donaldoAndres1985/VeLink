@@ -41,6 +41,7 @@ void main() {
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
           recentLinksProvider.overrideWith((_) => Stream.value(const [])),
+          filteredHomeLinksProvider.overrideWith((_) => Stream.value(const [])),
           filteredSavedLinksProvider
               .overrideWith((_) => Stream.value(const [])),
           priorityLinksProvider.overrideWith((_) => Stream.value(const [])),

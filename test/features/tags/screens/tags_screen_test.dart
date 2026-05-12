@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
 import 'package:velink/features/capture/providers/capture_provider.dart';
+import 'package:velink/features/tags/providers/tag_providers.dart';
 import 'package:velink/features/tags/screens/tags_screen.dart';
 import '../../../helpers/database_helper.dart';
 
@@ -56,10 +57,45 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byIcon(Icons.delete_outline), findsOneWidget);
     });
+
+    testWidgets('muestra conteo de links por tag', (tester) async {
+      final db = createTestDatabase();
+      addTearDown(db.close);
+      final tagId = await db.insertTag(TagsCompanion.insert(name: 'flutter'));
+      final id1 = await db.insertLink(LinksCompanion.insert(url: 'https://flutter.dev'));
+      final id2 = await db.insertLink(LinksCompanion.insert(url: 'https://pub.dev'));
+      await db.addTagToLink(id1, tagId);
+      await db.addTagToLink(id2, tagId);
+      final tag = Tag(id: tagId, name: 'flutter', color: '#6366F1', createdAt: DateTime.now());
+
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          allTagsProvider.overrideWith((ref) => Stream.value([tag])),
+        ],
+        child: const MaterialApp(home: TagsScreen()),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.text('2 links'), findsOneWidget);
+    });
   });
 
   group('TagsScreen — eliminar', () {
-    testWidgets('tap en eliminar borra el tag de la DB', (tester) async {
+    testWidgets('tap en eliminar muestra diálogo de confirmación', (tester) async {
+      final tags = [
+        Tag(id: 1, name: 'flutter', color: '#6366F1', createdAt: DateTime.now()),
+      ];
+      await tester.pumpWidget(buildTagsWidget(tags: tags));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Eliminar etiqueta'), findsOneWidget);
+    });
+
+    testWidgets('confirmar eliminar borra el tag de la DB', (tester) async {
       final db = createTestDatabase();
       addTearDown(db.close);
       final id = await db.insertTag(TagsCompanion.insert(name: 'flutter'));
@@ -75,10 +111,38 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Eliminar'));
       await tester.pump();
 
       final tags = await db.getAllTags();
       expect(tags, isEmpty);
+    });
+
+    testWidgets('cancelar en diálogo no borra el tag', (tester) async {
+      final db = createTestDatabase();
+      addTearDown(db.close);
+      final id = await db.insertTag(TagsCompanion.insert(name: 'flutter'));
+      final tag = Tag(id: id, name: 'flutter', color: '#6366F1', createdAt: DateTime.now());
+
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          allTagsProvider.overrideWith((ref) => Stream.value([tag])),
+        ],
+        child: const MaterialApp(home: TagsScreen()),
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Cancelar'));
+      await tester.pump();
+
+      final tags = await db.getAllTags();
+      expect(tags.length, 1);
     });
   });
 

@@ -11,45 +11,66 @@ class PriorityScreen extends ConsumerWidget {
     final linksAsync = ref.watch(priorityLinksProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Prioritarios'),
-        actions: [
-          Icon(Icons.star, color: Colors.amber, size: 20),
-          const SizedBox(width: 16),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Prioritarios')),
       body: linksAsync.when(
-        data: (links) => links.isEmpty
-            ? const Center(child: Text('No hay links prioritarios aún'))
-            : ListView.builder(
-                padding: const EdgeInsets.all(12),
-                itemCount: links.length,
-                itemBuilder: (_, i) => _PriorityLinkCard(link: links[i]),
+        data: (links) {
+          if (links.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.star_outline,
+                      size: 56,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'No tienes links prioritarios',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Marca con ⋮ → Marcar prioritario para encontrarlos aquí.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+            );
+          }
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                child: Text(
+                  'Links que marcaste como importantes para revisar primero.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: links.length,
+                  itemBuilder: (_, i) => LinkCard(link: links[i]),
+                ),
+              ),
+            ],
+          );
+        },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, __) =>
             const Center(child: Text('Error al cargar los links')),
       ),
-    );
-  }
-}
-
-class _PriorityLinkCard extends StatelessWidget {
-  final link;
-
-  const _PriorityLinkCard({required this.link});
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        LinkCard(link: link),
-        Positioned(
-          top: 8,
-          right: 8,
-          child: Icon(Icons.star, color: Colors.amber, size: 16),
-        ),
-      ],
     );
   }
 }

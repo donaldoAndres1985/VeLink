@@ -7,13 +7,13 @@ import '../../features/detail/screens/detail_screen.dart';
 
 class LinkCard extends ConsumerWidget {
   final Link link;
-  final bool showOpenButton;
 
-  const LinkCard({super.key, required this.link, this.showOpenButton = false});
+  const LinkCard({super.key, required this.link});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final platformInfo = PlatformInfo.forPlatform(PlatformDetector.detect(link.url));
+    final theme = Theme.of(context);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -21,19 +21,28 @@ class LinkCard extends ConsumerWidget {
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => DetailScreen(link: link)),
         ),
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               _buildThumbnail(context),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildPlatformBadge(platformInfo),
-                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        _buildPlatformBadge(platformInfo),
+                        if (link.priority == 1) ...[
+                          const SizedBox(width: 6),
+                          const Icon(Icons.star, size: 13, color: Colors.amber),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 3),
                     Text(
                       link.title ?? Uri.tryParse(link.url)?.host ?? link.url,
                       style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
@@ -44,47 +53,98 @@ class LinkCard extends ConsumerWidget {
                     Text(
                       link.url,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
+                        color: theme.colorScheme.primary,
                         fontSize: 12,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Text(
+                          _timeAgo(link.createdAt),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const Spacer(),
+                        TextButton(
+                          onPressed: () => launchUrl(
+                            Uri.parse(link.url),
+                            mode: LaunchMode.externalApplication,
+                          ),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            textStyle: const TextStyle(fontSize: 12),
+                          ),
+                          child: const Text('Abrir'),
+                        ),
+                        _buildMenu(context, ref),
+                      ],
+                    ),
                   ],
                 ),
-              ),
-              if (showOpenButton)
-                IconButton(
-                  icon: const Icon(Icons.open_in_new),
-                  onPressed: () => launchUrl(
-                    Uri.parse(link.url),
-                    mode: LaunchMode.externalApplication,
-                  ),
-                )
-              else
-                IconButton(
-                  icon: Icon(
-                    link.isFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: link.isFavorite ? Colors.red : null,
-                  ),
-                  onPressed: () => ref
-                      .read(databaseProvider)
-                      .setLinkFavorite(link.id, !link.isFavorite),
-                ),
-              IconButton(
-                icon: Icon(
-                  link.priority == 1 ? Icons.star : Icons.star_outline,
-                  color: link.priority == 1 ? Colors.amber : null,
-                ),
-                onPressed: () {
-                  final newPriority = link.priority == 1 ? 0 : 1;
-                  ref.read(databaseProvider).setLinkPriority(link.id, newPriority);
-                },
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildMenu(BuildContext context, WidgetRef ref) {
+    final isFavorite = link.isFavorite;
+    final isPriority = link.priority == 1;
+
+    return PopupMenuButton<_LinkAction>(
+      icon: const Icon(Icons.more_vert, size: 20),
+      onSelected: (action) => _handleAction(context, ref, action),
+      padding: EdgeInsets.zero,
+      itemBuilder: (_) => [
+        PopupMenuItem(
+          value: _LinkAction.toggleFavorite,
+          child: Text(isFavorite ? 'Quitar guardado' : 'Guardar'),
+        ),
+        PopupMenuItem(
+          value: _LinkAction.togglePriority,
+          child: Text(isPriority ? 'Quitar prioridad' : 'Marcar prioritario'),
+        ),
+        const PopupMenuItem(
+          value: _LinkAction.delete,
+          child: Text('Eliminar'),
+        ),
+      ],
+    );
+  }
+
+  void _handleAction(BuildContext context, WidgetRef ref, _LinkAction action) {
+    final db = ref.read(databaseProvider);
+    switch (action) {
+      case _LinkAction.toggleFavorite:
+        db.setLinkFavorite(link.id, !link.isFavorite);
+        _snack(
+          context,
+          link.isFavorite ? 'Eliminado de guardados' : 'Link guardado',
+        );
+      case _LinkAction.togglePriority:
+        db.setLinkPriority(link.id, link.priority == 1 ? 0 : 1);
+        _snack(
+          context,
+          link.priority == 1 ? 'Prioridad eliminada' : 'Link marcado como prioritario',
+        );
+      case _LinkAction.delete:
+        db.deleteLink(link.id);
+        _snack(context, 'Link eliminado');
+    }
+  }
+
+  void _snack(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
     );
   }
 
@@ -94,8 +154,8 @@ class LinkCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(6),
         child: Image.network(
           link.previewImageUrl!,
-          width: 56,
-          height: 56,
+          width: 48,
+          height: 48,
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => _buildPlaceholder(context),
         ),
@@ -106,14 +166,15 @@ class LinkCard extends ConsumerWidget {
 
   Widget _buildPlaceholder(BuildContext context) {
     return Container(
-      width: 56,
-      height: 56,
+      width: 48,
+      height: 48,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(6),
       ),
       child: Icon(
         Icons.link,
+        size: 20,
         color: Theme.of(context).colorScheme.onSurfaceVariant,
       ),
     );
@@ -121,18 +182,39 @@ class LinkCard extends ConsumerWidget {
 
   Widget _buildPlatformBadge(PlatformInfo info) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(info.icon, size: 14, color: info.color),
-        const SizedBox(width: 4),
+        Icon(info.icon, size: 12, color: info.color),
+        const SizedBox(width: 3),
         Text(
           info.label,
-          style: TextStyle(
-            color: info.color,
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
+          style: TextStyle(color: info.color, fontSize: 11, fontWeight: FontWeight.w500),
         ),
       ],
     );
   }
+
+  String _timeAgo(DateTime createdAt) {
+    final diff = DateTime.now().difference(createdAt);
+    if (diff.inDays >= 365) {
+      final y = (diff.inDays / 365).floor();
+      return 'Hace $y año${y > 1 ? "s" : ""}';
+    }
+    if (diff.inDays >= 30) {
+      final m = (diff.inDays / 30).floor();
+      return 'Hace $m mes${m > 1 ? "es" : ""}';
+    }
+    if (diff.inDays > 0) {
+      return 'Hace ${diff.inDays} día${diff.inDays > 1 ? "s" : ""}';
+    }
+    if (diff.inHours > 0) {
+      return 'Hace ${diff.inHours} hora${diff.inHours > 1 ? "s" : ""}';
+    }
+    if (diff.inMinutes > 0) {
+      return 'Hace ${diff.inMinutes} min';
+    }
+    return 'Ahora';
+  }
 }
+
+enum _LinkAction { toggleFavorite, togglePriority, delete }

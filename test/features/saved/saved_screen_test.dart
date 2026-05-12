@@ -90,12 +90,12 @@ void main() {
   });
 
   group('SavedScreen — botón abrir', () {
-    testWidgets('muestra ícono open_in_new en lugar del corazón', (tester) async {
+    testWidgets('muestra botón Abrir y no muestra corazón', (tester) async {
       await tester.pumpWidget(buildSavedWidget(
         links: [makeLink(url: 'https://flutter.dev')],
       ));
       await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.open_in_new), findsOneWidget);
+      expect(find.text('Abrir'), findsOneWidget);
       expect(find.byIcon(Icons.favorite_border), findsNothing);
       expect(find.byIcon(Icons.favorite), findsNothing);
     });

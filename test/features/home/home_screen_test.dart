@@ -14,7 +14,7 @@ Widget buildHomeWidget({List<Link> links = const []}) {
   return ProviderScope(
     overrides: [
       databaseProvider.overrideWithValue(db),
-      recentLinksProvider.overrideWith((ref) => Stream.value(links)),
+      filteredHomeLinksProvider.overrideWith((ref) => Stream.value(links)),
     ],
     child: const MaterialApp(home: HomeScreen()),
   );
@@ -34,6 +34,47 @@ void main() {
       await tester.pumpWidget(buildHomeWidget());
       await tester.pumpAndSettle();
       expect(find.text('No hay links guardados aún'), findsOneWidget);
+    });
+  });
+
+  group('HomeScreen — FAB', () {
+    testWidgets('muestra FloatingActionButton para agregar link', (tester) async {
+      await tester.pumpWidget(buildHomeWidget());
+      await tester.pumpAndSettle();
+      expect(find.byType(FloatingActionButton), findsOneWidget);
+    });
+
+    testWidgets('FAB muestra diálogo al tocar', (tester) async {
+      await tester.pumpWidget(buildHomeWidget());
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+      expect(find.text('Agregar link'), findsOneWidget);
+    });
+  });
+
+  group('HomeScreen — filtros de plataforma', () {
+    testWidgets('muestra chip Todos', (tester) async {
+      await tester.pumpWidget(buildHomeWidget());
+      await tester.pumpAndSettle();
+      expect(find.text('Todos'), findsOneWidget);
+    });
+
+    testWidgets('muestra chips de plataformas disponibles', (tester) async {
+      await tester.pumpWidget(buildHomeWidget());
+      await tester.pumpAndSettle();
+      expect(find.text('YouTube'), findsOneWidget);
+      expect(find.text('Instagram'), findsOneWidget);
+      expect(find.text('Facebook'), findsOneWidget);
+    });
+
+    testWidgets('chip Todos está seleccionado por defecto', (tester) async {
+      await tester.pumpWidget(buildHomeWidget());
+      await tester.pumpAndSettle();
+      final todosChip = tester.widget<ChoiceChip>(
+        find.widgetWithText(ChoiceChip, 'Todos'),
+      );
+      expect(todosChip.selected, isTrue);
     });
   });
 
@@ -69,7 +110,7 @@ void main() {
         links: [makeLink(url: 'https://youtube.com/watch?v=abc', platform: 'youtube')],
       ));
       await tester.pumpAndSettle();
-      expect(find.text('YouTube'), findsOneWidget);
+      expect(find.text('YouTube'), findsWidgets);
     });
 
     testWidgets('muestra placeholder cuando no hay imagen de preview', (tester) async {
@@ -97,7 +138,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
-          recentLinksProvider.overrideWith((_) => Stream.value([link1, link2])),
+          filteredHomeLinksProvider.overrideWith((_) => Stream.value([link1, link2])),
           searchResultsProvider.overrideWith((_) async => [link1]),
         ],
         child: const MaterialApp(home: HomeScreen()),
@@ -112,47 +153,6 @@ void main() {
 
       expect(find.text('https://flutter.dev'), findsOneWidget);
       expect(find.text('https://dart.dev'), findsNothing);
-    });
-  });
-
-  group('HomeScreen — favorito', () {
-    testWidgets('muestra ícono de favorito vacío cuando link no es favorito', (tester) async {
-      await tester.pumpWidget(buildHomeWidget(
-        links: [makeLink(url: 'https://flutter.dev', isFavorite: false)],
-      ));
-      await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.favorite_border), findsOneWidget);
-    });
-
-    testWidgets('muestra ícono de favorito lleno cuando link es favorito', (tester) async {
-      await tester.pumpWidget(buildHomeWidget(
-        links: [makeLink(url: 'https://flutter.dev', isFavorite: true)],
-      ));
-      await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.favorite), findsOneWidget);
-    });
-
-    testWidgets('tap en favorito persiste el cambio en la base de datos', (tester) async {
-      final db = createTestDatabase();
-      addTearDown(db.close);
-      final id = await db.insertLink(LinksCompanion.insert(url: 'https://flutter.dev'));
-
-      await tester.pumpWidget(ProviderScope(
-        overrides: [
-          databaseProvider.overrideWithValue(db),
-          recentLinksProvider.overrideWith(
-            (_) => Stream.value([makeLink(url: 'https://flutter.dev', id: id)]),
-          ),
-        ],
-        child: const MaterialApp(home: HomeScreen()),
-      ));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byIcon(Icons.favorite_border));
-      await tester.pumpAndSettle();
-
-      final links = await db.getAllLinks();
-      expect(links.first.isFavorite, true);
     });
   });
 }

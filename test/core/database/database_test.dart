@@ -537,4 +537,51 @@ void main() {
       expect(tags.first.name, 'dart');
     });
   });
+
+  // ─── LINKS — watchLinksByPlatform ───────────────────────────────────────────
+
+  group('Links — watchLinksByPlatform', () {
+    test('retorna links de la plataforma especificada', () async {
+      await db.insertLink(LinksCompanion.insert(
+        url: 'https://facebook.com/post',
+        platform: const Value('facebook'),
+      ));
+      await db.insertLink(LinksCompanion.insert(
+        url: 'https://youtube.com/watch?v=abc',
+        platform: const Value('youtube'),
+      ));
+      final fbLinks = await db.watchLinksByPlatform('facebook').first;
+      expect(fbLinks.length, 1);
+      expect(fbLinks.first.platform, 'facebook');
+    });
+
+    test('retorna lista vacía si no hay links de esa plataforma', () async {
+      await db.insertLink(LinksCompanion.insert(
+        url: 'https://youtube.com/watch?v=abc',
+        platform: const Value('youtube'),
+      ));
+      final fbLinks = await db.watchLinksByPlatform('facebook').first;
+      expect(fbLinks, isEmpty);
+    });
+  });
+
+  // ─── TAGS — countLinksForTag ─────────────────────────────────────────────────
+
+  group('Tags — countLinksForTag', () {
+    test('retorna 0 cuando el tag no tiene links', () async {
+      final tagId = await db.insertTag(TagsCompanion.insert(name: 'flutter'));
+      final count = await db.countLinksForTag(tagId);
+      expect(count, 0);
+    });
+
+    test('retorna el número correcto de links por tag', () async {
+      final tagId = await db.insertTag(TagsCompanion.insert(name: 'flutter'));
+      final id1 = await db.insertLink(LinksCompanion.insert(url: 'https://flutter.dev'));
+      final id2 = await db.insertLink(LinksCompanion.insert(url: 'https://pub.dev'));
+      await db.addTagToLink(id1, tagId);
+      await db.addTagToLink(id2, tagId);
+      final count = await db.countLinksForTag(tagId);
+      expect(count, 2);
+    });
+  });
 }

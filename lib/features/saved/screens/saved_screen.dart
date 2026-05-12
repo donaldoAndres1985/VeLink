@@ -64,7 +64,7 @@ class _DismissibleLinkCard extends ConsumerWidget {
       onDismissed: (_) {
         ref.read(databaseProvider).deleteLink(link.id);
       },
-      child: LinkCard(link: link, showOpenButton: true),
+      child: LinkCard(link: link),
     );
   }
 }

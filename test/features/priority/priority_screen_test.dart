@@ -32,7 +32,7 @@ void main() {
     testWidgets('muestra mensaje cuando no hay links prioritarios', (tester) async {
       await tester.pumpWidget(buildPriorityWidget());
       await tester.pumpAndSettle();
-      expect(find.text('No hay links prioritarios aún'), findsOneWidget);
+      expect(find.text('No tienes links prioritarios'), findsOneWidget);
     });
   });
 
