@@ -28,6 +28,7 @@ dependencies:
 
   # Imágenes
   cached_network_image: ^3.3.0
+  image_picker: ^1.1.0
 
   # Captura via Share Sheet (Android + iOS)
   receive_sharing_intent: ^1.8.0

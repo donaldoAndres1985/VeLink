@@ -6,11 +6,14 @@ import 'package:velink/core/database/database.dart';
 import 'package:velink/features/capture/models/og_metadata.dart';
 import 'package:velink/features/capture/providers/capture_provider.dart';
 import 'package:velink/features/capture/screens/capture_screen.dart';
+import 'package:velink/features/capture/services/image_picker_service.dart';
 import '../../../helpers/database_helper.dart';
 import '../../../helpers/mock_capture_service.dart';
+import '../../../helpers/mock_image_picker_service.dart';
 import '../../../helpers/mock_metadata_service.dart';
 
-Widget buildCaptureWidget(String url, {MockMetadataService? metadataService}) {
+Widget buildCaptureWidget(String url,
+    {MockMetadataService? metadataService, ImagePickerService? imagePicker}) {
   final db = createTestDatabase();
   addTearDown(db.close);
   return ProviderScope(
@@ -18,6 +21,7 @@ Widget buildCaptureWidget(String url, {MockMetadataService? metadataService}) {
       databaseProvider.overrideWithValue(db),
       captureServiceProvider.overrideWithValue(MockCaptureService()),
       metadataServiceProvider.overrideWithValue(metadataService ?? MockMetadataService()),
+      imagePickerServiceProvider.overrideWithValue(imagePicker ?? MockImagePickerService()),
       // Avoid opening a Drift watch stream — its zero-duration cleanup timer
       // fires after ProviderScope disposal, triggering a pending-timer assertion.
       allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
@@ -238,6 +242,7 @@ void main() {
         child: const MaterialApp(home: CaptureScreen(url: 'https://github.com/flutter')),
       ));
       await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Guardar'));
       await tester.tap(find.text('Guardar'));
       await tester.pumpAndSettle();
 
@@ -264,6 +269,7 @@ void main() {
         child: const MaterialApp(home: CaptureScreen(url: 'https://github.com/flutter')),
       ));
       await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Guardar'));
       await tester.tap(find.text('Guardar'));
       await tester.pumpAndSettle();
 
@@ -301,6 +307,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(CaptureScreen), findsOneWidget);
 
+      await tester.ensureVisible(find.text('Guardar'));
       await tester.tap(find.text('Guardar'));
       await tester.pumpAndSettle();
       expect(find.byType(CaptureScreen), findsNothing);
@@ -352,6 +359,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(CaptureScreen), findsOneWidget);
 
+      await tester.ensureVisible(find.text('Cancelar'));
       await tester.tap(find.text('Cancelar'));
       await tester.pumpAndSettle();
 
@@ -386,12 +394,76 @@ void main() {
       await tester.tap(find.text('abrir'));
       await tester.pumpAndSettle();
 
+      await tester.ensureVisible(find.text('Cancelar'));
       await tester.tap(find.text('Cancelar'));
       await tester.pumpAndSettle();
       expect(find.byType(CaptureScreen), findsNothing);
 
       final links = await db.getAllLinks();
       expect(links, isEmpty);
+    });
+  });
+
+  group('CaptureScreen — sección imagen', () {
+    testWidgets('muestra sección Imagen o captura', (tester) async {
+      await tester.pumpWidget(buildCaptureWidget('https://example.com'));
+      await tester.pumpAndSettle();
+      expect(find.text('IMAGEN O CAPTURA'), findsOneWidget);
+    });
+
+    testWidgets('muestra texto Agregar imagen cuando no hay imagen', (tester) async {
+      await tester.pumpWidget(buildCaptureWidget('https://example.com'));
+      await tester.pumpAndSettle();
+      expect(find.text('Agregar imagen o screenshot'), findsOneWidget);
+    });
+
+    testWidgets('muestra botón Galería en estado vacío', (tester) async {
+      await tester.pumpWidget(buildCaptureWidget('https://example.com'));
+      await tester.pumpAndSettle();
+      expect(find.text('Galería'), findsOneWidget);
+    });
+
+    testWidgets('muestra botón Captura en estado vacío', (tester) async {
+      await tester.pumpWidget(buildCaptureWidget('https://example.com'));
+      await tester.pumpAndSettle();
+      expect(find.text('Captura'), findsOneWidget);
+    });
+
+    testWidgets('muestra sección Link con la URL', (tester) async {
+      await tester.pumpWidget(buildCaptureWidget('https://example.com'));
+      await tester.pumpAndSettle();
+      expect(find.text('LINK'), findsOneWidget);
+    });
+
+    testWidgets('muestra Cambiar y Eliminar cuando hay imagen seleccionada', (tester) async {
+      await tester.pumpWidget(buildCaptureWidget(
+        'https://example.com',
+        imagePicker: MockImagePickerService(galleryPath: '/fake/image.jpg'),
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Galería'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Cambiar'), findsOneWidget);
+      expect(find.text('Eliminar'), findsOneWidget);
+    });
+
+    testWidgets('Eliminar quita la imagen seleccionada', (tester) async {
+      await tester.pumpWidget(buildCaptureWidget(
+        'https://example.com',
+        imagePicker: MockImagePickerService(galleryPath: '/fake/image.jpg'),
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Galería'));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Eliminar'));
+      await tester.tap(find.text('Eliminar'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Agregar imagen o screenshot'), findsOneWidget);
     });
   });
 }

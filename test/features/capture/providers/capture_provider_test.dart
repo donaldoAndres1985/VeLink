@@ -4,13 +4,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
 import 'package:velink/features/capture/models/og_metadata.dart';
 import 'package:velink/features/capture/providers/capture_provider.dart';
+import 'package:velink/features/capture/services/image_picker_service.dart';
 import '../../../helpers/database_helper.dart';
 import '../../../helpers/mock_capture_service.dart';
+import '../../../helpers/mock_image_picker_service.dart';
 import '../../../helpers/mock_metadata_service.dart';
 
 ProviderContainer createCaptureContainer({
   MockCaptureService? service,
   MockMetadataService? metadataService,
+  ImagePickerService? imagePicker,
 }) {
   final db = createTestDatabase();
   return ProviderContainer(
@@ -18,6 +21,7 @@ ProviderContainer createCaptureContainer({
       databaseProvider.overrideWithValue(db),
       captureServiceProvider.overrideWithValue(service ?? MockCaptureService()),
       metadataServiceProvider.overrideWithValue(metadataService ?? MockMetadataService()),
+      imagePickerServiceProvider.overrideWithValue(imagePicker ?? MockImagePickerService()),
     ],
   );
 }
@@ -461,6 +465,109 @@ void main() {
       final state = container.read(captureProvider);
       expect(state.selectedTagIds, isEmpty);
       expect(state.isFavorite, isFalse);
+    });
+  });
+
+  group('CaptureProvider — imagen', () {
+    test('pickedImagePath inicia en null', () {
+      final container = createCaptureContainer();
+      expect(container.read(captureProvider).pickedImagePath, isNull);
+    });
+
+    test('isPickingImage inicia en false', () {
+      final container = createCaptureContainer();
+      expect(container.read(captureProvider).isPickingImage, isFalse);
+    });
+
+    test('pickFromGallery establece pickedImagePath cuando tiene éxito', () async {
+      final container = createCaptureContainer(
+        imagePicker: MockImagePickerService(galleryPath: '/tmp/image.jpg'),
+      );
+      await container.read(captureProvider.notifier).pickFromGallery();
+      expect(container.read(captureProvider).pickedImagePath, '/tmp/image.jpg');
+      expect(container.read(captureProvider).isPickingImage, isFalse);
+    });
+
+    test('pickFromGallery no cambia pickedImagePath cuando devuelve null', () async {
+      final container = createCaptureContainer(
+        imagePicker: MockImagePickerService(galleryPath: null),
+      );
+      await container.read(captureProvider.notifier).pickFromGallery();
+      expect(container.read(captureProvider).pickedImagePath, isNull);
+      expect(container.read(captureProvider).isPickingImage, isFalse);
+    });
+
+    test('pickFromCamera establece pickedImagePath cuando tiene éxito', () async {
+      final container = createCaptureContainer(
+        imagePicker: MockImagePickerService(cameraPath: '/tmp/camera.jpg'),
+      );
+      await container.read(captureProvider.notifier).pickFromCamera();
+      expect(container.read(captureProvider).pickedImagePath, '/tmp/camera.jpg');
+    });
+
+    test('pickFromGallery establece pickImageError cuando falla', () async {
+      final container = createCaptureContainer(
+        imagePicker: MockImagePickerService(shouldThrow: true),
+      );
+      await container.read(captureProvider.notifier).pickFromGallery();
+      expect(container.read(captureProvider).pickImageError, isTrue);
+      expect(container.read(captureProvider).pickedImagePath, isNull);
+    });
+
+    test('clearPickedImage elimina pickedImagePath', () async {
+      final container = createCaptureContainer(
+        imagePicker: MockImagePickerService(galleryPath: '/tmp/image.jpg'),
+      );
+      await container.read(captureProvider.notifier).pickFromGallery();
+      container.read(captureProvider.notifier).clearPickedImage();
+      expect(container.read(captureProvider).pickedImagePath, isNull);
+    });
+
+    test('saveLink guarda previewImagePath cuando hay imagen local', () async {
+      final db = createTestDatabase();
+      final container = ProviderContainer(overrides: [
+        databaseProvider.overrideWithValue(db),
+        captureServiceProvider.overrideWithValue(MockCaptureService()),
+        metadataServiceProvider.overrideWithValue(MockMetadataService()),
+        imagePickerServiceProvider.overrideWithValue(
+          MockImagePickerService(galleryPath: '/tmp/image.jpg'),
+        ),
+      ]);
+      container.read(captureProvider.notifier).setUrl('https://example.com');
+      await container.read(captureProvider.notifier).pickFromGallery();
+      await container.read(captureProvider.notifier).saveLink();
+      final links = await db.getAllLinks();
+      expect(links.first.previewImagePath, '/tmp/image.jpg');
+    });
+
+    test('saveLink guarda previewImagePath null cuando no hay imagen', () async {
+      final db = createTestDatabase();
+      final container = ProviderContainer(overrides: [
+        databaseProvider.overrideWithValue(db),
+        captureServiceProvider.overrideWithValue(MockCaptureService()),
+        metadataServiceProvider.overrideWithValue(MockMetadataService()),
+        imagePickerServiceProvider.overrideWithValue(MockImagePickerService()),
+      ]);
+      container.read(captureProvider.notifier).setUrl('https://example.com');
+      await container.read(captureProvider.notifier).saveLink();
+      final links = await db.getAllLinks();
+      expect(links.first.previewImagePath, isNull);
+    });
+
+    test('saveLink resetea pickedImagePath después de guardar', () async {
+      final db = createTestDatabase();
+      final container = ProviderContainer(overrides: [
+        databaseProvider.overrideWithValue(db),
+        captureServiceProvider.overrideWithValue(MockCaptureService()),
+        metadataServiceProvider.overrideWithValue(MockMetadataService()),
+        imagePickerServiceProvider.overrideWithValue(
+          MockImagePickerService(galleryPath: '/tmp/image.jpg'),
+        ),
+      ]);
+      container.read(captureProvider.notifier).setUrl('https://example.com');
+      await container.read(captureProvider.notifier).pickFromGallery();
+      await container.read(captureProvider.notifier).saveLink();
+      expect(container.read(captureProvider).pickedImagePath, isNull);
     });
   });
 }

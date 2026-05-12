@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -149,6 +150,18 @@ class LinkCard extends ConsumerWidget {
   }
 
   Widget _buildThumbnail(BuildContext context) {
+    if (link.previewImagePath != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: Image.file(
+          File(link.previewImagePath!),
+          width: 48,
+          height: 48,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _buildPlaceholder(context),
+        ),
+      );
+    }
     if (link.previewImageUrl != null) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(6),
