@@ -10,7 +10,6 @@ import 'package:velink/features/home/providers/home_provider.dart';
 import 'package:velink/features/notifications/providers/notification_provider.dart';
 import 'package:velink/features/notifications/services/notification_service.dart';
 import 'package:velink/features/pending/providers/pending_provider.dart';
-import 'package:velink/features/priority/providers/priority_provider.dart';
 import 'package:velink/features/search/providers/search_provider.dart';
 import '../helpers/database_helper.dart';
 import '../helpers/mock_capture_service.dart';
@@ -42,7 +41,6 @@ void main() {
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
           recentLinksProvider.overrideWith((_) => Stream.value(const [])),
           filteredHomeLinksProvider.overrideWith((_) => Stream.value(const [])),
-          priorityLinksProvider.overrideWith((_) => Stream.value(const [])),
           pendingLinksProvider.overrideWith((_) => Stream.value(const [])),
           allTagsProvider.overrideWith((_) => Stream.value(const [])),
           searchResultsProvider.overrideWith((_) async => const []),

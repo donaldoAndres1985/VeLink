@@ -38,8 +38,16 @@ class AppTheme {
           filled: true,
           fillColor: _cardColor,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(24),
             borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(24),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(24),
+            borderSide: const BorderSide(color: _primaryColor, width: 1.5),
           ),
           hintStyle: const TextStyle(color: Color(0xFF6B7280)),
         ),

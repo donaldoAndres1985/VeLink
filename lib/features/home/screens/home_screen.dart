@@ -4,43 +4,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/widgets/link_card.dart';
 import '../providers/home_provider.dart';
 import '../../capture/screens/capture_screen.dart';
-import '../../pending/providers/pending_provider.dart';
-import '../../priority/providers/priority_provider.dart';
 import '../../search/providers/search_provider.dart';
 
-class HomeScreen extends ConsumerStatefulWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  ConsumerState<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends ConsumerState<HomeScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-    _tabController.addListener(_onTabChanged);
-  }
-
-  void _onTabChanged() {
-    if (mounted) setState(() {});
-  }
-
-  @override
-  void dispose() {
-    _tabController.removeListener(_onTabChanged);
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final query = ref.watch(searchQueryProvider);
+    final linksAsync = ref.watch(filteredHomeLinksProvider);
     final searchAsync = ref.watch(searchResultsProvider);
+    final filter = ref.watch(homeFilterProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('VeLink')),
@@ -57,23 +31,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               decoration: const InputDecoration(
                 hintText: 'Buscar links...',
                 prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
                 isDense: true,
               ),
               onChanged: (v) =>
                   ref.read(searchQueryProvider.notifier).state = v,
             ),
           ),
-          _buildFilterBar(context),
+          _buildFilterBar(context, ref, filter),
           Expanded(
             child: query.trim().isEmpty
-                ? TabBarView(
-                    controller: _tabController,
-                    children: const [
-                      _AllLinksPage(),
-                      _PriorityPage(),
-                      _PendingPage(),
-                    ],
+                ? linksAsync.when(
+                    data: (links) => links.isEmpty
+                        ? const Center(child: Text('No hay links guardados aún'))
+                        : ListView.builder(
+                            padding: const EdgeInsets.all(12),
+                            itemCount: links.length,
+                            itemBuilder: (_, i) => LinkCard(link: links[i]),
+                          ),
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (_, __) =>
+                        const Center(child: Text('Error al cargar los links')),
                   )
                 : searchAsync.when(
                     data: (links) => links.isEmpty
@@ -94,8 +72,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  Widget _buildFilterBar(BuildContext context) {
-    final idx = _tabController.index;
+  Widget _buildFilterBar(BuildContext context, WidgetRef ref, HomeFilter filter) {
     return SizedBox(
       height: 44,
       child: ListView(
@@ -107,8 +84,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             padding: const EdgeInsets.only(right: 6),
             child: ChoiceChip(
               label: const Text('Todos'),
-              selected: idx == 0,
-              onSelected: (_) => _tabController.animateTo(0),
+              selected: filter == HomeFilter.todos,
+              onSelected: (_) {
+                ref.read(homeFilterProvider.notifier).state = HomeFilter.todos;
+                ref.read(selectedPlatformProvider.notifier).state = null;
+              },
             ),
           ),
           Padding(
@@ -122,23 +102,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   Text('Prioritarios'),
                 ],
               ),
-              selected: idx == 1,
-              onSelected: (_) => _tabController.animateTo(1),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: ChoiceChip(
-              label: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Icon(Icons.schedule_outlined, size: 13),
-                  SizedBox(width: 4),
-                  Text('Pendientes'),
-                ],
-              ),
-              selected: idx == 2,
-              onSelected: (_) => _tabController.animateTo(2),
+              selected: filter == HomeFilter.prioritarios,
+              onSelected: (_) => ref
+                  .read(homeFilterProvider.notifier)
+                  .state = HomeFilter.prioritarios,
             ),
           ),
           Padding(
@@ -147,12 +114,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               label: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: const [
-                  Text('Filtrar'),
-                  SizedBox(width: 4),
                   Icon(Icons.filter_list, size: 13),
+                  SizedBox(width: 4),
+                  Text('Filtrar'),
                 ],
               ),
-              onPressed: () => _showFilterSheet(context),
+              onPressed: () => _showFilterSheet(context, ref),
             ),
           ),
         ],
@@ -160,15 +127,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  void _showFilterSheet(BuildContext context) {
+  void _showFilterSheet(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
       builder: (ctx) => _PlatformFilterSheet(
         selectedPlatform: ref.read(selectedPlatformProvider),
         onSelect: (p) {
           ref.read(selectedPlatformProvider.notifier).state = p;
+          ref.read(homeFilterProvider.notifier).state = HomeFilter.todos;
           Navigator.pop(ctx);
-          _tabController.animateTo(0);
         },
       ),
     );
@@ -248,90 +215,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             TextSelection.collapsed(offset: text.length);
       }
     } catch (_) {}
-  }
-}
-
-class _AllLinksPage extends ConsumerWidget {
-  const _AllLinksPage();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final linksAsync = ref.watch(filteredHomeLinksProvider);
-    return linksAsync.when(
-      data: (links) => links.isEmpty
-          ? const Center(child: Text('No hay links guardados aún'))
-          : ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: links.length,
-              itemBuilder: (_, i) => LinkCard(link: links[i]),
-            ),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const Center(child: Text('Error al cargar los links')),
-    );
-  }
-}
-
-class _PriorityPage extends ConsumerWidget {
-  const _PriorityPage();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final linksAsync = ref.watch(priorityLinksProvider);
-    return linksAsync.when(
-      data: (links) => links.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.star_outline,
-                      size: 56,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant),
-                  const SizedBox(height: 16),
-                  const Text('No hay links prioritarios',
-                      style: TextStyle(fontSize: 16)),
-                ],
-              ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: links.length,
-              itemBuilder: (_, i) => LinkCard(link: links[i]),
-            ),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const Center(child: Text('Error al cargar')),
-    );
-  }
-}
-
-class _PendingPage extends ConsumerWidget {
-  const _PendingPage();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final linksAsync = ref.watch(pendingLinksProvider);
-    return linksAsync.when(
-      data: (links) => links.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.schedule_outlined,
-                      size: 56,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant),
-                  const SizedBox(height: 16),
-                  const Text('No hay links pendientes',
-                      style: TextStyle(fontSize: 16)),
-                ],
-              ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: links.length,
-              itemBuilder: (_, i) => LinkCard(link: links[i]),
-            ),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const Center(child: Text('Error al cargar')),
-    );
   }
 }
 
