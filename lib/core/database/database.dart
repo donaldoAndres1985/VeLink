@@ -106,6 +106,15 @@ class AppDatabase extends _$AppDatabase {
         ..where((l) => l.platform.equals(platform))
         ..orderBy([(l) => OrderingTerm.desc(l.createdAt)])).watch();
 
+  Stream<List<Link>> watchPendingLinks() =>
+      (select(links)
+        ..where((l) => l.isRead.equals(false))
+        ..orderBy([(l) => OrderingTerm.desc(l.createdAt)])).watch();
+
+  Future<void> setLinkReviewed(int linkId, bool reviewed) =>
+      (update(links)..where((l) => l.id.equals(linkId)))
+          .write(LinksCompanion(isRead: Value(reviewed)));
+
   Future<int> countLinksForTag(int tagId) async {
     final countExpr = linkTags.tagId.count();
     final query = selectOnly(linkTags)

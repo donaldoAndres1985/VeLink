@@ -4,8 +4,8 @@ import '../core/theme/app_theme.dart';
 import '../features/capture/providers/capture_provider.dart';
 import '../features/capture/screens/capture_screen.dart';
 import '../features/home/screens/home_screen.dart';
-import '../features/saved/screens/saved_screen.dart';
-import '../features/priority/screens/priority_screen.dart';
+import '../features/pending/screens/pending_screen.dart';
+import '../features/settings/screens/settings_screen.dart';
 import '../features/tags/screens/tags_screen.dart';
 import '../core/database/database.dart';
 import '../features/notifications/providers/notification_provider.dart';
@@ -59,9 +59,9 @@ class _MainShellState extends ConsumerState<MainShell> {
 
   final _screens = const [
     HomeScreen(),
-    SavedScreen(),
-    PriorityScreen(),
+    PendientesScreen(),
     TagsScreen(),
+    AjustesScreen(),
   ];
 
   @override
@@ -83,10 +83,26 @@ class _MainShellState extends ConsumerState<MainShell> {
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Inicio'),
-          BottomNavigationBarItem(icon: Icon(Icons.bookmark_outline), activeIcon: Icon(Icons.bookmark), label: 'Guardados'),
-          BottomNavigationBarItem(icon: Icon(Icons.star_outline), activeIcon: Icon(Icons.star), label: 'Prioritarios'),
-          BottomNavigationBarItem(icon: Icon(Icons.label_outline), activeIcon: Icon(Icons.label), label: 'Etiquetas'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.link_outlined),
+            activeIcon: Icon(Icons.link),
+            label: 'Links',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.schedule_outlined),
+            activeIcon: Icon(Icons.schedule),
+            label: 'Pendientes',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.label_outline),
+            activeIcon: Icon(Icons.label),
+            label: 'Etiquetas',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings_outlined),
+            activeIcon: Icon(Icons.settings),
+            label: 'Ajustes',
+          ),
         ],
       ),
     );

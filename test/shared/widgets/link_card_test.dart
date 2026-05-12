@@ -158,6 +158,30 @@ void main() {
 
       expect(find.text('Eliminar'), findsOneWidget);
     });
+
+    testWidgets('muestra Marcar revisado cuando isRead=false', (tester) async {
+      await tester.pumpWidget(buildLinkCardWidget(
+        makeLink(url: 'https://example.com', isRead: false),
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Marcar revisado'), findsOneWidget);
+    });
+
+    testWidgets('muestra Marcar pendiente cuando isRead=true', (tester) async {
+      await tester.pumpWidget(buildLinkCardWidget(
+        makeLink(url: 'https://example.com', isRead: true),
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Marcar pendiente'), findsOneWidget);
+    });
   });
 
   group('LinkCard — acciones del menú', () {
@@ -265,6 +289,26 @@ void main() {
 
       final links = await db.getAllLinks();
       expect(links, isEmpty);
+    });
+
+    testWidgets('Marcar revisado actualiza isRead=true en DB', (tester) async {
+      final db = createTestDatabase();
+      addTearDown(db.close);
+      final id = await db.insertLink(LinksCompanion.insert(url: 'https://example.com'));
+
+      await tester.pumpWidget(buildLinkCardWidget(
+        makeLink(id: id, url: 'https://example.com', isRead: false),
+        database: db,
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Marcar revisado'));
+      await tester.pumpAndSettle();
+
+      final links = await db.getAllLinks();
+      expect(links.first.isRead, true);
     });
   });
 

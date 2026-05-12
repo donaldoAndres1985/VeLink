@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
 import 'package:velink/features/home/providers/home_provider.dart';
 import 'package:velink/features/home/screens/home_screen.dart';
+import 'package:velink/features/pending/providers/pending_provider.dart';
+import 'package:velink/features/priority/providers/priority_provider.dart';
 import 'package:velink/features/search/providers/search_provider.dart';
 import '../../helpers/database_helper.dart';
 import '../../helpers/link_factory.dart';
@@ -15,6 +17,8 @@ Widget buildHomeWidget({List<Link> links = const []}) {
     overrides: [
       databaseProvider.overrideWithValue(db),
       filteredHomeLinksProvider.overrideWith((ref) => Stream.value(links)),
+      priorityLinksProvider.overrideWith((_) => Stream.value(const [])),
+      pendingLinksProvider.overrideWith((_) => Stream.value(const [])),
     ],
     child: const MaterialApp(home: HomeScreen()),
   );
@@ -53,19 +57,23 @@ void main() {
     });
   });
 
-  group('HomeScreen — filtros de plataforma', () {
+  group('HomeScreen — filtros', () {
     testWidgets('muestra chip Todos', (tester) async {
       await tester.pumpWidget(buildHomeWidget());
       await tester.pumpAndSettle();
       expect(find.text('Todos'), findsOneWidget);
     });
 
-    testWidgets('muestra chips de plataformas disponibles', (tester) async {
+    testWidgets('muestra chip Prioritarios', (tester) async {
       await tester.pumpWidget(buildHomeWidget());
       await tester.pumpAndSettle();
-      expect(find.text('YouTube'), findsOneWidget);
-      expect(find.text('Instagram'), findsOneWidget);
-      expect(find.text('Facebook'), findsOneWidget);
+      expect(find.text('Prioritarios'), findsOneWidget);
+    });
+
+    testWidgets('muestra chip Pendientes', (tester) async {
+      await tester.pumpWidget(buildHomeWidget());
+      await tester.pumpAndSettle();
+      expect(find.text('Pendientes'), findsOneWidget);
     });
 
     testWidgets('chip Todos está seleccionado por defecto', (tester) async {
@@ -139,6 +147,8 @@ void main() {
         overrides: [
           databaseProvider.overrideWithValue(db),
           filteredHomeLinksProvider.overrideWith((_) => Stream.value([link1, link2])),
+          priorityLinksProvider.overrideWith((_) => Stream.value(const [])),
+          pendingLinksProvider.overrideWith((_) => Stream.value(const [])),
           searchResultsProvider.overrideWith((_) async => [link1]),
         ],
         child: const MaterialApp(home: HomeScreen()),

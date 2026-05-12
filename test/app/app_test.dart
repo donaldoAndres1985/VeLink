@@ -9,8 +9,8 @@ import 'package:velink/features/capture/providers/capture_provider.dart';
 import 'package:velink/features/home/providers/home_provider.dart';
 import 'package:velink/features/notifications/providers/notification_provider.dart';
 import 'package:velink/features/notifications/services/notification_service.dart';
+import 'package:velink/features/pending/providers/pending_provider.dart';
 import 'package:velink/features/priority/providers/priority_provider.dart';
-import 'package:velink/features/saved/providers/saved_provider.dart';
 import 'package:velink/features/search/providers/search_provider.dart';
 import '../helpers/database_helper.dart';
 import '../helpers/mock_capture_service.dart';
@@ -42,9 +42,8 @@ void main() {
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
           recentLinksProvider.overrideWith((_) => Stream.value(const [])),
           filteredHomeLinksProvider.overrideWith((_) => Stream.value(const [])),
-          filteredSavedLinksProvider
-              .overrideWith((_) => Stream.value(const [])),
           priorityLinksProvider.overrideWith((_) => Stream.value(const [])),
+          pendingLinksProvider.overrideWith((_) => Stream.value(const [])),
           allTagsProvider.overrideWith((_) => Stream.value(const [])),
           searchResultsProvider.overrideWith((_) async => const []),
         ],
@@ -58,7 +57,7 @@ void main() {
       expect(find.text('VeLink'), findsOneWidget);
     });
 
-    testWidgets('tiene 5 tabs en la barra de navegación', (tester) async {
+    testWidgets('tiene 4 tabs en la barra de navegación', (tester) async {
       await tester.pumpWidget(buildApp());
       await tester.pump();
       expect(find.byType(BottomNavigationBar), findsOneWidget);

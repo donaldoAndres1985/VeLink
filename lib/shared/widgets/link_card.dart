@@ -99,6 +99,7 @@ class LinkCard extends ConsumerWidget {
   Widget _buildMenu(BuildContext context, WidgetRef ref) {
     final isFavorite = link.isFavorite;
     final isPriority = link.priority == 1;
+    final isReviewed = link.isRead;
 
     return PopupMenuButton<_LinkAction>(
       icon: const Icon(Icons.more_vert, size: 20),
@@ -112,6 +113,10 @@ class LinkCard extends ConsumerWidget {
         PopupMenuItem(
           value: _LinkAction.togglePriority,
           child: Text(isPriority ? 'Quitar prioridad' : 'Marcar prioritario'),
+        ),
+        PopupMenuItem(
+          value: _LinkAction.toggleReviewed,
+          child: Text(isReviewed ? 'Marcar pendiente' : 'Marcar revisado'),
         ),
         const PopupMenuItem(
           value: _LinkAction.delete,
@@ -135,6 +140,12 @@ class LinkCard extends ConsumerWidget {
         _snack(
           context,
           link.priority == 1 ? 'Prioridad eliminada' : 'Link marcado como prioritario',
+        );
+      case _LinkAction.toggleReviewed:
+        db.setLinkReviewed(link.id, !link.isRead);
+        _snack(
+          context,
+          link.isRead ? 'Marcado como pendiente' : 'Link marcado como revisado',
         );
       case _LinkAction.delete:
         db.deleteLink(link.id);
@@ -217,4 +228,4 @@ class LinkCard extends ConsumerWidget {
   }
 }
 
-enum _LinkAction { toggleFavorite, togglePriority, delete }
+enum _LinkAction { toggleFavorite, togglePriority, toggleReviewed, delete }

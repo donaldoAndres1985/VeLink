@@ -121,7 +121,11 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                             ref.read(captureProvider.notifier).setUrl(widget.url);
                             try {
                               await ref.read(captureProvider.notifier).saveLink();
-                              if (context.mounted) Navigator.pop(context);
+                              if (context.mounted) {
+                                Navigator.of(context).popUntil(
+                                  (route) => route.isFirst,
+                                );
+                              }
                             } on DuplicateUrlException {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(

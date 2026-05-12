@@ -184,6 +184,34 @@ void main() {
       expect(all.length, 2);
       expect(all.first.url, 'https://segundo.com');
     });
+
+    test('watchPendingLinks retorna links con isRead=false', () async {
+      await db.insertLink(LinksCompanion.insert(url: 'https://pendiente.com'));
+      await db.insertLink(LinksCompanion.insert(
+        url: 'https://revisado.com',
+        isRead: const Value(true),
+      ));
+      final pending = await db.watchPendingLinks().first;
+      expect(pending.length, 1);
+      expect(pending.first.url, 'https://pendiente.com');
+    });
+
+    test('setLinkReviewed marca el link como revisado', () async {
+      final id = await db.insertLink(LinksCompanion.insert(url: 'https://example.com'));
+      await db.setLinkReviewed(id, true);
+      final link = await db.getLinkByUrl('https://example.com');
+      expect(link?.isRead, true);
+    });
+
+    test('setLinkReviewed puede desmarcar un link revisado', () async {
+      final id = await db.insertLink(LinksCompanion.insert(
+        url: 'https://example.com',
+        isRead: const Value(true),
+      ));
+      await db.setLinkReviewed(id, false);
+      final link = await db.getLinkByUrl('https://example.com');
+      expect(link?.isRead, false);
+    });
   });
 
   // ─── TAGS ────────────────────────────────────────────────────────────────────
