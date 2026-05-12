@@ -36,7 +36,7 @@ class LinkCard extends ConsumerWidget {
                     Row(
                       children: [
                         _buildPlatformBadge(platformInfo),
-                        if (link.priority == 1) ...[
+                        if (link.isFavorite) ...[
                           const SizedBox(width: 6),
                           const Icon(Icons.star, size: 13, color: Colors.amber),
                         ],
@@ -98,7 +98,6 @@ class LinkCard extends ConsumerWidget {
 
   Widget _buildMenu(BuildContext context, WidgetRef ref) {
     final isFavorite = link.isFavorite;
-    final isPriority = link.priority == 1;
     final isReviewed = link.isRead;
 
     return PopupMenuButton<_LinkAction>(
@@ -108,11 +107,7 @@ class LinkCard extends ConsumerWidget {
       itemBuilder: (_) => [
         PopupMenuItem(
           value: _LinkAction.toggleFavorite,
-          child: Text(isFavorite ? 'Quitar guardado' : 'Guardar'),
-        ),
-        PopupMenuItem(
-          value: _LinkAction.togglePriority,
-          child: Text(isPriority ? 'Quitar prioridad' : 'Marcar prioritario'),
+          child: Text(isFavorite ? 'Quitar favorito' : 'Marcar favorito'),
         ),
         PopupMenuItem(
           value: _LinkAction.toggleReviewed,
@@ -133,13 +128,7 @@ class LinkCard extends ConsumerWidget {
         db.setLinkFavorite(link.id, !link.isFavorite);
         _snack(
           context,
-          link.isFavorite ? 'Eliminado de guardados' : 'Link guardado',
-        );
-      case _LinkAction.togglePriority:
-        db.setLinkPriority(link.id, link.priority == 1 ? 0 : 1);
-        _snack(
-          context,
-          link.priority == 1 ? 'Prioridad eliminada' : 'Link marcado como prioritario',
+          link.isFavorite ? 'Quitado de favoritos' : 'Marcado como favorito',
         );
       case _LinkAction.toggleReviewed:
         db.setLinkReviewed(link.id, !link.isRead);
@@ -228,4 +217,4 @@ class LinkCard extends ConsumerWidget {
   }
 }
 
-enum _LinkAction { toggleFavorite, togglePriority, toggleReviewed, delete }
+enum _LinkAction { toggleFavorite, toggleReviewed, delete }

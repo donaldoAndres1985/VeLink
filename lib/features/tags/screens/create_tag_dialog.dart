@@ -48,9 +48,11 @@ class _CreateTagDialogState extends ConsumerState<CreateTagDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -99,6 +101,7 @@ class _CreateTagDialogState extends ConsumerState<CreateTagDialog> {
           ),
         ],
       ),
+    ),
     );
   }
 }

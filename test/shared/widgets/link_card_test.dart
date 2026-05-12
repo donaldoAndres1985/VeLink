@@ -81,17 +81,17 @@ void main() {
       expect(find.byIcon(Icons.more_vert), findsOneWidget);
     });
 
-    testWidgets('muestra estrella en amber cuando priority == 1', (tester) async {
+    testWidgets('muestra estrella cuando isFavorite == true', (tester) async {
       await tester.pumpWidget(buildLinkCardWidget(
-        makeLink(url: 'https://example.com', priority: 1),
+        makeLink(url: 'https://example.com', isFavorite: true),
       ));
       await tester.pumpAndSettle();
       expect(find.byIcon(Icons.star), findsOneWidget);
     });
 
-    testWidgets('no muestra estrella cuando priority == 0', (tester) async {
+    testWidgets('no muestra estrella cuando isFavorite == false', (tester) async {
       await tester.pumpWidget(buildLinkCardWidget(
-        makeLink(url: 'https://example.com', priority: 0),
+        makeLink(url: 'https://example.com', isFavorite: false),
       ));
       await tester.pumpAndSettle();
       expect(find.byIcon(Icons.star), findsNothing);
@@ -99,31 +99,7 @@ void main() {
   });
 
   group('LinkCard — menú de tres puntos', () {
-    testWidgets('abre el menú y muestra Marcar prioritario cuando priority == 0', (tester) async {
-      await tester.pumpWidget(buildLinkCardWidget(
-        makeLink(url: 'https://example.com', priority: 0),
-      ));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byIcon(Icons.more_vert));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Marcar prioritario'), findsOneWidget);
-    });
-
-    testWidgets('muestra Quitar prioridad cuando priority == 1', (tester) async {
-      await tester.pumpWidget(buildLinkCardWidget(
-        makeLink(url: 'https://example.com', priority: 1),
-      ));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byIcon(Icons.more_vert));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Quitar prioridad'), findsOneWidget);
-    });
-
-    testWidgets('muestra Guardar cuando no es favorito', (tester) async {
+    testWidgets('muestra Marcar favorito cuando isFavorite == false', (tester) async {
       await tester.pumpWidget(buildLinkCardWidget(
         makeLink(url: 'https://example.com', isFavorite: false),
       ));
@@ -132,10 +108,10 @@ void main() {
       await tester.tap(find.byIcon(Icons.more_vert));
       await tester.pumpAndSettle();
 
-      expect(find.text('Guardar'), findsOneWidget);
+      expect(find.text('Marcar favorito'), findsOneWidget);
     });
 
-    testWidgets('muestra Quitar guardado cuando es favorito', (tester) async {
+    testWidgets('muestra Quitar favorito cuando isFavorite == true', (tester) async {
       await tester.pumpWidget(buildLinkCardWidget(
         makeLink(url: 'https://example.com', isFavorite: true),
       ));
@@ -144,7 +120,7 @@ void main() {
       await tester.tap(find.byIcon(Icons.more_vert));
       await tester.pumpAndSettle();
 
-      expect(find.text('Quitar guardado'), findsOneWidget);
+      expect(find.text('Quitar favorito'), findsOneWidget);
     });
 
     testWidgets('muestra opción Eliminar', (tester) async {
@@ -185,50 +161,7 @@ void main() {
   });
 
   group('LinkCard — acciones del menú', () {
-    testWidgets('Marcar prioritario establece priority=1 en DB', (tester) async {
-      final db = createTestDatabase();
-      addTearDown(db.close);
-      final id = await db.insertLink(LinksCompanion.insert(url: 'https://example.com'));
-
-      await tester.pumpWidget(buildLinkCardWidget(
-        makeLink(id: id, url: 'https://example.com', priority: 0),
-        database: db,
-      ));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byIcon(Icons.more_vert));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Marcar prioritario'));
-      await tester.pumpAndSettle();
-
-      final links = await db.getAllLinks();
-      expect(links.first.priority, 1);
-    });
-
-    testWidgets('Quitar prioridad establece priority=0 en DB', (tester) async {
-      final db = createTestDatabase();
-      addTearDown(db.close);
-      final id = await db.insertLink(LinksCompanion.insert(
-        url: 'https://example.com',
-        priority: const Value(1),
-      ));
-
-      await tester.pumpWidget(buildLinkCardWidget(
-        makeLink(id: id, url: 'https://example.com', priority: 1),
-        database: db,
-      ));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byIcon(Icons.more_vert));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Quitar prioridad'));
-      await tester.pumpAndSettle();
-
-      final links = await db.getAllLinks();
-      expect(links.first.priority, 0);
-    });
-
-    testWidgets('Guardar marca isFavorite=true en DB', (tester) async {
+    testWidgets('Marcar favorito establece isFavorite=true en DB', (tester) async {
       final db = createTestDatabase();
       addTearDown(db.close);
       final id = await db.insertLink(LinksCompanion.insert(url: 'https://example.com'));
@@ -241,14 +174,14 @@ void main() {
 
       await tester.tap(find.byIcon(Icons.more_vert));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Guardar'));
+      await tester.tap(find.text('Marcar favorito'));
       await tester.pumpAndSettle();
 
       final links = await db.getAllLinks();
       expect(links.first.isFavorite, true);
     });
 
-    testWidgets('Quitar guardado marca isFavorite=false en DB', (tester) async {
+    testWidgets('Quitar favorito establece isFavorite=false en DB', (tester) async {
       final db = createTestDatabase();
       addTearDown(db.close);
       final id = await db.insertLink(LinksCompanion.insert(
@@ -264,7 +197,7 @@ void main() {
 
       await tester.tap(find.byIcon(Icons.more_vert));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Quitar guardado'));
+      await tester.tap(find.text('Quitar favorito'));
       await tester.pumpAndSettle();
 
       final links = await db.getAllLinks();

@@ -63,9 +63,9 @@ void main() {
       expect(find.text('https://dart.dev'), findsOneWidget);
     });
 
-    testWidgets('muestra icono de estrella para indicar prioridad', (tester) async {
+    testWidgets('muestra icono de estrella cuando el link es favorito', (tester) async {
       await tester.pumpWidget(buildPriorityWidget(
-        links: [makeLink(url: 'https://flutter.dev', priority: 1)],
+        links: [makeLink(url: 'https://flutter.dev', priority: 1, isFavorite: true)],
       ));
       await tester.pumpAndSettle();
       expect(find.byIcon(Icons.star), findsWidgets);
