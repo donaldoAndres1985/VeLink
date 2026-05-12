@@ -94,7 +94,7 @@ class HomeScreen extends ConsumerWidget {
           Expanded(
             child: _FilterBtn(
               label: 'Favoritos',
-              leadingIcon: Icons.favorite_outline,
+              leadingIcon: Icons.star_outline,
               selected: filter == HomeFilter.favoritos,
               onTap: () => ref.read(homeFilterProvider.notifier).state =
                   HomeFilter.favoritos,

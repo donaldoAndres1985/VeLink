@@ -36,6 +36,39 @@ void main() {
     });
   });
 
+  group('PendientesScreen — búsqueda', () {
+    testWidgets('muestra campo de búsqueda', (tester) async {
+      await tester.pumpWidget(buildPendingWidget());
+      await tester.pumpAndSettle();
+      expect(find.byType(TextField), findsOneWidget);
+    });
+
+    testWidgets('filtra links al escribir en búsqueda', (tester) async {
+      await tester.pumpWidget(buildPendingWidget(links: [
+        makeLink(url: 'https://flutter.dev', id: 1, isRead: false),
+        makeLink(url: 'https://dart.dev', id: 2, isRead: false),
+      ]));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'flutter');
+      await tester.pumpAndSettle();
+
+      expect(find.text('https://flutter.dev'), findsOneWidget);
+      expect(find.text('https://dart.dev'), findsNothing);
+    });
+
+    testWidgets('muestra todos los links cuando búsqueda está vacía', (tester) async {
+      await tester.pumpWidget(buildPendingWidget(links: [
+        makeLink(url: 'https://flutter.dev', id: 1, isRead: false),
+        makeLink(url: 'https://dart.dev', id: 2, isRead: false),
+      ]));
+      await tester.pumpAndSettle();
+
+      expect(find.text('https://flutter.dev'), findsOneWidget);
+      expect(find.text('https://dart.dev'), findsOneWidget);
+    });
+  });
+
   group('PendientesScreen — lista', () {
     testWidgets('muestra links pendientes', (tester) async {
       await tester.pumpWidget(buildPendingWidget(

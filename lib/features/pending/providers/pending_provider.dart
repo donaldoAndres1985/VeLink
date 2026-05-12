@@ -4,3 +4,5 @@ import '../../../core/database/database.dart';
 final pendingLinksProvider = StreamProvider<List<Link>>((ref) {
   return ref.watch(databaseProvider).watchPendingLinks();
 });
+
+final pendingSearchQueryProvider = StateProvider<String>((ref) => '');

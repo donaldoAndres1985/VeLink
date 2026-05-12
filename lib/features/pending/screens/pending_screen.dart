@@ -10,44 +10,86 @@ class PendientesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final linksAsync = ref.watch(pendingLinksProvider);
+    final searchQuery = ref.watch(pendingSearchQueryProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Pendientes')),
-      body: linksAsync.when(
-        data: (links) => links.isEmpty
-            ? Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.schedule_outlined,
-                      size: 56,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'No hay links pendientes',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Los links que aún no has revisado aparecen aquí.',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontSize: 13,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              )
-            : ListView.builder(
-                padding: const EdgeInsets.only(left: 12, top: 12, right: 12, bottom: 80),
-                itemCount: links.length,
-                itemBuilder: (_, i) => _PendingItem(link: links[i]),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+            child: TextField(
+              decoration: const InputDecoration(
+                hintText: 'Buscar pendientes...',
+                prefixIcon: Icon(Icons.search),
+                isDense: true,
               ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => const Center(child: Text('Error al cargar los links')),
+              onChanged: (v) =>
+                  ref.read(pendingSearchQueryProvider.notifier).state = v,
+            ),
+          ),
+          Expanded(
+            child: linksAsync.when(
+              skipLoadingOnRefresh: true,
+              data: (allLinks) {
+                final links = searchQuery.trim().isEmpty
+                    ? allLinks
+                    : allLinks.where((l) {
+                        final q = searchQuery.toLowerCase();
+                        return (l.title?.toLowerCase().contains(q) ?? false) ||
+                            l.url.toLowerCase().contains(q) ||
+                            l.platform.toLowerCase().contains(q);
+                      }).toList();
+
+                if (links.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.schedule_outlined,
+                          size: 56,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          searchQuery.trim().isEmpty
+                              ? 'No hay links pendientes'
+                              : 'Sin resultados',
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w500),
+                        ),
+                        if (searchQuery.trim().isEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            'Los links que aún no has revisado aparecen aquí.',
+                            style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                              fontSize: 13,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.only(
+                      left: 12, top: 12, right: 12, bottom: 80),
+                  itemCount: links.length,
+                  itemBuilder: (_, i) => _PendingItem(link: links[i]),
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (_, __) =>
+                  const Center(child: Text('Error al cargar los links')),
+            ),
+          ),
+        ],
       ),
     );
   }

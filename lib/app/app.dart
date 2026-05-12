@@ -81,12 +81,13 @@ class _MainShellState extends ConsumerState<MainShell> {
     return Scaffold(
       body: PageView(
         controller: _pageController,
+        physics: const ClampingScrollPhysics(),
         onPageChanged: (index) => setState(() => _currentIndex = index),
         children: const [
-          HomeScreen(),
-          PendientesScreen(),
-          TagsScreen(),
-          AjustesScreen(),
+          _KeepAlivePage(child: HomeScreen()),
+          _KeepAlivePage(child: PendientesScreen()),
+          _KeepAlivePage(child: TagsScreen()),
+          _KeepAlivePage(child: AjustesScreen()),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -123,5 +124,25 @@ class _MainShellState extends ConsumerState<MainShell> {
         ],
       ),
     );
+  }
+}
+
+class _KeepAlivePage extends StatefulWidget {
+  final Widget child;
+  const _KeepAlivePage({required this.child});
+
+  @override
+  State<_KeepAlivePage> createState() => _KeepAlivePageState();
+}
+
+class _KeepAlivePageState extends State<_KeepAlivePage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }
