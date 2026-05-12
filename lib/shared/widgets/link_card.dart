@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/database/database.dart';
+import '../../core/preferences/preferences_provider.dart';
 import '../../features/capture/services/platform_detector.dart';
 import '../../features/detail/screens/detail_screen.dart';
 
@@ -15,6 +16,7 @@ class LinkCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final platformInfo = PlatformInfo.forPlatform(PlatformDetector.detect(link.url));
     final theme = Theme.of(context);
+    final s = ref.watch(appStringsProvider);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -39,7 +41,10 @@ class LinkCard extends ConsumerWidget {
                         _buildPlatformBadge(platformInfo),
                         if (link.isFavorite) ...[
                           const SizedBox(width: 6),
-                          const Icon(Icons.star, size: 13, color: Colors.amber),
+                          Semantics(
+                            label: s.favoriteSemantics,
+                            child: const Icon(Icons.star, size: 13, color: Colors.amber),
+                          ),
                         ],
                       ],
                     ),
@@ -64,27 +69,31 @@ class LinkCard extends ConsumerWidget {
                     Row(
                       children: [
                         Text(
-                          _timeAgo(link.createdAt),
+                          s.timeAgo(link.createdAt),
                           style: TextStyle(
                             fontSize: 11,
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const Spacer(),
-                        TextButton(
-                          onPressed: () => launchUrl(
-                            Uri.parse(link.url),
-                            mode: LaunchMode.externalApplication,
+                        Semantics(
+                          label: s.openLinkTooltip,
+                          button: true,
+                          child: TextButton(
+                            onPressed: () => launchUrl(
+                              Uri.parse(link.url),
+                              mode: LaunchMode.externalApplication,
+                            ),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              minimumSize: const Size(44, 44),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              textStyle: const TextStyle(fontSize: 12),
+                            ),
+                            child: Text(s.openLink),
                           ),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            textStyle: const TextStyle(fontSize: 12),
-                          ),
-                          child: const Text('Abrir'),
                         ),
-                        _buildMenu(context, ref),
+                        _buildMenu(context, ref, s),
                       ],
                     ),
                   ],
@@ -97,49 +106,49 @@ class LinkCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildMenu(BuildContext context, WidgetRef ref) {
+  Widget _buildMenu(BuildContext context, WidgetRef ref, appStrings) {
+    final s = appStrings;
     final isFavorite = link.isFavorite;
     final isReviewed = link.isRead;
 
-    return PopupMenuButton<_LinkAction>(
-      icon: const Icon(Icons.more_vert, size: 20),
-      onSelected: (action) => _handleAction(context, ref, action),
-      padding: EdgeInsets.zero,
-      itemBuilder: (_) => [
-        PopupMenuItem(
-          value: _LinkAction.toggleFavorite,
-          child: Text(isFavorite ? 'Quitar favorito' : 'Marcar favorito'),
-        ),
-        PopupMenuItem(
-          value: _LinkAction.toggleReviewed,
-          child: Text(isReviewed ? 'Marcar pendiente' : 'Marcar revisado'),
-        ),
-        const PopupMenuItem(
-          value: _LinkAction.delete,
-          child: Text('Eliminar'),
-        ),
-      ],
+    return Semantics(
+      label: s.linkMenuTooltip,
+      button: true,
+      child: PopupMenuButton<_LinkAction>(
+        icon: const Icon(Icons.more_vert, size: 20),
+        tooltip: s.linkMenuTooltip,
+        onSelected: (action) => _handleAction(context, ref, action, s),
+        padding: EdgeInsets.zero,
+        itemBuilder: (_) => [
+          PopupMenuItem(
+            value: _LinkAction.toggleFavorite,
+            child: Text(isFavorite ? s.removeFavorite : s.addFavorite),
+          ),
+          PopupMenuItem(
+            value: _LinkAction.toggleReviewed,
+            child: Text(isReviewed ? s.markPending : s.markReviewedAction),
+          ),
+          PopupMenuItem(
+            value: _LinkAction.delete,
+            child: Text(s.delete),
+          ),
+        ],
+      ),
     );
   }
 
-  void _handleAction(BuildContext context, WidgetRef ref, _LinkAction action) {
+  void _handleAction(BuildContext context, WidgetRef ref, _LinkAction action, dynamic s) {
     final db = ref.read(databaseProvider);
     switch (action) {
       case _LinkAction.toggleFavorite:
         db.setLinkFavorite(link.id, !link.isFavorite);
-        _snack(
-          context,
-          link.isFavorite ? 'Quitado de favoritos' : 'Marcado como favorito',
-        );
+        _snack(context, link.isFavorite ? s.removedFromFavorites : s.markedAsFavorite);
       case _LinkAction.toggleReviewed:
         db.setLinkReviewed(link.id, !link.isRead);
-        _snack(
-          context,
-          link.isRead ? 'Marcado como pendiente' : 'Link marcado como revisado',
-        );
+        _snack(context, link.isRead ? s.markedAsPending : s.markedAsReviewed);
       case _LinkAction.delete:
         db.deleteLink(link.id);
-        _snack(context, 'Link eliminado');
+        _snack(context, s.linkDeleted);
     }
   }
 
@@ -205,28 +214,6 @@ class LinkCard extends ConsumerWidget {
         ),
       ],
     );
-  }
-
-  String _timeAgo(DateTime createdAt) {
-    final diff = DateTime.now().difference(createdAt);
-    if (diff.inDays >= 365) {
-      final y = (diff.inDays / 365).floor();
-      return 'Hace $y año${y > 1 ? "s" : ""}';
-    }
-    if (diff.inDays >= 30) {
-      final m = (diff.inDays / 30).floor();
-      return 'Hace $m mes${m > 1 ? "es" : ""}';
-    }
-    if (diff.inDays > 0) {
-      return 'Hace ${diff.inDays} día${diff.inDays > 1 ? "s" : ""}';
-    }
-    if (diff.inHours > 0) {
-      return 'Hace ${diff.inHours} hora${diff.inHours > 1 ? "s" : ""}';
-    }
-    if (diff.inMinutes > 0) {
-      return 'Hace ${diff.inMinutes} min';
-    }
-    return 'Ahora';
   }
 }
 

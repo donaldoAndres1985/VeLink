@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/preferences/preferences_provider.dart';
 import '../models/og_metadata.dart';
 import '../providers/capture_provider.dart';
 import '../services/platform_detector.dart';
@@ -38,6 +39,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     final tagsAsync = ref.watch(allTagsProvider);
     final platformInfo =
         PlatformInfo.forPlatform(PlatformDetector.detect(widget.url));
+    final s = ref.watch(appStringsProvider);
 
     ref.listen<OgMetadata?>(
       captureProvider.select((s) => s.metadata),
@@ -51,7 +53,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Guardar link')),
+      appBar: AppBar(title: Text(s.captureTitle)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -63,10 +65,10 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
               TextField(
                 key: const Key('title_field'),
                 controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Título',
-                  hintText: 'Ingresa el título...',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: s.titleLabel,
+                  hintText: s.titleHint,
+                  border: const OutlineInputBorder(),
                 ),
                 maxLines: 2,
                 onChanged: (v) =>
@@ -85,13 +87,13 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                 ),
               ],
               const SizedBox(height: 20),
-              _buildImageSection(context, state),
+              _buildImageSection(context, state, s),
               const SizedBox(height: 16),
-              _buildLinkSection(context),
+              _buildLinkSection(context, s),
               const SizedBox(height: 20),
-              _buildTagsSection(context, state, tagsAsync),
+              _buildTagsSection(context, state, tagsAsync, s),
               const SizedBox(height: 16),
-              _buildFavoriteRow(context, state),
+              _buildFavoriteRow(context, state, s),
               const SizedBox(height: 24),
               Row(
                 children: [
@@ -104,7 +106,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                               Navigator.of(context)
                                   .popUntil((route) => route.isFirst);
                             },
-                      child: const Text('Cancelar'),
+                      child: Text(s.cancel),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -127,9 +129,8 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                               } on DuplicateUrlException {
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content:
-                                          Text('Este link ya está guardado'),
+                                    SnackBar(
+                                      content: Text(s.alreadySaved),
                                     ),
                                   );
                                 }
@@ -142,7 +143,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                               child:
                                   CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Guardar'),
+                          : Text(s.save),
                     ),
                   ),
                 ],
@@ -156,18 +157,18 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
 
   // ── Sección imagen ────────────────────────────────────────────────────────
 
-  Widget _buildImageSection(BuildContext context, CaptureState state) {
+  Widget _buildImageSection(BuildContext context, CaptureState state, dynamic s) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionLabel(context, 'Imagen o captura'),
+        _sectionLabel(context, s.imageSection),
         const SizedBox(height: 8),
-        _buildImageCard(context, state),
+        _buildImageCard(context, state, s),
       ],
     );
   }
 
-  Widget _buildImageCard(BuildContext context, CaptureState state) {
+  Widget _buildImageCard(BuildContext context, CaptureState state, dynamic s) {
     if (state.isPickingImage) {
       return _imageShell(
         context,
@@ -190,7 +191,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                   color: Theme.of(context).colorScheme.error, size: 28),
               const SizedBox(height: 6),
               Text(
-                'Error al cargar imagen',
+                s.errorLoadImage,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.error,
                   fontSize: 12,
@@ -200,7 +201,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
               OutlinedButton(
                 onPressed: () =>
                     ref.read(captureProvider.notifier).clearPickedImage(),
-                child: const Text('Reintentar', style: TextStyle(fontSize: 12)),
+                child: Text(s.retry, style: const TextStyle(fontSize: 12)),
               ),
             ],
           ),
@@ -213,13 +214,13 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
         state.ogImageDismissed ? null : state.metadata?.imageUrl;
 
     if (localPath != null || remoteUrl != null) {
-      return _buildSelectedImageCard(context, state, localPath, remoteUrl);
+      return _buildSelectedImageCard(context, state, localPath, remoteUrl, s);
     }
 
-    return _buildEmptyImageCard(context);
+    return _buildEmptyImageCard(context, s);
   }
 
-  Widget _buildEmptyImageCard(BuildContext context) {
+  Widget _buildEmptyImageCard(BuildContext context, dynamic s) {
     final scheme = Theme.of(context).colorScheme;
     return _imageShell(
       context,
@@ -233,7 +234,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                 size: 28, color: scheme.onSurfaceVariant),
             const SizedBox(height: 6),
             Text(
-              'Agregar imagen o screenshot',
+              s.addImageHint,
               style:
                   TextStyle(color: scheme.onSurfaceVariant, fontSize: 13),
             ),
@@ -243,7 +244,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
               children: [
                 OutlinedButton.icon(
                   icon: const Icon(Icons.photo_library_outlined, size: 15),
-                  label: const Text('Galería'),
+                  label: Text(s.gallery),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 6),
@@ -255,7 +256,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                 const SizedBox(width: 12),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.camera_alt_outlined, size: 15),
-                  label: const Text('Captura'),
+                  label: Text(s.camera),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 6),
@@ -273,7 +274,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   }
 
   Widget _buildSelectedImageCard(BuildContext context, CaptureState state,
-      String? localPath, String? remoteUrl) {
+      String? localPath, String? remoteUrl, dynamic s) {
     final scheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -302,15 +303,15 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
           children: [
             TextButton.icon(
               icon: const Icon(Icons.swap_horiz, size: 16),
-              label: const Text('Cambiar'),
+              label: Text(s.changeImage),
               style: TextButton.styleFrom(
                   textStyle: const TextStyle(fontSize: 13)),
-              onPressed: () => _showChangePicker(context),
+              onPressed: () => _showChangePicker(context, s),
             ),
             const SizedBox(width: 4),
             TextButton.icon(
               icon: const Icon(Icons.delete_outline, size: 16),
-              label: const Text('Eliminar'),
+              label: Text(s.delete),
               style: TextButton.styleFrom(
                 foregroundColor: scheme.error,
                 textStyle: const TextStyle(fontSize: 13),
@@ -352,7 +353,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     );
   }
 
-  void _showChangePicker(BuildContext context) {
+  void _showChangePicker(BuildContext context, dynamic s) {
     showModalBottomSheet(
       context: context,
       builder: (ctx) => SafeArea(
@@ -361,7 +362,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Galería'),
+              title: Text(s.gallery),
               onTap: () {
                 Navigator.pop(ctx);
                 ref.read(captureProvider.notifier).pickFromGallery();
@@ -369,7 +370,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt_outlined),
-              title: const Text('Captura'),
+              title: Text(s.camera),
               onTap: () {
                 Navigator.pop(ctx);
                 ref.read(captureProvider.notifier).pickFromCamera();
@@ -383,12 +384,12 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
 
   // ── Sección Link ──────────────────────────────────────────────────────────
 
-  Widget _buildLinkSection(BuildContext context) {
+  Widget _buildLinkSection(BuildContext context, dynamic s) {
     final scheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionLabel(context, 'Link'),
+        _sectionLabel(context, s.linkSectionLabel),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -421,12 +422,13 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     BuildContext context,
     CaptureState state,
     AsyncValue tagsAsync,
+    dynamic s,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Tags',
+          s.tagsSection,
           style: TextStyle(
             fontWeight: FontWeight.w600,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -447,8 +449,8 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                   )),
               ActionChip(
                 avatar: const Icon(Icons.add, size: 16),
-                label: const Text('Nuevo'),
-                onPressed: () => _showCreateTagDialog(context),
+                label: Text(s.newTagLabel),
+                onPressed: () => _showCreateTagDialog(context, s),
               ),
             ],
           ),
@@ -461,7 +463,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
 
   // ── Favorito ──────────────────────────────────────────────────────────────
 
-  Widget _buildFavoriteRow(BuildContext context, CaptureState state) {
+  Widget _buildFavoriteRow(BuildContext context, CaptureState state, dynamic s) {
     return Row(
       children: [
         Icon(
@@ -474,7 +476,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
         const SizedBox(width: 8),
         Expanded(
           child: Text(
-            'Marcar como favorito',
+            s.markFavorite,
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -493,7 +495,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
 
   Widget _sectionLabel(BuildContext context, String text) {
     return Text(
-      text.toUpperCase(),
+      text,
       style: TextStyle(
         fontSize: 10,
         fontWeight: FontWeight.w700,
@@ -520,27 +522,27 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     );
   }
 
-  void _showCreateTagDialog(BuildContext context) {
+  void _showCreateTagDialog(BuildContext context, dynamic s) {
     final controller = TextEditingController();
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Nuevo tag'),
+        title: Text(s.createTagTitle),
         content: TextField(
           key: const Key('tag_name_field'),
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(hintText: 'Nombre del tag'),
+          decoration: InputDecoration(hintText: s.tagNameHint),
           onSubmitted: (value) => _submitNewTag(context, value),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: Text(s.cancel),
           ),
           FilledButton(
             onPressed: () => _submitNewTag(context, controller.text),
-            child: const Text('Crear'),
+            child: Text(s.create),
           ),
         ],
       ),

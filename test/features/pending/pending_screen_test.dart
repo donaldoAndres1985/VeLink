@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
+import 'package:velink/core/l10n/app_strings.dart';
+import 'package:velink/core/preferences/preferences_provider.dart';
 import 'package:velink/features/pending/providers/pending_provider.dart';
 import 'package:velink/features/pending/screens/pending_screen.dart';
 import '../../helpers/database_helper.dart';
@@ -13,6 +15,7 @@ Widget buildPendingWidget({List<Link> links = const []}) {
   return ProviderScope(
     overrides: [
       databaseProvider.overrideWithValue(db),
+      appStringsProvider.overrideWithValue(AppStrings('es')),
       pendingLinksProvider.overrideWith((ref) => Stream.value(links)),
     ],
     child: const MaterialApp(home: PendientesScreen()),

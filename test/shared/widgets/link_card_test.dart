@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
+import 'package:velink/core/l10n/app_strings.dart';
+import 'package:velink/core/preferences/preferences_provider.dart';
 import 'package:velink/features/capture/providers/capture_provider.dart';
 import 'package:velink/features/detail/providers/detail_provider.dart';
 import 'package:velink/features/detail/screens/detail_screen.dart';
@@ -24,6 +26,7 @@ Widget buildLinkCardWidget(Link link, {AppDatabase? database}) {
     overrides: [
       databaseProvider.overrideWithValue(db),
       notificationServiceProvider.overrideWithValue(mock),
+      appStringsProvider.overrideWithValue(AppStrings('es')),
       watchLinkTagsProvider(link.id).overrideWith((ref) => Stream.value(<Tag>[])),
       allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
     ],
@@ -256,6 +259,7 @@ void main() {
         overrides: [
           databaseProvider.overrideWithValue(db),
           notificationServiceProvider.overrideWithValue(mock),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
           watchLinkTagsProvider(link.id).overrideWith((ref) => Stream.value(<Tag>[])),
           allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
         ],

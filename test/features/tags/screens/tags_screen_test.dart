@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
+import 'package:velink/core/l10n/app_strings.dart';
+import 'package:velink/core/preferences/preferences_provider.dart';
 import 'package:velink/features/capture/providers/capture_provider.dart';
 import 'package:velink/features/tags/providers/tag_providers.dart';
 import 'package:velink/features/tags/screens/tags_screen.dart';
@@ -14,6 +16,7 @@ Widget buildTagsWidget({List<Tag> tags = const []}) {
   return ProviderScope(
     overrides: [
       databaseProvider.overrideWithValue(db),
+      appStringsProvider.overrideWithValue(AppStrings('es')),
       allTagsProvider.overrideWith((ref) => Stream.value(tags)),
     ],
     child: const MaterialApp(home: TagsScreen()),
@@ -71,6 +74,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
           allTagsProvider.overrideWith((ref) => Stream.value([tag])),
         ],
         child: const MaterialApp(home: TagsScreen()),
@@ -104,6 +108,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
           allTagsProvider.overrideWith((ref) => Stream.value([tag])),
         ],
         child: const MaterialApp(home: TagsScreen()),
@@ -129,6 +134,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
           allTagsProvider.overrideWith((ref) => Stream.value([tag])),
         ],
         child: const MaterialApp(home: TagsScreen()),
@@ -205,6 +211,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
           allTagsProvider.overrideWith((ref) => Stream.value([tag])),
         ],
         child: const MaterialApp(home: TagsScreen()),

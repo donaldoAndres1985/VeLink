@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:velink/core/database/database.dart';
+import 'package:velink/core/l10n/app_strings.dart';
+import 'package:velink/core/preferences/preferences_provider.dart';
 import 'package:velink/features/capture/providers/capture_provider.dart';
 import 'package:velink/features/detail/providers/detail_provider.dart';
 import 'package:velink/features/detail/screens/detail_screen.dart';
@@ -26,6 +28,7 @@ Widget buildDetailWidget(
   return ProviderScope(
     overrides: [
       databaseProvider.overrideWithValue(db),
+      appStringsProvider.overrideWithValue(AppStrings('es')),
       notificationServiceProvider.overrideWithValue(mock),
       linkTagsProvider(link.id).overrideWith((ref) => Future.value(tags)),
       watchLinkTagsProvider(link.id).overrideWith((ref) => Stream.value(tags)),
@@ -126,6 +129,8 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
+          notificationServiceProvider.overrideWithValue(MockNotificationService()),
           linkTagsProvider(id).overrideWith((ref) => Future.value(<Tag>[])),
           watchLinkTagsProvider(id).overrideWith((ref) => Stream.value(<Tag>[])),
           allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
@@ -172,6 +177,8 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
+          notificationServiceProvider.overrideWithValue(MockNotificationService()),
           linkTagsProvider(id).overrideWith((ref) => Future.value(<Tag>[])),
           watchLinkTagsProvider(id).overrideWith((ref) => Stream.value(<Tag>[])),
           allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
@@ -263,6 +270,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
           notificationServiceProvider.overrideWithValue(mockService),
           linkTagsProvider(id).overrideWith((ref) => Future.value(<Tag>[])),
           watchLinkTagsProvider(id)
@@ -293,6 +301,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
           notificationServiceProvider
               .overrideWithValue(MockNotificationService()),
           linkTagsProvider(link.id)
@@ -338,6 +347,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
           notificationServiceProvider
               .overrideWithValue(MockNotificationService()),
           linkTagsProvider(link.id)
@@ -407,6 +417,8 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
+          notificationServiceProvider.overrideWithValue(MockNotificationService()),
           linkTagsProvider(linkId).overrideWith((ref) => Future.value(<Tag>[])),
           watchLinkTagsProvider(linkId).overrideWith((ref) => Stream.value(<Tag>[])),
           allTagsProvider.overrideWith((ref) => Stream.value([tag])),
@@ -433,6 +445,8 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
+          notificationServiceProvider.overrideWithValue(MockNotificationService()),
           linkTagsProvider(linkId).overrideWith((ref) => Future.value([tag])),
           watchLinkTagsProvider(linkId).overrideWith((ref) => Stream.value([tag])),
           allTagsProvider.overrideWith((ref) => Stream.value([tag])),

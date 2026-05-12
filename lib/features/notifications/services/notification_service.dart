@@ -5,20 +5,26 @@ import 'package:timezone/timezone.dart' as tz;
 
 abstract class NotificationService {
   Future<void> init();
-  Future<void> showPriorityLinksNotification(int count);
+  Future<void> showFavoriteLinksNotification(
+    int count, {
+    String? title,
+    String? body,
+  });
   Future<void> scheduleLinkReminder({
     required int id,
     required String title,
+    required String body,
     required DateTime scheduledAt,
   });
   Future<void> cancelReminder(int id);
+  Future<void> cancelAll();
 }
 
 class LocalNotificationService implements NotificationService {
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
-  static const _priorityChannelId = 'priority';
+  static const _favoritesChannelId = 'favorites';
   static const _remindersChannelId = 'reminders';
 
   bool _initialized = false;
@@ -46,15 +52,23 @@ class LocalNotificationService implements NotificationService {
   }
 
   @override
-  Future<void> showPriorityLinksNotification(int count) async {
+  Future<void> showFavoriteLinksNotification(
+    int count, {
+    String? title,
+    String? body,
+  }) async {
+    final notifTitle = title ?? 'Links favoritos';
+    final notifBody = body ??
+        'Tienes $count link${count != 1 ? "s" : ""} favorito${count != 1 ? "s" : ""} pendiente${count != 1 ? "s" : ""} de revisar';
+
     await _plugin.show(
       0,
-      'Links prioritarios',
-      'Tienes $count link(s) prioritario(s) pendientes de revisar',
+      notifTitle,
+      notifBody,
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          _priorityChannelId,
-          'Prioritarios',
+          _favoritesChannelId,
+          'Favoritos',
           importance: Importance.defaultImportance,
         ),
         iOS: DarwinNotificationDetails(),
@@ -66,6 +80,7 @@ class LocalNotificationService implements NotificationService {
   Future<void> scheduleLinkReminder({
     required int id,
     required String title,
+    required String body,
     required DateTime scheduledAt,
   }) async {
     final tzScheduledAt = tz.TZDateTime(
@@ -79,8 +94,8 @@ class LocalNotificationService implements NotificationService {
 
     await _plugin.zonedSchedule(
       id,
-      'Recordatorio: $title',
-      'Tienes un link guardado para revisar',
+      title,
+      body,
       tzScheduledAt,
       const NotificationDetails(
         android: AndroidNotificationDetails(
@@ -105,5 +120,10 @@ class LocalNotificationService implements NotificationService {
   @override
   Future<void> cancelReminder(int id) async {
     await _plugin.cancel(id);
+  }
+
+  @override
+  Future<void> cancelAll() async {
+    await _plugin.cancelAll();
   }
 }

@@ -1,26 +1,44 @@
-import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database.dart';
+import '../../../core/preferences/preferences_provider.dart';
 import '../services/notification_service.dart';
 
 final notificationServiceProvider = Provider<NotificationService>((ref) {
   return LocalNotificationService();
 });
 
-final notifyPriorityLinksProvider = FutureProvider<void>((ref) async {
+final notifyFavoriteLinksProvider = FutureProvider<void>((ref) async {
+  final enabled = ref.read(notificationsEnabledProvider);
+  if (!enabled) return;
+
   final db = ref.read(databaseProvider);
   final service = ref.read(notificationServiceProvider);
-  final priorityLinks = await db.getPriorityLinks();
-  if (priorityLinks.isNotEmpty) {
-    await service.showPriorityLinksNotification(priorityLinks.length);
+  final s = ref.read(appStringsProvider);
+  final favoriteLinks = await db.getPriorityLinks();
+  if (favoriteLinks.isNotEmpty) {
+    await service.showFavoriteLinksNotification(
+      favoriteLinks.length,
+      title: s.notifFavoritesTitle,
+      body: s.notifFavoritesBody(favoriteLinks.length),
+    );
   }
 });
 
 class LinkReminderUseCase {
   final AppDatabase _db;
   final NotificationService _service;
+  final String Function(String) _buildTitle;
+  final String _reminderBody;
 
-  LinkReminderUseCase(this._db, this._service);
+  LinkReminderUseCase({
+    required AppDatabase db,
+    required NotificationService service,
+    required String Function(String) buildTitle,
+    required String reminderBody,
+  })  : _db = db,
+        _service = service,
+        _buildTitle = buildTitle,
+        _reminderBody = reminderBody;
 
   Future<void> schedule({
     required int linkId,
@@ -30,7 +48,8 @@ class LinkReminderUseCase {
     await _db.setLinkReminder(linkId, scheduledAt);
     await _service.scheduleLinkReminder(
       id: linkId,
-      title: title,
+      title: _buildTitle(title),
+      body: _reminderBody,
       scheduledAt: scheduledAt,
     );
   }
@@ -42,8 +61,11 @@ class LinkReminderUseCase {
 }
 
 final linkReminderUseCaseProvider = Provider<LinkReminderUseCase>((ref) {
+  final s = ref.read(appStringsProvider);
   return LinkReminderUseCase(
-    ref.read(databaseProvider),
-    ref.read(notificationServiceProvider),
+    db: ref.read(databaseProvider),
+    service: ref.read(notificationServiceProvider),
+    buildTitle: s.notifReminderTitle,
+    reminderBody: s.notifReminderBody,
   );
 });

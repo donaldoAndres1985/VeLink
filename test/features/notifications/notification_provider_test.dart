@@ -1,13 +1,28 @@
 import 'package:drift/drift.dart' hide isNull;
+import 'package:flutter/material.dart' show Locale;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:velink/core/database/database.dart';
+import 'package:velink/core/l10n/app_strings.dart';
+import 'package:velink/core/preferences/preferences_provider.dart';
+import 'package:velink/core/preferences/preferences_service.dart';
 import 'package:velink/features/notifications/providers/notification_provider.dart';
 import 'package:velink/features/notifications/services/notification_service.dart';
 import '../../helpers/database_helper.dart';
 
 class MockNotificationService extends Mock implements NotificationService {}
+
+class _FakePrefs implements PreferencesService {
+  @override
+  Locale getLocale() => const Locale('es');
+  @override
+  Future<void> setLocale(Locale locale) async {}
+  @override
+  bool getNotificationsEnabled() => true;
+  @override
+  Future<void> setNotificationsEnabled(bool enabled) async {}
+}
 
 void main() {
   late AppDatabase db;
@@ -20,6 +35,10 @@ void main() {
     container = ProviderContainer(overrides: [
       databaseProvider.overrideWithValue(db),
       notificationServiceProvider.overrideWithValue(mockService),
+      appStringsProvider.overrideWithValue(AppStrings('es')),
+      notificationsEnabledProvider.overrideWith(
+        (ref) => NotificationsEnabledNotifier(_FakePrefs(), true),
+      ),
     ]);
   });
 
@@ -28,29 +47,61 @@ void main() {
     await db.close();
   });
 
-  group('notifyPriorityLinksIfAny', () {
-    test('llama showPriorityLinksNotification cuando hay links prioritarios', () async {
-      when(() => mockService.showPriorityLinksNotification(any()))
-          .thenAnswer((_) async {});
+  group('notifyFavoriteLinksProvider', () {
+    test('llama showFavoriteLinksNotification cuando hay links favoritos', () async {
+      when(() => mockService.showFavoriteLinksNotification(
+            any(),
+            title: any(named: 'title'),
+            body: any(named: 'body'),
+          )).thenAnswer((_) async {});
 
       await db.insertLink(LinksCompanion.insert(
         url: 'https://ejemplo.com',
         priority: const Value(1),
       ));
 
-      await container.read(notifyPriorityLinksProvider.future);
+      await container.read(notifyFavoriteLinksProvider.future);
 
-      verify(() => mockService.showPriorityLinksNotification(1)).called(1);
+      verify(() => mockService.showFavoriteLinksNotification(
+            1,
+            title: any(named: 'title'),
+            body: any(named: 'body'),
+          )).called(1);
     });
 
-    test('no llama showPriorityLinksNotification cuando no hay links prioritarios',
+    test('no llama showFavoriteLinksNotification cuando no hay links favoritos',
         () async {
-      when(() => mockService.showPriorityLinksNotification(any()))
-          .thenAnswer((_) async {});
+      when(() => mockService.showFavoriteLinksNotification(
+            any(),
+            title: any(named: 'title'),
+            body: any(named: 'body'),
+          )).thenAnswer((_) async {});
 
-      await container.read(notifyPriorityLinksProvider.future);
+      await container.read(notifyFavoriteLinksProvider.future);
 
-      verifyNever(() => mockService.showPriorityLinksNotification(any()));
+      verifyNever(() => mockService.showFavoriteLinksNotification(any()));
+    });
+
+    test('no llama showFavoriteLinksNotification cuando notificaciones desactivadas',
+        () async {
+      final disabledContainer = ProviderContainer(overrides: [
+        databaseProvider.overrideWithValue(db),
+        notificationServiceProvider.overrideWithValue(mockService),
+        appStringsProvider.overrideWithValue(AppStrings('es')),
+        notificationsEnabledProvider.overrideWith(
+          (ref) => NotificationsEnabledNotifier(_FakePrefs(), false),
+        ),
+      ]);
+
+      await db.insertLink(LinksCompanion.insert(
+        url: 'https://ejemplo.com',
+        priority: const Value(1),
+      ));
+
+      await disabledContainer.read(notifyFavoriteLinksProvider.future);
+
+      verifyNever(() => mockService.showFavoriteLinksNotification(any()));
+      disabledContainer.dispose();
     });
   });
 
@@ -61,6 +112,7 @@ void main() {
       when(() => mockService.scheduleLinkReminder(
             id: any(named: 'id'),
             title: any(named: 'title'),
+            body: any(named: 'body'),
             scheduledAt: any(named: 'scheduledAt'),
           )).thenAnswer((_) async {});
 
@@ -75,7 +127,8 @@ void main() {
 
       verify(() => mockService.scheduleLinkReminder(
             id: linkId,
-            title: 'Mi link',
+            title: any(named: 'title'),
+            body: any(named: 'body'),
             scheduledAt: scheduledAt,
           )).called(1);
 

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
+import 'package:velink/core/l10n/app_strings.dart';
+import 'package:velink/core/preferences/preferences_provider.dart';
 import 'package:velink/features/capture/models/og_metadata.dart';
 import 'package:velink/features/capture/providers/capture_provider.dart';
 import 'package:velink/features/capture/screens/capture_screen.dart';
@@ -19,6 +21,7 @@ Widget buildCaptureWidget(String url,
   return ProviderScope(
     overrides: [
       databaseProvider.overrideWithValue(db),
+      appStringsProvider.overrideWithValue(AppStrings('es')),
       captureServiceProvider.overrideWithValue(MockCaptureService()),
       metadataServiceProvider.overrideWithValue(metadataService ?? MockMetadataService()),
       imagePickerServiceProvider.overrideWithValue(imagePicker ?? MockImagePickerService()),
@@ -119,6 +122,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
         ],
@@ -140,6 +144,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
         ],
@@ -176,6 +181,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
         ],
@@ -235,6 +241,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
           allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
@@ -262,6 +269,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService(result: mockMeta)),
           allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
@@ -285,6 +293,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
           allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
@@ -323,6 +332,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
           allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
@@ -373,6 +383,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
           allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),

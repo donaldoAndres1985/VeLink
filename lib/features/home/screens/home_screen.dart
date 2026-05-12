@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/preferences/preferences_provider.dart';
 import '../../../shared/widgets/link_card.dart';
 import '../providers/home_provider.dart';
 import '../../capture/screens/capture_screen.dart';
@@ -39,13 +40,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final linksAsync = ref.watch(filteredHomeLinksProvider);
     final searchAsync = ref.watch(searchResultsProvider);
     final filter = ref.watch(homeFilterProvider);
+    final s = ref.watch(appStringsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('VeLink')),
-      floatingActionButton: FloatingActionButton(
-        key: const Key('add_link_fab'),
-        onPressed: () => _handleFabTap(context),
-        child: const Icon(Icons.add),
+      appBar: AppBar(title: Text(s.homeTitle)),
+      floatingActionButton: Semantics(
+        label: s.addLink,
+        button: true,
+        child: FloatingActionButton(
+          key: const Key('add_link_fab'),
+          onPressed: () => _handleFabTap(context),
+          tooltip: s.addLink,
+          child: const Icon(Icons.add),
+        ),
       ),
       body: Column(
         children: [
@@ -53,22 +60,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
             child: TextField(
               controller: _searchController,
-              decoration: const InputDecoration(
-                hintText: 'Buscar links...',
-                prefixIcon: Icon(Icons.search),
+              decoration: InputDecoration(
+                hintText: s.searchLinks,
+                prefixIcon: const Icon(Icons.search),
                 isDense: true,
               ),
               onChanged: (v) =>
                   ref.read(searchQueryProvider.notifier).state = v,
             ),
           ),
-          _buildFilterBar(context, ref, filter),
+          _buildFilterBar(context, ref, filter, s),
           Expanded(
             child: query.trim().isEmpty
                 ? linksAsync.when(
                     skipLoadingOnRefresh: true,
                     data: (links) => links.isEmpty
-                        ? const Center(child: Text('No hay links guardados aún'))
+                        ? Center(
+                            child: Semantics(
+                              label: s.noLinksYet,
+                              child: Text(s.noLinksYet),
+                            ),
+                          )
                         : ListView.builder(
                             padding: const EdgeInsets.only(
                                 left: 12, top: 12, right: 12, bottom: 80),
@@ -78,12 +90,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
                     error: (_, __) =>
-                        const Center(child: Text('Error al cargar los links')),
+                        Center(child: Text(s.errorLoadLinks)),
                   )
                 : searchAsync.when(
                     skipLoadingOnRefresh: true,
                     data: (links) => links.isEmpty
-                        ? const Center(child: Text('Sin resultados'))
+                        ? Center(child: Text(s.noResults))
                         : ListView.builder(
                             padding: const EdgeInsets.only(
                                 left: 12, top: 12, right: 12, bottom: 80),
@@ -93,7 +105,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
                     error: (_, __) =>
-                        const Center(child: Text('Error al buscar')),
+                        Center(child: Text(s.errorSearch)),
                   ),
           ),
         ],
@@ -102,14 +114,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildFilterBar(
-      BuildContext context, WidgetRef ref, HomeFilter filter) {
+      BuildContext context, WidgetRef ref, HomeFilter filter, dynamic s) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
       child: Row(
         children: [
           Expanded(
             child: _FilterBtn(
-              label: 'Todos',
+              label: s.filterAll,
               selected: filter == HomeFilter.todos,
               onTap: () {
                 ref.read(homeFilterProvider.notifier).state = HomeFilter.todos;
@@ -121,7 +133,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           const SizedBox(width: 8),
           Expanded(
             child: _FilterBtn(
-              label: 'Favoritos',
+              label: s.filterFavorites,
               leadingIcon: Icons.star_outline,
               selected: filter == HomeFilter.favoritos,
               onTap: () => ref.read(homeFilterProvider.notifier).state =
@@ -131,9 +143,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           const SizedBox(width: 8),
           Expanded(
             child: _FilterBtn(
-              label: 'Filtrar',
+              label: s.filterPlatform,
               leadingIcon: Icons.filter_list,
-              onTap: () => _showFilterSheet(context, ref),
+              onTap: () => _showFilterSheet(context, ref, s),
             ),
           ),
         ],
@@ -141,11 +153,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  void _showFilterSheet(BuildContext context, WidgetRef ref) {
+  void _showFilterSheet(BuildContext context, WidgetRef ref, dynamic s) {
     showModalBottomSheet(
       context: context,
       builder: (ctx) => _PlatformFilterSheet(
         selectedPlatform: ref.read(selectedPlatformProvider),
+        filterTitle: s.filterByPlatform,
+        platformAll: s.platformAll,
         onSelect: (p) {
           ref.read(selectedPlatformProvider.notifier).state = p;
           ref.read(homeFilterProvider.notifier).state = HomeFilter.todos;
@@ -159,8 +173,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     _showAddLinkDialog(context);
   }
 
-  // Verifica el portapapeles luego de mostrar el dialog;
-  // si hay una URL válida, cierra el dialog y navega directo a CaptureScreen.
   void _checkClipboardForCapture(BuildContext context) async {
     try {
       final data = await Clipboard.getData(Clipboard.kTextPlain);
@@ -177,13 +189,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _showAddLinkDialog(BuildContext context) {
+    final s = ref.read(appStringsProvider);
     final controller = TextEditingController();
     _checkClipboardForCapture(context);
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Agregar link'),
+        title: Text(s.addLink),
         content: TextField(
           controller: controller,
           autofocus: true,
@@ -191,7 +204,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             hintText: 'https://...',
             suffixIcon: IconButton(
               icon: const Icon(Icons.content_paste),
-              tooltip: 'Pegar',
+              tooltip: s.paste,
               onPressed: () async {
                 try {
                   final data =
@@ -219,7 +232,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child: Text(s.cancel),
           ),
           FilledButton(
             onPressed: () {
@@ -233,7 +246,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 );
               }
             },
-            child: const Text('Ir'),
+            child: Text(s.go),
           ),
         ],
       ),
@@ -241,7 +254,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-// Botón de filtro con ancho expandible (igual distribución horizontal)
 class _FilterBtn extends StatelessWidget {
   final String label;
   final IconData? leadingIcon;
@@ -258,40 +270,46 @@ class _FilterBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return SizedBox(
-      height: 36,
-      child: Material(
-        color:
-            selected ? colors.primaryContainer : colors.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(18),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(18),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (leadingIcon != null) ...[
-                Icon(
-                  leadingIcon,
-                  size: 14,
-                  color: selected
-                      ? colors.onPrimaryContainer
-                      : colors.onSurfaceVariant,
+    return Semantics(
+      label: label,
+      button: true,
+      selected: selected,
+      child: SizedBox(
+        height: 40,
+        child: Material(
+          color: selected
+              ? colors.primaryContainer
+              : colors.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(20),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (leadingIcon != null) ...[
+                  Icon(
+                    leadingIcon,
+                    size: 14,
+                    color: selected
+                        ? colors.onPrimaryContainer
+                        : colors.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 4),
+                ],
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight:
+                        selected ? FontWeight.w600 : FontWeight.w400,
+                    color: selected
+                        ? colors.onPrimaryContainer
+                        : colors.onSurface,
+                  ),
                 ),
-                const SizedBox(width: 4),
               ],
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight:
-                      selected ? FontWeight.w600 : FontWeight.w400,
-                  color: selected
-                      ? colors.onPrimaryContainer
-                      : colors.onSurface,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -313,15 +331,24 @@ const _kPlatforms = [
 
 class _PlatformFilterSheet extends StatelessWidget {
   final String? selectedPlatform;
+  final String filterTitle;
+  final String platformAll;
   final ValueChanged<String?> onSelect;
 
   const _PlatformFilterSheet({
     required this.selectedPlatform,
+    required this.filterTitle,
+    required this.platformAll,
     required this.onSelect,
   });
 
   @override
   Widget build(BuildContext context) {
+    final platforms = [
+      (label: platformAll, value: null as String?),
+      ..._kPlatforms.skip(1),
+    ];
+
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -329,13 +356,13 @@ class _PlatformFilterSheet extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Filtrar por plataforma',
+            Text(filterTitle,
                 style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _kPlatforms.map((p) {
+              children: platforms.map((p) {
                 return ChoiceChip(
                   label: Text(p.label),
                   selected: selectedPlatform == p.value,

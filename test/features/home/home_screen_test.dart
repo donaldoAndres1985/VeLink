@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
+import 'package:velink/core/l10n/app_strings.dart';
+import 'package:velink/core/preferences/preferences_provider.dart';
 import 'package:velink/features/home/providers/home_provider.dart';
 import 'package:velink/features/home/screens/home_screen.dart';
 import 'package:velink/features/search/providers/search_provider.dart';
@@ -14,6 +16,7 @@ Widget buildHomeWidget({List<Link> links = const []}) {
   return ProviderScope(
     overrides: [
       databaseProvider.overrideWithValue(db),
+      appStringsProvider.overrideWithValue(AppStrings('es')),
       filteredHomeLinksProvider.overrideWith((ref) => Stream.value(links)),
     ],
     child: const MaterialApp(home: HomeScreen()),
@@ -165,6 +168,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
           filteredHomeLinksProvider.overrideWith((_) => Stream.value([link1, link2])),
           searchResultsProvider.overrideWith((_) async => [link1]),
         ],

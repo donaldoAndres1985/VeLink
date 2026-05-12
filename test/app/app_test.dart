@@ -5,6 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:velink/app/app.dart';
 import 'package:velink/core/database/database.dart';
+import 'package:velink/core/l10n/app_strings.dart';
+import 'package:velink/core/preferences/preferences_provider.dart';
+import 'package:velink/core/preferences/preferences_service.dart';
 import 'package:velink/features/capture/providers/capture_provider.dart';
 import 'package:velink/features/home/providers/home_provider.dart';
 import 'package:velink/features/notifications/providers/notification_provider.dart';
@@ -17,6 +20,17 @@ import '../helpers/mock_metadata_service.dart';
 
 class MockNotificationService extends Mock implements NotificationService {}
 
+class _FakePrefs implements PreferencesService {
+  @override
+  Locale getLocale() => const Locale('es');
+  @override
+  Future<void> setLocale(Locale locale) async {}
+  @override
+  bool getNotificationsEnabled() => true;
+  @override
+  Future<void> setNotificationsEnabled(bool enabled) async {}
+}
+
 void main() {
   late AppDatabase db;
   late MockNotificationService mockService;
@@ -25,18 +39,28 @@ void main() {
     db = createTestDatabase();
     mockService = MockNotificationService();
     when(() => mockService.init()).thenAnswer((_) async {});
-    when(() => mockService.showPriorityLinksNotification(any()))
-        .thenAnswer((_) async {});
+    when(() => mockService.showFavoriteLinksNotification(
+          any(),
+          title: any(named: 'title'),
+          body: any(named: 'body'),
+        )).thenAnswer((_) async {});
   });
 
   tearDown(() async {
     await db.close();
   });
 
-  Widget buildApp({List<Link> priorityLinks = const []}) => ProviderScope(
+  Widget buildApp() => ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
           notificationServiceProvider.overrideWithValue(mockService),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
+          notificationsEnabledProvider.overrideWith(
+            (ref) => NotificationsEnabledNotifier(_FakePrefs(), true),
+          ),
+          localePrefProvider.overrideWith(
+            (ref) => LocaleNotifier(_FakePrefs(), const Locale('es')),
+          ),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
           recentLinksProvider.overrideWith((_) => Stream.value(const [])),
@@ -98,10 +122,10 @@ void main() {
   });
 
   group('MainShell — notificación HU21', () {
-    testWidgets('muestra notificación al arrancar si hay links prioritarios',
+    testWidgets('muestra notificación al arrancar si hay links favoritos',
         (tester) async {
       await db.insertLink(LinksCompanion.insert(
-        url: 'https://prioritario.com',
+        url: 'https://favorito.com',
         priority: const Value(1),
       ));
 
@@ -110,17 +134,21 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 50));
       });
 
-      verify(() => mockService.showPriorityLinksNotification(1)).called(1);
+      verify(() => mockService.showFavoriteLinksNotification(
+            1,
+            title: any(named: 'title'),
+            body: any(named: 'body'),
+          )).called(1);
     });
 
-    testWidgets('no muestra notificación si no hay links prioritarios',
+    testWidgets('no muestra notificación si no hay links favoritos',
         (tester) async {
       await tester.runAsync(() async {
         await tester.pumpWidget(buildApp());
         await Future.delayed(const Duration(milliseconds: 50));
       });
 
-      verifyNever(() => mockService.showPriorityLinksNotification(any()));
+      verifyNever(() => mockService.showFavoriteLinksNotification(any()));
     });
   });
 }

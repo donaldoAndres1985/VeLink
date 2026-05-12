@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
+import 'package:velink/core/l10n/app_strings.dart';
+import 'package:velink/core/preferences/preferences_provider.dart';
 import 'package:velink/features/capture/providers/capture_provider.dart';
 import 'package:velink/features/detail/providers/detail_provider.dart';
 import 'package:velink/features/search/providers/search_provider.dart';
@@ -15,6 +17,7 @@ Widget buildSearchWidget({List<Link> results = const []}) {
   return ProviderScope(
     overrides: [
       databaseProvider.overrideWithValue(db),
+      appStringsProvider.overrideWithValue(AppStrings('es')),
       searchResultsProvider.overrideWith((ref) => Future.value(results)),
       allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
     ],
@@ -58,6 +61,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
           searchResultsProvider.overrideWith((ref) => Future.value(<Link>[])),
           searchQueryProvider.overrideWith((ref) => 'kotlin'),
           allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
@@ -80,6 +84,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
           searchResultsProvider.overrideWith((ref) => Future.value(links)),
           searchQueryProvider.overrideWith((ref) => 'flutter'),
           allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
@@ -100,6 +105,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
           searchResultsProvider.overrideWith((ref) => Future.value(links)),
           searchQueryProvider.overrideWith((ref) => 'flutter'),
           allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),

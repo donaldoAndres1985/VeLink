@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/database/database.dart';
+import '../../../core/preferences/preferences_provider.dart';
 import '../../../features/capture/providers/capture_provider.dart';
 import '../../../features/capture/services/platform_detector.dart';
 import '../../../features/notifications/providers/notification_provider.dart';
@@ -69,12 +70,12 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
     ref.read(databaseProvider).updateLinkNotes(widget.link.id, notes);
   }
 
-  void _copyUrl() {
+  void _copyUrl(String copiedMsg) {
     Clipboard.setData(ClipboardData(text: widget.link.url));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('URL copiada'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(copiedMsg),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -113,11 +114,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
     return '$d/$m/${dt.year} $h:$min';
   }
 
-  String _formatCreatedAt(DateTime dt) {
-    const months = [
-      '', 'ene', 'feb', 'mar', 'abr', 'may',
-      'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic',
-    ];
+  String _formatCreatedAt(DateTime dt, List<String> months) {
     return '${dt.day} ${months[dt.month]} ${dt.year}';
   }
 
@@ -128,13 +125,15 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
     final platformInfo =
         PlatformInfo.forPlatform(PlatformDetector.detect(widget.link.url));
     final theme = Theme.of(context);
+    final s = ref.watch(appStringsProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detalle'),
+        title: Text(s.detailTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.more_vert),
+            tooltip: s.linkMenuTooltip,
             onPressed: () {},
           ),
         ],
@@ -145,15 +144,15 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildLinkCard(context, platformInfo, theme),
+              _buildLinkCard(context, platformInfo, theme, s),
               const SizedBox(height: 20),
-              _buildTagsSection(context, tagsAsync, allTagsAsync, theme),
+              _buildTagsSection(context, tagsAsync, allTagsAsync, theme, s),
               const SizedBox(height: 20),
-              _buildNotesSection(context, theme),
+              _buildNotesSection(context, theme, s),
               const SizedBox(height: 20),
-              _buildReminderSection(context, theme),
+              _buildReminderSection(context, theme, s),
               const SizedBox(height: 20),
-              _buildInfoSection(platformInfo, theme),
+              _buildInfoSection(platformInfo, theme, s),
             ],
           ),
         ),
@@ -165,6 +164,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
     BuildContext context,
     PlatformInfo platformInfo,
     ThemeData theme,
+    dynamic s,
   ) {
     return Card(
       elevation: 0,
@@ -215,11 +215,11 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
                     fontWeight: FontWeight.w700,
                     fontSize: 17,
                   ),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.zero,
                     isDense: true,
-                    hintText: 'Sin título',
+                    hintText: s.noTitle,
                   ),
                   maxLines: 3,
                   minLines: 1,
@@ -253,7 +253,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
                   children: [
                     FilledButton.icon(
                       icon: const Icon(Icons.open_in_new, size: 15),
-                      label: const Text('Abrir'),
+                      label: Text(s.openLink),
                       onPressed: () async {
                         _urlWasOpened = true;
                         try {
@@ -267,20 +267,20 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 8),
                         textStyle: const TextStyle(fontSize: 13),
-                        minimumSize: Size.zero,
+                        minimumSize: const Size(0, 44),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                     ),
                     const SizedBox(width: 8),
                     OutlinedButton.icon(
                       icon: const Icon(Icons.copy_outlined, size: 15),
-                      label: const Text('Copiar'),
-                      onPressed: _copyUrl,
+                      label: Text(s.copyUrl),
+                      onPressed: () => _copyUrl(s.urlCopied),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 8),
                         textStyle: const TextStyle(fontSize: 13),
-                        minimumSize: Size.zero,
+                        minimumSize: const Size(0, 44),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                     ),
@@ -299,12 +299,13 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
     AsyncValue<List<Tag>> tagsAsync,
     AsyncValue<List<Tag>> allTagsAsync,
     ThemeData theme,
+    dynamic s,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Etiquetas',
+          s.tagsSection,
           style: theme.textTheme.titleSmall
               ?.copyWith(fontWeight: FontWeight.w600),
         ),
@@ -312,7 +313,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
         allTagsAsync.when(
           data: (allTags) => allTags.isEmpty
               ? Text(
-                  'Sin etiquetas',
+                  s.noTagsAssigned,
                   style: TextStyle(
                     fontSize: 13,
                     color: theme.colorScheme.onSurfaceVariant,
@@ -362,12 +363,12 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
     );
   }
 
-  Widget _buildNotesSection(BuildContext context, ThemeData theme) {
+  Widget _buildNotesSection(BuildContext context, ThemeData theme, dynamic s) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Notas',
+          s.notesSection,
           style: theme.textTheme.titleSmall
               ?.copyWith(fontWeight: FontWeight.w600),
         ),
@@ -381,7 +382,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
             ),
-            hintText: 'Escribe una nota sobre este link...',
+            hintText: s.notesHint,
             contentPadding: const EdgeInsets.all(12),
           ),
         ),
@@ -392,22 +393,23 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
             onPressed: _saveNotes,
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              minimumSize: Size.zero,
+              minimumSize: const Size(0, 44),
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
-            child: const Text('Guardar'),
+            child: Text(s.save),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildReminderSection(BuildContext context, ThemeData theme) {
+  Widget _buildReminderSection(
+      BuildContext context, ThemeData theme, dynamic s) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Recordatorio',
+          s.reminderSection,
           style: theme.textTheme.titleSmall
               ?.copyWith(fontWeight: FontWeight.w600),
         ),
@@ -418,14 +420,14 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
             borderRadius: BorderRadius.circular(10),
           ),
           child: widget.link.remindAt != null
-              ? _buildReminderActive(theme)
-              : _buildReminderEmpty(theme),
+              ? _buildReminderActive(theme, s)
+              : _buildReminderEmpty(theme, s),
         ),
       ],
     );
   }
 
-  Widget _buildReminderActive(ThemeData theme) {
+  Widget _buildReminderActive(ThemeData theme, dynamic s) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
@@ -442,12 +444,12 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
             onPressed: _clearReminder,
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              minimumSize: Size.zero,
+              minimumSize: const Size(0, 44),
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
-            child: const Text(
-              'Eliminar recordatorio',
-              style: TextStyle(fontSize: 12),
+            child: Text(
+              s.deleteReminderLabel,
+              style: const TextStyle(fontSize: 12),
             ),
           ),
         ],
@@ -455,7 +457,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
     );
   }
 
-  Widget _buildReminderEmpty(ThemeData theme) {
+  Widget _buildReminderEmpty(ThemeData theme, dynamic s) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
@@ -468,7 +470,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Sin recordatorio configurado',
+              s.noReminder,
               style: TextStyle(
                 fontSize: 14,
                 color: theme.colorScheme.onSurfaceVariant,
@@ -477,14 +479,14 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
           ),
           TextButton.icon(
             icon: const Icon(Icons.add, size: 15),
-            label: const Text(
-              'Agregar recordatorio',
-              style: TextStyle(fontSize: 12),
+            label: Text(
+              s.addReminderLabel,
+              style: const TextStyle(fontSize: 12),
             ),
             onPressed: _pickReminder,
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              minimumSize: Size.zero,
+              minimumSize: const Size(0, 44),
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ),
@@ -493,7 +495,8 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
     );
   }
 
-  Widget _buildInfoSection(PlatformInfo platformInfo, ThemeData theme) {
+  Widget _buildInfoSection(
+      PlatformInfo platformInfo, ThemeData theme, dynamic s) {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: theme.colorScheme.outlineVariant),
@@ -510,7 +513,10 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              '${platformInfo.label} · Guardado el ${_formatCreatedAt(widget.link.createdAt)}',
+              s.savedOnDate(
+                platformInfo.label,
+                _formatCreatedAt(widget.link.createdAt, s.monthAbbrevs),
+              ),
               style: TextStyle(
                 fontSize: 12,
                 color: theme.colorScheme.onSurfaceVariant,

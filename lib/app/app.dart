@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/preferences/preferences_provider.dart';
 import '../core/theme/app_theme.dart';
 import '../features/capture/providers/capture_provider.dart';
 import '../features/capture/screens/capture_screen.dart';
@@ -10,17 +12,27 @@ import '../features/tags/screens/tags_screen.dart';
 import '../core/database/database.dart';
 import '../features/notifications/providers/notification_provider.dart';
 
-class VeLinkApp extends StatelessWidget {
+class VeLinkApp extends ConsumerWidget {
   const VeLinkApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final locale = ref.watch(localePrefProvider);
+    final s = ref.watch(appStringsProvider);
+
     return MaterialApp(
-      title: 'VeLink',
+      title: s.homeTitle,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.dark,
+      locale: locale,
+      supportedLocales: const [Locale('es'), Locale('en')],
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: const MainShell(),
     );
   }
@@ -53,20 +65,30 @@ class _MainShellState extends ConsumerState<MainShell> {
   Future<void> _startUp() async {
     final service = ref.read(notificationServiceProvider);
     await service.init();
-    await _checkPriorityLinks();
+    await _checkFavoriteLinks();
   }
 
-  Future<void> _checkPriorityLinks() async {
+  Future<void> _checkFavoriteLinks() async {
+    final enabled = ref.read(notificationsEnabledProvider);
+    if (!enabled) return;
+
     final db = ref.read(databaseProvider);
     final service = ref.read(notificationServiceProvider);
     final links = await db.getPriorityLinks();
     if (links.isNotEmpty && mounted) {
-      await service.showPriorityLinksNotification(links.length);
+      final s = ref.read(appStringsProvider);
+      await service.showFavoriteLinksNotification(
+        links.length,
+        title: s.notifFavoritesTitle,
+        body: s.notifFavoritesBody(links.length),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final s = ref.watch(appStringsProvider);
+
     ref.listen<String?>(
       captureProvider.select((s) => s.pendingUrl),
       (previous, next) {
@@ -100,26 +122,30 @@ class _MainShellState extends ConsumerState<MainShell> {
             curve: Curves.easeInOut,
           );
         },
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.link_outlined),
-            activeIcon: Icon(Icons.link),
-            label: 'Links',
+            icon: const Icon(Icons.link_outlined),
+            activeIcon: const Icon(Icons.link),
+            label: s.navLinks,
+            tooltip: s.navLinks,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.schedule_outlined),
-            activeIcon: Icon(Icons.schedule),
-            label: 'Pendientes',
+            icon: const Icon(Icons.schedule_outlined),
+            activeIcon: const Icon(Icons.schedule),
+            label: s.navPending,
+            tooltip: s.navPending,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.label_outline),
-            activeIcon: Icon(Icons.label),
-            label: 'Etiquetas',
+            icon: const Icon(Icons.label_outline),
+            activeIcon: const Icon(Icons.label),
+            label: s.navTags,
+            tooltip: s.navTags,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined),
-            activeIcon: Icon(Icons.settings),
-            label: 'Ajustes',
+            icon: const Icon(Icons.settings_outlined),
+            activeIcon: const Icon(Icons.settings),
+            label: s.navSettings,
+            tooltip: s.navSettings,
           ),
         ],
       ),
