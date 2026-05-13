@@ -198,6 +198,13 @@ class AppStrings {
   String get termsTitle => _s(es: 'Términos de uso', en: 'Terms of Use');
   String get settingsDeleteMyData => _s(es: 'Eliminar mis datos', en: 'Delete my data');
   String get settingsContactSupport => _s(es: 'Contactar soporte', en: 'Contact support');
+  String get notificationsSubtitle => _s(es: 'Recibir recordatorios y actualizaciones', en: 'Receive reminders and updates');
+  String get notificationsStatusEnabled => _s(es: 'Las notificaciones están activadas. Recibirás recordatorios y actualizaciones.', en: 'Notifications are enabled. You will receive reminders and updates.');
+  String get notificationsStatusDisabled => _s(es: 'Las notificaciones están desactivadas.', en: 'Notifications are disabled.');
+  String get privacyPolicySubtitle => _s(es: 'Conoce cómo protegemos tus datos', en: 'Learn how we protect your data');
+  String get termsSubtitle => _s(es: 'Lee nuestros términos y condiciones', en: 'Read our terms and conditions');
+  String get deleteMyDataSubtitle => _s(es: 'Elimina permanentemente todos tus datos', en: 'Permanently delete all your data');
+  String get contactSupportSubtitle => _s(es: 'Obtén ayuda o envíanos un mensaje', en: 'Get help or send us a message');
   String get deleteDataWarning => _s(
     es: 'Esta acción eliminará permanentemente todos tus links, etiquetas, colecciones, notas y recordatorios.\n\nEsta acción no se puede deshacer.',
     en: 'This action will permanently delete all your links, labels, collections, notes and reminders.\n\nThis action cannot be undone.',
