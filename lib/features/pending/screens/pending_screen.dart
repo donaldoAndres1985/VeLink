@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/database/database.dart';
 import '../../../core/preferences/preferences_provider.dart';
 import '../../../shared/widgets/link_card.dart';
 import '../providers/pending_provider.dart';

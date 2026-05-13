@@ -252,6 +252,14 @@ class AppDatabase extends _$AppDatabase {
     ])..where(linkCollections.linkId.equals(linkId));
     return query.map((row) => row.readTable(collections)).watch();
   }
+
+  Future<void> deleteAllData() async {
+    await delete(linkCollections).go();
+    await delete(linkTags).go();
+    await delete(links).go();
+    await delete(tags).go();
+    await delete(collections).go();
+  }
 }
 
 final databaseProvider = Provider<AppDatabase>((ref) {

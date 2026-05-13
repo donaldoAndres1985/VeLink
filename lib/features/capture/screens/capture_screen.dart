@@ -103,49 +103,58 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
-                      onPressed: state.isSaving
-                          ? null
-                          : () {
-                              ref.read(captureProvider.notifier).dismiss();
-                              Navigator.of(context)
-                                  .popUntil((route) => route.isFirst);
-                            },
-                      child: Text(s.cancel),
+                    child: Semantics(
+                      label: s.cancel,
+                      button: true,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
+                        onPressed: state.isSaving
+                            ? null
+                            : () {
+                                ref.read(captureProvider.notifier).dismiss();
+                                Navigator.of(context)
+                                    .popUntil((route) => route.isFirst);
+                              },
+                        child: Text(s.cancel),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: FilledButton(
-                      onPressed: state.isSaving
-                          ? null
-                          : () async {
-                              try {
-                                await ref
-                                    .read(captureProvider.notifier)
-                                    .saveLink(url: widget.url);
-                                if (context.mounted) {
-                                  Navigator.of(context)
-                                      .popUntil((route) => route.isFirst);
+                    child: Semantics(
+                      label: s.save,
+                      button: true,
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
+                        onPressed: state.isSaving
+                            ? null
+                            : () async {
+                                try {
+                                  await ref
+                                      .read(captureProvider.notifier)
+                                      .saveLink(url: widget.url);
+                                  if (context.mounted) {
+                                    Navigator.of(context)
+                                        .popUntil((route) => route.isFirst);
+                                  }
+                                } on DuplicateUrlException {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(s.alreadySaved),
+                                      ),
+                                    );
+                                  }
                                 }
-                              } on DuplicateUrlException {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(s.alreadySaved),
-                                    ),
-                                  );
-                                }
-                              }
-                            },
-                      child: state.isSaving
-                          ? const SizedBox(
-                              height: 18,
-                              width: 18,
-                              child:
-                                  CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(s.save),
+                              },
+                        child: state.isSaving
+                            ? const SizedBox(
+                                height: 18,
+                                width: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : Text(s.save),
+                      ),
                     ),
                   ),
                 ],
@@ -244,28 +253,36 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.photo_library_outlined, size: 15),
-                  label: Text(s.gallery),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 6),
-                    textStyle: const TextStyle(fontSize: 12),
+                Semantics(
+                  label: s.gallery,
+                  button: true,
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.photo_library_outlined, size: 15),
+                    label: Text(s.gallery),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      minimumSize: const Size(88, 48),
+                      textStyle: const TextStyle(fontSize: 12),
+                    ),
+                    onPressed: () =>
+                        ref.read(captureProvider.notifier).pickFromGallery(),
                   ),
-                  onPressed: () =>
-                      ref.read(captureProvider.notifier).pickFromGallery(),
                 ),
                 const SizedBox(width: 12),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.camera_alt_outlined, size: 15),
-                  label: Text(s.camera),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 6),
-                    textStyle: const TextStyle(fontSize: 12),
+                Semantics(
+                  label: s.camera,
+                  button: true,
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.camera_alt_outlined, size: 15),
+                    label: Text(s.camera),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      minimumSize: const Size(88, 48),
+                      textStyle: const TextStyle(fontSize: 12),
+                    ),
+                    onPressed: () =>
+                        ref.read(captureProvider.notifier).pickFromCamera(),
                   ),
-                  onPressed: () =>
-                      ref.read(captureProvider.notifier).pickFromCamera(),
                 ),
               ],
             ),

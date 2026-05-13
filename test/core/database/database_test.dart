@@ -638,4 +638,29 @@ void main() {
       expect(count, 2);
     });
   });
+
+  // ─── DELETE ALL DATA ─────────────────────────────────────────────────────────
+
+  group('deleteAllData', () {
+    test('elimina links, tags y colecciones', () async {
+      await db.insertLink(LinksCompanion.insert(url: 'https://example.com'));
+      await db.insertTag(TagsCompanion.insert(name: 'mi tag'));
+      await db.insertCollection(CollectionsCompanion(
+        name: const Value('mi colección'),
+        color: const Value('#6366F1'),
+        icon: const Value('folder'),
+      ));
+
+      await db.deleteAllData();
+
+      expect(await db.getAllLinks(), isEmpty);
+      expect(await db.watchAllTags().first, isEmpty);
+      expect(await db.getAllCollections(), isEmpty);
+    });
+
+    test('deleteAllData en DB vacía no lanza error', () async {
+      await db.deleteAllData();
+      expect(await db.getAllLinks(), isEmpty);
+    });
+  });
 }

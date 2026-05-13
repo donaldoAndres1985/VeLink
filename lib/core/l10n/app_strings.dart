@@ -52,6 +52,7 @@ class AppStrings {
     en: 'Create labels to organize your links.',
   );
   String get errorLoadTags => _s(es: 'Error al cargar etiquetas', en: 'Error loading labels');
+  String get editTagTooltip => _s(es: 'Editar etiqueta', en: 'Edit label');
   String get deleteTagTitle => _s(es: 'Eliminar etiqueta', en: 'Delete label');
   String confirmDeleteTag(String name) => _s(
     es: '¿Eliminar la etiqueta "$name"?',
@@ -190,6 +191,26 @@ class AppStrings {
     en: 'You have a saved link to review',
   );
 
+  // ── Legal & Data ─────────────────────────────────────────────────────────
+  String get settingsLegal => _s(es: 'Legal', en: 'Legal');
+  String get settingsDataSection => _s(es: 'Cuenta y datos', en: 'Account & data');
+  String get privacyPolicyTitle => _s(es: 'Política de privacidad', en: 'Privacy Policy');
+  String get termsTitle => _s(es: 'Términos de uso', en: 'Terms of Use');
+  String get settingsDeleteMyData => _s(es: 'Eliminar mis datos', en: 'Delete my data');
+  String get settingsContactSupport => _s(es: 'Contactar soporte', en: 'Contact support');
+  String get deleteDataWarning => _s(
+    es: 'Esta acción eliminará permanentemente todos tus links, etiquetas, colecciones, notas y recordatorios.\n\nEsta acción no se puede deshacer.',
+    en: 'This action will permanently delete all your links, labels, collections, notes and reminders.\n\nThis action cannot be undone.',
+  );
+  String get deleteDataConfirm => _s(es: 'Eliminar todo', en: 'Delete all');
+  String get deleteDataSuccess => _s(es: 'Todos los datos han sido eliminados', en: 'All data has been deleted');
+  String get notifPermissionBlocked => _s(
+    es: 'Las notificaciones están desactivadas en la configuración del sistema.',
+    en: 'Notifications are disabled in system settings.',
+  );
+  String get privacyPolicyBody => _lang == 'en' ? _kPrivacyEn : _kPrivacyEs;
+  String get termsBody => _lang == 'en' ? _kTermsEn : _kTermsEs;
+
   // ── Time Ago ─────────────────────────────────────────────────────────────
   String timeAgo(DateTime createdAt) {
     final diff = DateTime.now().difference(createdAt);
@@ -228,3 +249,113 @@ class AppStrings {
     return _s(es: 'Ahora', en: 'Just now');
   }
 }
+
+const _kPrivacyEs = '''
+POLÍTICA DE PRIVACIDAD — VeLink
+Última actualización: mayo 2026
+
+1. INFORMACIÓN QUE ALMACENAMOS
+VeLink almacena localmente en tu dispositivo:
+• Links guardados y sus metadatos (título, descripción, URL, plataforma)
+• Imágenes y capturas de pantalla agregadas manualmente
+• Notas y recordatorios asociados a links
+• Etiquetas y colecciones creadas por ti
+• Preferencias de idioma y notificaciones
+
+2. ACCESO AL DISPOSITIVO
+• Portapapeles: accedemos al portapapeles solo cuando tocas el botón + o "Pegar", para detectar URLs automáticamente. No leemos el portapapeles en segundo plano.
+• Cámara y galería: solo cuando lo solicitas explícitamente al agregar una imagen a un link.
+• Notificaciones: para recordatorios y alertas de links favoritos, únicamente si activas las notificaciones.
+
+3. ALMACENAMIENTO Y PRIVACIDAD
+• Todos los datos se almacenan localmente en tu dispositivo.
+• VeLink no cuenta con servidores propios ni envía datos a la nube.
+• Las imágenes de preview se obtienen de URLs externas (Open Graph) y se cargan bajo demanda; dichas URLs están sujetas a la política de privacidad de cada sitio.
+
+4. ANALYTICS Y LOGS DE ERRORES
+VeLink no recopila datos de uso, analytics ni logs de errores de forma automática.
+
+5. MENORES DE EDAD
+VeLink no está dirigida a menores de 13 años. Si eres menor de 13 años, no uses esta aplicación.
+
+6. ELIMINACIÓN DE DATOS
+Puedes eliminar todos tus datos locales desde Ajustes > Eliminar mis datos. Esta acción es permanente e irreversible.
+
+7. CONTACTO
+Para consultas sobre privacidad: soporte@velink.app
+''';
+
+const _kPrivacyEn = '''
+PRIVACY POLICY — VeLink
+Last updated: May 2026
+
+1. INFORMATION WE STORE
+VeLink stores locally on your device:
+• Saved links and their metadata (title, description, URL, platform)
+• Images and screenshots added manually by you
+• Notes and reminders associated with links
+• Labels and collections you create
+• Language and notification preferences
+
+2. DEVICE ACCESS
+• Clipboard: we access the clipboard only when you tap the + button or "Paste", to detect URLs automatically. We do not read the clipboard in the background.
+• Camera and gallery: only when you explicitly request it when adding an image to a link.
+• Notifications: for reminders and favorite link alerts, only if you enable notifications.
+
+3. STORAGE AND PRIVACY
+• All data is stored locally on your device.
+• VeLink has no servers and does not send data to the cloud.
+• Preview images are fetched from external URLs (Open Graph) on demand; those URLs are subject to the privacy policy of each respective site.
+
+4. ANALYTICS AND CRASH LOGS
+VeLink does not automatically collect usage data, analytics, or crash logs.
+
+5. CHILDREN
+VeLink is not directed at children under 13. If you are under 13, do not use this application.
+
+6. DATA DELETION
+You can delete all your local data from Settings > Delete my data. This action is permanent and irreversible.
+
+7. CONTACT
+For privacy inquiries: soporte@velink.app
+''';
+
+const _kTermsEs = '''
+TÉRMINOS DE USO — VeLink
+Última actualización: mayo 2026
+
+1. USO PERMITIDO
+VeLink es una aplicación para guardar y organizar links personales. El usuario es el único responsable del contenido que guarda en la aplicación y del uso que hace de los links almacenados.
+
+2. CONTENIDO EXTERNO
+VeLink no controla, modera ni es responsable del contenido de los links externos guardados. Los metadatos (título, descripción, imagen) se obtienen de sitios de terceros; VeLink no garantiza su exactitud ni disponibilidad.
+
+3. LIMITACIÓN DE RESPONSABILIDAD
+VeLink se proporciona "tal cual", sin garantías de ningún tipo. El desarrollador no se hace responsable de pérdida de datos, daños o cualquier perjuicio derivado del uso de la aplicación.
+
+4. MODIFICACIONES
+Podemos actualizar estos términos en cualquier momento. El uso continuado de la aplicación implica la aceptación de los términos actualizados.
+
+5. CONTACTO
+soporte@velink.app
+''';
+
+const _kTermsEn = '''
+TERMS OF USE — VeLink
+Last updated: May 2026
+
+1. PERMITTED USE
+VeLink is an application for saving and organizing personal links. The user is solely responsible for the content saved in the application and for the use made of stored links.
+
+2. EXTERNAL CONTENT
+VeLink does not control, moderate, or take responsibility for the content of saved external links. Metadata (title, description, image) is fetched from third-party sites; VeLink does not guarantee its accuracy or availability.
+
+3. LIMITATION OF LIABILITY
+VeLink is provided "as is" without warranties of any kind. The developer is not liable for data loss, damages, or any harm resulting from the use of the application.
+
+4. CHANGES
+We may update these terms at any time. Continued use of the application implies acceptance of the updated terms.
+
+5. CONTACT
+soporte@velink.app
+''';

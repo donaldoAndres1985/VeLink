@@ -60,6 +60,10 @@ class LinkReminderUseCase {
   }
 }
 
+final notifPermissionProvider = FutureProvider.autoDispose<bool>((ref) {
+  return ref.read(notificationServiceProvider).isPermissionGranted();
+});
+
 final linkReminderUseCaseProvider = Provider<LinkReminderUseCase>((ref) {
   final s = ref.read(appStringsProvider);
   return LinkReminderUseCase(

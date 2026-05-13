@@ -130,15 +130,23 @@ class _TagCard extends ConsumerWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
-              icon: const Icon(Icons.edit_outlined),
-              tooltip: s.settingsLanguage,
-              onPressed: () => _showEditDialog(context),
+            Semantics(
+              label: s.editTagTooltip,
+              button: true,
+              child: IconButton(
+                icon: const Icon(Icons.edit_outlined),
+                tooltip: s.editTagTooltip,
+                onPressed: () => _showEditDialog(context),
+              ),
             ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline),
-              tooltip: s.delete,
-              onPressed: () => _confirmDelete(context, ref, s),
+            Semantics(
+              label: s.deleteTagTitle,
+              button: true,
+              child: IconButton(
+                icon: const Icon(Icons.delete_outline),
+                tooltip: s.deleteTagTitle,
+                onPressed: () => _confirmDelete(context, ref, s),
+              ),
             ),
           ],
         ),

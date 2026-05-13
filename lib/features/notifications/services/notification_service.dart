@@ -5,6 +5,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 abstract class NotificationService {
   Future<void> init();
+  Future<bool> isPermissionGranted();
   Future<void> showFavoriteLinksNotification(
     int count, {
     String? title,
@@ -49,6 +50,18 @@ class LocalNotificationService implements NotificationService {
         ?.requestNotificationsPermission();
 
     _initialized = true;
+  }
+
+  @override
+  Future<bool> isPermissionGranted() async {
+    if (!_initialized) return true;
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    if (android != null) {
+      return await android.areNotificationsEnabled() ?? true;
+    }
+    // iOS: permissions are requested at init time; assume granted if initialized
+    return true;
   }
 
   @override
