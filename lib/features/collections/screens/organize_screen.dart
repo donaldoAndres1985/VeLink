@@ -57,6 +57,7 @@ class _OrganizeScreenState extends ConsumerState<OrganizeScreen>
       ),
       body: TabBarView(
         controller: _tabController,
+        physics: const NeverScrollableScrollPhysics(),
         children: const [
           CollectionsContent(),
           TagsContent(),

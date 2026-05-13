@@ -95,43 +95,7 @@ class PendientesScreen extends ConsumerWidget {
                       right: 12,
                       bottom: kBottomNavigationBarHeight + 56.0 + 24.0),
                   itemCount: links.length,
-                  itemBuilder: (_, i) {
-                    final link = links[i];
-                    return Dismissible(
-                      key: ValueKey(link.id),
-                      direction: DismissDirection.startToEnd,
-                      background: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.green.shade600,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        alignment: Alignment.centerLeft,
-                        padding: const EdgeInsets.only(left: 20),
-                        child: const Icon(
-                          Icons.check_circle_outline,
-                          color: Colors.white,
-                        ),
-                      ),
-                      onDismissed: (_) {
-                        ref
-                            .read(databaseProvider)
-                            .setLinkReviewed(link.id, true);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(s.markedAsReviewed),
-                            action: SnackBarAction(
-                              label: s.undo,
-                              onPressed: () => ref
-                                  .read(databaseProvider)
-                                  .setLinkReviewed(link.id, false),
-                            ),
-                            duration: const Duration(seconds: 4),
-                          ),
-                        );
-                      },
-                      child: LinkCard(link: link),
-                    );
-                  },
+                  itemBuilder: (_, i) => LinkCard(link: links[i]),
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),

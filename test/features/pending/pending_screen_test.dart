@@ -101,8 +101,16 @@ void main() {
     });
   });
 
-  group('PendientesScreen — marcar revisado por swipe', () {
-    testWidgets('deslizar card actualiza isRead=true en DB', (tester) async {
+  group('PendientesScreen — marcar revisado por menú', () {
+    testWidgets('no hay Dismissible en la lista de pendientes', (tester) async {
+      await tester.pumpWidget(buildPendingWidget(
+        links: [makeLink(url: 'https://flutter.dev', isRead: false)],
+      ));
+      await tester.pumpAndSettle();
+      expect(find.byType(Dismissible), findsNothing);
+    });
+
+    testWidgets('marcar revisado por menú actualiza isRead=true en DB', (tester) async {
       final db = createTestDatabase();
       addTearDown(db.close);
       await db.insertLink(LinksCompanion.insert(url: 'https://flutter.dev'));
@@ -117,7 +125,9 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      await tester.drag(find.byType(Dismissible).first, const Offset(500, 0));
+      await tester.tap(find.byIcon(Icons.more_vert).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Marcar revisado'));
       await tester.pumpAndSettle();
 
       final links = await db.getAllLinks();
@@ -127,7 +137,8 @@ void main() {
       await tester.pump(Duration.zero);
     });
 
-    testWidgets('muestra snackbar con mensaje y acción Deshacer tras deslizar', (tester) async {
+    testWidgets('muestra snackbar tras marcar revisado por menú', (tester) async {
+      final link = makeLink(url: 'https://flutter.dev', isRead: false);
       final db = createTestDatabase();
       addTearDown(db.close);
       await db.insertLink(LinksCompanion.insert(url: 'https://flutter.dev'));
@@ -136,45 +147,18 @@ void main() {
         overrides: [
           databaseProvider.overrideWithValue(db),
           appStringsProvider.overrideWithValue(AppStrings('es')),
-          pendingLinksProvider.overrideWith((ref) => db.watchPendingLinks()),
+          pendingLinksProvider.overrideWith((ref) => Stream.value([link])),
         ],
         child: const MaterialApp(home: PendientesScreen()),
       ));
       await tester.pumpAndSettle();
 
-      await tester.drag(find.byType(Dismissible).first, const Offset(500, 0));
+      await tester.tap(find.byIcon(Icons.more_vert).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Marcar revisado'));
       await tester.pumpAndSettle();
 
       expect(find.text('Link marcado como revisado'), findsOneWidget);
-      expect(find.text('Deshacer'), findsOneWidget);
-
-      await tester.pumpWidget(const SizedBox());
-      await tester.pump(Duration.zero);
-    });
-
-    testWidgets('Deshacer revierte isRead a false en DB', (tester) async {
-      final db = createTestDatabase();
-      addTearDown(db.close);
-      await db.insertLink(LinksCompanion.insert(url: 'https://flutter.dev'));
-
-      await tester.pumpWidget(ProviderScope(
-        overrides: [
-          databaseProvider.overrideWithValue(db),
-          appStringsProvider.overrideWithValue(AppStrings('es')),
-          pendingLinksProvider.overrideWith((ref) => db.watchPendingLinks()),
-        ],
-        child: const MaterialApp(home: PendientesScreen()),
-      ));
-      await tester.pumpAndSettle();
-
-      await tester.drag(find.byType(Dismissible).first, const Offset(500, 0));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Deshacer'));
-      await tester.pumpAndSettle();
-
-      final links = await db.getAllLinks();
-      expect(links.first.isRead, false);
 
       await tester.pumpWidget(const SizedBox());
       await tester.pump(Duration.zero);

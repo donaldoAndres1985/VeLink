@@ -100,6 +100,15 @@ class _MainShellState extends ConsumerState<MainShell> {
       },
     );
 
+    ref.listen<bool>(
+      notificationsEnabledProvider,
+      (previous, next) {
+        if (previous == true && next == false) {
+          ref.read(notificationServiceProvider).cancelAll();
+        }
+      },
+    );
+
     return Scaffold(
       body: PageView(
         controller: _pageController,
