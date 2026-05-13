@@ -169,29 +169,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  void _handleFabTap(BuildContext context) {
-    _showAddLinkDialog(context);
-  }
-
-  void _checkClipboardForCapture(BuildContext context) async {
+  void _handleFabTap(BuildContext context) async {
     try {
       final data = await Clipboard.getData(Clipboard.kTextPlain);
       final text = data?.text?.trim() ?? '';
       if (text.startsWith('http://') || text.startsWith('https://')) {
         if (!context.mounted) return;
-        Navigator.of(context).pop();
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => CaptureScreen(url: text)),
         );
+        return;
       }
     } catch (_) {}
+    if (!context.mounted) return;
+    _showAddLinkDialog(context);
   }
 
   void _showAddLinkDialog(BuildContext context) {
     final s = ref.read(appStringsProvider);
     final controller = TextEditingController();
-    _checkClipboardForCapture(context);
 
     showDialog(
       context: context,

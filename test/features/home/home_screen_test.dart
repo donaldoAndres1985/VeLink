@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
@@ -48,6 +49,16 @@ void main() {
     });
 
     testWidgets('FAB muestra diálogo al tocar', (tester) async {
+      // Mock clipboard to return null so _handleFabTap falls through to dialog
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, (MethodCall call) async {
+        if (call.method == 'Clipboard.getData') return null;
+        return null;
+      });
+      addTearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(SystemChannels.platform, null);
+      });
       await tester.pumpWidget(buildHomeWidget());
       await tester.pumpAndSettle();
       await tester.tap(find.byType(FloatingActionButton));

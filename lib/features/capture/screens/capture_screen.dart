@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/database/database.dart';
 import '../../../core/preferences/preferences_provider.dart';
 import '../models/og_metadata.dart';
 import '../providers/capture_provider.dart';
@@ -467,7 +468,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   Widget _buildCollectionsSection(
     BuildContext context,
     CaptureState state,
-    AsyncValue collectionsAsync,
+    AsyncValue<List<Collection>> collectionsAsync,
     dynamic s,
   ) {
     return Column(

@@ -206,6 +206,83 @@ void main() {
     });
   });
 
+  group('CaptureScreen — colecciones', () {
+    testWidgets('muestra texto sin colecciones cuando la lista está vacía', (tester) async {
+      await tester.pumpWidget(buildCaptureWidget('https://example.com'));
+      await tester.pumpAndSettle();
+      expect(find.text('No hay colecciones aún'), findsOneWidget);
+    });
+
+    testWidgets('muestra chip de colección cuando existen colecciones', (tester) async {
+      final db = createTestDatabase();
+      addTearDown(db.close);
+
+      final collection = Collection(
+        id: 1,
+        name: 'Trabajo',
+        color: '#6366F1',
+        icon: 'folder',
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
+          captureServiceProvider.overrideWithValue(MockCaptureService()),
+          metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imagePickerServiceProvider.overrideWithValue(MockImagePickerService()),
+          allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
+          allCollectionsProvider.overrideWith((ref) => Stream.value([collection])),
+        ],
+        child: const MaterialApp(home: CaptureScreen(url: 'https://example.com')),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Trabajo'), findsOneWidget);
+      expect(find.byType(FilterChip), findsOneWidget);
+    });
+
+    testWidgets('tap en chip de colección lo selecciona', (tester) async {
+      final db = createTestDatabase();
+      addTearDown(db.close);
+
+      final collection = Collection(
+        id: 42,
+        name: 'Música',
+        color: '#22C55E',
+        icon: 'music',
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
+          captureServiceProvider.overrideWithValue(MockCaptureService()),
+          metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imagePickerServiceProvider.overrideWithValue(MockImagePickerService()),
+          allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
+          allCollectionsProvider.overrideWith((ref) => Stream.value([collection])),
+        ],
+        child: const MaterialApp(home: CaptureScreen(url: 'https://example.com')),
+      ));
+      await tester.pumpAndSettle();
+
+      final chipBefore = tester.widget<FilterChip>(find.byType(FilterChip).first);
+      expect(chipBefore.selected, isFalse);
+
+      await tester.ensureVisible(find.text('Música'));
+      await tester.tap(find.text('Música'));
+      await tester.pump();
+
+      final chipAfter = tester.widget<FilterChip>(find.byType(FilterChip).first);
+      expect(chipAfter.selected, isTrue);
+    });
+  });
+
   group('CaptureScreen — prioridad', () {
     testWidgets('muestra switch de prioridad', (tester) async {
       await tester.pumpWidget(buildCaptureWidget('https://example.com'));
