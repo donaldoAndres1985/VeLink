@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -173,25 +174,29 @@ class AjustesScreen extends ConsumerWidget {
 
   Future<void> _exportData(BuildContext context, WidgetRef ref, AppStrings s) async {
     try {
-      final path = await ref.read(backupServiceProvider).exportToJson();
+      await ref.read(backupServiceProvider).exportToJson();
+    } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(s.exportSuccessMsg(path)), duration: const Duration(seconds: 4)),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), duration: const Duration(seconds: 3)),
+          SnackBar(content: Text(s.settingsExportError), duration: const Duration(seconds: 3)),
         );
       }
     }
   }
 
   Future<void> _importData(BuildContext context, WidgetRef ref, AppStrings s) async {
-    final service = ref.read(backupServiceProvider);
-    final preview = await service.readBackupPreview();
+    final picked = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+    );
+    if (picked == null || picked.files.single.path == null) return;
     if (!context.mounted) return;
+
+    final filePath = picked.files.single.path!;
+    final service = ref.read(backupServiceProvider);
+    final preview = await service.readBackupPreview(filePath);
+    if (!context.mounted) return;
+
     if (preview == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(s.importFileNotFound), duration: const Duration(seconds: 3)),
@@ -225,19 +230,13 @@ class AjustesScreen extends ConsumerWidget {
     );
     if (confirmed != true || !context.mounted) return;
     try {
-      final result = await service.importFromJson();
+      final result = await service.importFromJson(filePath);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(s.importSuccessMsg(result.imported, result.skipped)),
             duration: const Duration(seconds: 4),
           ),
-        );
-      }
-    } on BackupFileNotFoundException {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(s.importFileNotFound), duration: const Duration(seconds: 3)),
         );
       }
     } on InvalidBackupException {

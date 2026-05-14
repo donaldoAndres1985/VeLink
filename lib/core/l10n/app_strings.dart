@@ -202,8 +202,8 @@ class AppStrings {
   String get settingsExportDataSubtitle => _s(es: 'Guarda un respaldo JSON de todos tus datos', en: 'Save a JSON backup of all your data');
   String get settingsImportData => _s(es: 'Importar datos', en: 'Import data');
   String get settingsImportDataSubtitle => _s(es: 'Restaura links desde un archivo de respaldo', en: 'Restore links from a backup file');
-  String exportSuccessMsg(String path) => _s(es: 'Datos exportados a: $path', en: 'Data exported to: $path');
-  String get importFileNotFound => _s(es: 'No se encontró archivo de respaldo. Exporta primero.', en: 'No backup file found. Export your data first.');
+  String get settingsExportError => _s(es: 'No se pudo exportar el respaldo.', en: 'Could not export backup.');
+  String get importFileNotFound => _s(es: 'Archivo de respaldo inválido o no compatible.', en: 'Invalid or incompatible backup file.');
   String get importInvalidFile => _s(es: 'Archivo de respaldo inválido.', en: 'Invalid backup file.');
   String importPreviewMsg(int links, int tags, int colls) => _s(
     es: '$links links, $tags etiquetas, $colls colecciones. Se combinarán con los datos actuales.',

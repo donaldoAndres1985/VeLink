@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../core/database/database.dart';
 
-const _kBackupFileName = 'velink_backup.json';
 const _kBackupVersion = 1;
 
 class ImportResult {
@@ -18,20 +18,11 @@ class InvalidBackupException implements Exception {
   const InvalidBackupException();
 }
 
-class BackupFileNotFoundException implements Exception {
-  const BackupFileNotFoundException();
-}
-
 class BackupService {
   final AppDatabase _db;
   BackupService(this._db);
 
-  Future<String> _backupDir() async {
-    final dir = await getApplicationDocumentsDirectory();
-    return dir.path;
-  }
-
-  Future<String> exportToJson() async {
+  Future<void> exportToJson() async {
     final allLinks = await _db.getAllLinks();
     final allTags = await _db.getAllTags();
     final allCollections = await _db.getAllCollections();
@@ -83,15 +74,18 @@ class BackupService {
           .toList(),
     };
 
-    final dir = await _backupDir();
-    final file = File('$dir/$_kBackupFileName');
+    final date = DateTime.now();
+    final dateStr =
+        '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    final tmpDir = await getTemporaryDirectory();
+    final file = File('${tmpDir.path}/velink_backup_$dateStr.json');
     await file.writeAsString(const JsonEncoder.withIndent('  ').convert(backup));
-    return file.path;
+
+    await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
   }
 
-  Future<Map<String, dynamic>?> readBackupPreview() async {
-    final dir = await _backupDir();
-    final file = File('$dir/$_kBackupFileName');
+  Future<Map<String, dynamic>?> readBackupPreview(String filePath) async {
+    final file = File(filePath);
     if (!await file.exists()) return null;
     try {
       final data = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
@@ -102,11 +96,8 @@ class BackupService {
     }
   }
 
-  Future<ImportResult> importFromJson() async {
-    final dir = await _backupDir();
-    final file = File('$dir/$_kBackupFileName');
-    if (!await file.exists()) throw const BackupFileNotFoundException();
-
+  Future<ImportResult> importFromJson(String filePath) async {
+    final file = File(filePath);
     final Map<String, dynamic> data;
     try {
       data = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
