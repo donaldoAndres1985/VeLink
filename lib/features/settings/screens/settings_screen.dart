@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/database/database.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/preferences/preferences_provider.dart';
+import '../../../features/backup/services/backup_service.dart';
 import '../../../features/notifications/providers/notification_provider.dart';
 
 class AjustesScreen extends ConsumerWidget {
@@ -104,6 +105,30 @@ class AjustesScreen extends ConsumerWidget {
           _SectionLabel(title: s.settingsDataSection),
           _SettingsCard(children: [
             Semantics(
+              label: s.settingsExportData,
+              button: true,
+              child: _SettingsTile(
+                icon: Icons.upload_outlined,
+                title: s.settingsExportData,
+                subtitle: s.settingsExportDataSubtitle,
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _exportData(context, ref, s),
+              ),
+            ),
+            const _CardDivider(),
+            Semantics(
+              label: s.settingsImportData,
+              button: true,
+              child: _SettingsTile(
+                icon: Icons.download_outlined,
+                title: s.settingsImportData,
+                subtitle: s.settingsImportDataSubtitle,
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _importData(context, ref, s),
+              ),
+            ),
+            const _CardDivider(),
+            Semantics(
               label: s.settingsDeleteMyData,
               button: true,
               child: _SettingsTile(
@@ -144,6 +169,84 @@ class AjustesScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _exportData(BuildContext context, WidgetRef ref, AppStrings s) async {
+    try {
+      final path = await ref.read(backupServiceProvider).exportToJson();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(s.exportSuccessMsg(path)), duration: const Duration(seconds: 4)),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), duration: const Duration(seconds: 3)),
+        );
+      }
+    }
+  }
+
+  Future<void> _importData(BuildContext context, WidgetRef ref, AppStrings s) async {
+    final service = ref.read(backupServiceProvider);
+    final preview = await service.readBackupPreview();
+    if (!context.mounted) return;
+    if (preview == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(s.importFileNotFound), duration: const Duration(seconds: 3)),
+      );
+      return;
+    }
+    final linksCount = (preview['links'] as List?)?.length ?? 0;
+    final tagsCount = (preview['tags'] as List?)?.length ?? 0;
+    final collsCount = (preview['collections'] as List?)?.length ?? 0;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(s.settingsImportData),
+        content: Text(s.importPreviewMsg(linksCount, tagsCount, collsCount)),
+        actions: [
+          Semantics(
+            label: s.cancel,
+            button: true,
+            child: TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(s.cancel)),
+          ),
+          Semantics(
+            label: s.importConfirm,
+            button: true,
+            child: FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(s.importConfirm),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    try {
+      final result = await service.importFromJson();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(s.importSuccessMsg(result.imported, result.skipped)),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } on BackupFileNotFoundException {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(s.importFileNotFound), duration: const Duration(seconds: 3)),
+        );
+      }
+    } on InvalidBackupException {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(s.importInvalidFile), duration: const Duration(seconds: 3)),
+        );
+      }
+    }
   }
 
   void _confirmDeleteData(BuildContext context, WidgetRef ref, AppStrings s) {
@@ -434,7 +537,7 @@ class _LegalPage extends StatelessWidget {
         leading: Semantics(label: 'Back', button: true, child: const BackButton()),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
         child: Text(body, style: const TextStyle(fontSize: 14, height: 1.6)),
       ),
     );

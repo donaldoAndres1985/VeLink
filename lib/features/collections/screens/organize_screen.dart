@@ -40,6 +40,8 @@ class _OrganizeScreenState extends ConsumerState<OrganizeScreen>
         title: Text(s.navOrganize),
         bottom: TabBar(
           controller: _tabController,
+          // ignore: deprecated_member_use
+          dividerColor: Colors.white.withOpacity(0.08),
           tabs: [
             Tab(text: s.tabCollections),
             Tab(text: s.tabLabels),

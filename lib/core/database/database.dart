@@ -202,6 +202,13 @@ class AppDatabase extends _$AppDatabase {
 
   // ── Link + Collections ────────────────────────────────────────────────────
 
+  Future<List<Collection>> getCollectionsForLink(int linkId) {
+    final query = select(collections).join([
+      innerJoin(linkCollections, linkCollections.collectionId.equalsExp(collections.id)),
+    ])..where(linkCollections.linkId.equals(linkId));
+    return query.map((row) => row.readTable(collections)).get();
+  }
+
   Future<void> addLinkToCollection(int linkId, int collectionId) =>
       into(linkCollections).insertOnConflictUpdate(
         LinkCollectionsCompanion(

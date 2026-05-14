@@ -198,6 +198,22 @@ class AppStrings {
   String get termsTitle => _s(es: 'Términos de uso', en: 'Terms of Use');
   String get settingsDeleteMyData => _s(es: 'Eliminar mis datos', en: 'Delete my data');
   String get settingsContactSupport => _s(es: 'Contactar soporte', en: 'Contact support');
+  String get settingsExportData => _s(es: 'Exportar datos', en: 'Export data');
+  String get settingsExportDataSubtitle => _s(es: 'Guarda un respaldo JSON de todos tus datos', en: 'Save a JSON backup of all your data');
+  String get settingsImportData => _s(es: 'Importar datos', en: 'Import data');
+  String get settingsImportDataSubtitle => _s(es: 'Restaura links desde un archivo de respaldo', en: 'Restore links from a backup file');
+  String exportSuccessMsg(String path) => _s(es: 'Datos exportados a: $path', en: 'Data exported to: $path');
+  String get importFileNotFound => _s(es: 'No se encontró archivo de respaldo. Exporta primero.', en: 'No backup file found. Export your data first.');
+  String get importInvalidFile => _s(es: 'Archivo de respaldo inválido.', en: 'Invalid backup file.');
+  String importPreviewMsg(int links, int tags, int colls) => _s(
+    es: '$links links, $tags etiquetas, $colls colecciones. Se combinarán con los datos actuales.',
+    en: '$links links, $tags labels, $colls collections. Will be merged with current data.',
+  );
+  String importSuccessMsg(int imported, int skipped) => _s(
+    es: 'Importación completada: $imported links importados, $skipped duplicados omitidos.',
+    en: 'Import completed: $imported links imported, $skipped duplicates skipped.',
+  );
+  String get importConfirm => _s(es: 'Importar', en: 'Import');
   String get notificationsSubtitle => _s(es: 'Recibir recordatorios y actualizaciones', en: 'Receive reminders and updates');
   String get notificationsStatusEnabled => _s(es: 'Las notificaciones están activadas. Recibirás recordatorios y actualizaciones.', en: 'Notifications are enabled. You will receive reminders and updates.');
   String get notificationsStatusDisabled => _s(es: 'Las notificaciones están desactivadas.', en: 'Notifications are disabled.');

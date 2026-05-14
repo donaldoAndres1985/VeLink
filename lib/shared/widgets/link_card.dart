@@ -172,10 +172,12 @@ class LinkCard extends ConsumerWidget {
       );
     }
     if (link.previewImageUrl != null) {
+      final rawUrl = link.previewImageUrl!;
+      final imageUrl = rawUrl.startsWith('//') ? 'https:$rawUrl' : rawUrl;
       return ClipRRect(
         borderRadius: BorderRadius.circular(6),
         child: Image.network(
-          link.previewImageUrl!,
+          imageUrl,
           width: 48,
           height: 48,
           fit: BoxFit.cover,

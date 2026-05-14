@@ -223,14 +223,12 @@ class _CreateCollectionDialogState
                             height: 40,
                             decoration: BoxDecoration(
                               color: _selectedIcon == icon
-                                  ? Theme.of(context)
-                                      .colorScheme
-                                      .primaryContainer
+                                  ? _hexToColor(_selectedColor)
                                   : Theme.of(context).colorScheme.surface,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
                                 color: _selectedIcon == icon
-                                    ? Theme.of(context).colorScheme.primary
+                                    ? Colors.transparent
                                     : Theme.of(context)
                                         .colorScheme
                                         .outlineVariant,
@@ -240,7 +238,7 @@ class _CreateCollectionDialogState
                               _iconData(icon),
                               size: 22,
                               color: _selectedIcon == icon
-                                  ? Theme.of(context).colorScheme.primary
+                                  ? Colors.white
                                   : Theme.of(context)
                                       .colorScheme
                                       .onSurfaceVariant,
