@@ -20,18 +20,41 @@ class CaptureScreen extends ConsumerStatefulWidget {
 
 class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   late final TextEditingController _titleController;
+  late final FocusNode _titleFocusNode;
+  bool _selectAllOnFocus = false;
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController();
+    _titleFocusNode = FocusNode();
+    _titleFocusNode.addListener(_onTitleFocusChange);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) ref.read(captureProvider.notifier).fetchMetadata(widget.url);
     });
   }
 
+  // Fires when the title field gains focus. If a metadata title was just
+  // auto-filled, we set the full selection AFTER Flutter's own focus handler
+  // has run (nested post-frame), preventing it from resetting the cursor.
+  void _onTitleFocusChange() {
+    if (_titleFocusNode.hasFocus && _selectAllOnFocus) {
+      _selectAllOnFocus = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _titleFocusNode.hasFocus) {
+          _titleController.selection = TextSelection(
+            baseOffset: 0,
+            extentOffset: _titleController.text.length,
+          );
+        }
+      });
+    }
+  }
+
   @override
   void dispose() {
+    _titleFocusNode.removeListener(_onTitleFocusChange);
+    _titleFocusNode.dispose();
     _titleController.dispose();
     super.dispose();
   }
@@ -50,10 +73,10 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
       (prev, next) {
         if (next?.title != null && _titleController.text.isEmpty) {
           _titleController.text = next!.title!;
-          _titleController.selection = TextSelection(
-            baseOffset: 0,
-            extentOffset: next.title!.length,
-          );
+          _selectAllOnFocus = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _titleFocusNode.requestFocus();
+          });
         }
       },
     );
@@ -71,6 +94,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
               TextField(
                 key: const Key('title_field'),
                 controller: _titleController,
+                focusNode: _titleFocusNode,
                 decoration: InputDecoration(
                   labelText: s.titleLabel,
                   hintText: s.titleHint,

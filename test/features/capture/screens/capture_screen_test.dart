@@ -73,6 +73,31 @@ void main() {
       expect(titleField.controller.text, 'Flutter — Beautiful UI toolkit');
     });
 
+    testWidgets('el título auto-generado recibe foco y queda seleccionado', (tester) async {
+      const title = 'Flutter — Beautiful UI toolkit';
+      final mockMeta = OgMetadata(title: title);
+      await tester.pumpWidget(buildCaptureWidget(
+        'https://flutter.dev',
+        metadataService: MockMetadataService(result: mockMeta),
+      ));
+      await tester.pumpAndSettle();
+
+      final editableText = tester.widget<EditableText>(
+        find.descendant(
+          of: find.byKey(const Key('title_field')),
+          matching: find.byType(EditableText),
+        ),
+      );
+      expect(editableText.controller.text, title);
+      expect(editableText.focusNode.hasFocus, isTrue,
+          reason: 'El campo de título debe recibir foco automáticamente');
+      expect(
+        editableText.controller.selection,
+        TextSelection(baseOffset: 0, extentOffset: title.length),
+        reason: 'El texto completo debe estar seleccionado para reemplazo inmediato',
+      );
+    });
+
     testWidgets('muestra la descripcion cuando la metadata está disponible', (tester) async {
       final mockMeta = OgMetadata(title: 'Flutter', description: 'Build apps for any screen');
       await tester.pumpWidget(buildCaptureWidget(
