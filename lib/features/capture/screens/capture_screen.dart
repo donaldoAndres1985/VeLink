@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database.dart';
 import '../../../core/preferences/preferences_provider.dart';
+import '../../../core/theme/app_theme.dart';
 import '../models/og_metadata.dart';
 import '../providers/capture_provider.dart';
 import '../services/platform_detector.dart';
@@ -49,8 +50,10 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
       (prev, next) {
         if (next?.title != null && _titleController.text.isEmpty) {
           _titleController.text = next!.title!;
-          _titleController.selection =
-              TextSelection.collapsed(offset: next.title!.length);
+          _titleController.selection = TextSelection(
+            baseOffset: 0,
+            extentOffset: next.title!.length,
+          );
         }
       },
     );
@@ -125,7 +128,10 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                       label: s.save,
                       button: true,
                       child: FilledButton(
-                        style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(0, 48),
+                          foregroundColor: VerLinkColors.green,
+                        ),
                         onPressed: state.isSaving
                             ? null
                             : () async {
@@ -460,12 +466,24 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
             spacing: 8,
             runSpacing: 4,
             children: [
-              ...tags.map((tag) => FilterChip(
-                    label: Text(tag.name),
-                    selected: state.selectedTagIds.contains(tag.id),
-                    onSelected: (_) =>
-                        ref.read(captureProvider.notifier).toggleTag(tag.id),
-                  )),
+              ...tags.map((tag) {
+                final sel = state.selectedTagIds.contains(tag.id);
+                return FilterChip(
+                  label: Text(tag.name),
+                  selected: sel,
+                  selectedColor: VerLinkColors.primaryBlack,
+                  checkmarkColor: VerLinkColors.green,
+                  labelStyle: TextStyle(
+                    color: sel ? VerLinkColors.green : null,
+                    fontWeight: sel ? FontWeight.w600 : null,
+                  ),
+                  side: sel
+                      ? const BorderSide(color: VerLinkColors.primaryBlack)
+                      : null,
+                  onSelected: (_) =>
+                      ref.read(captureProvider.notifier).toggleTag(tag.id),
+                );
+              }),
               ActionChip(
                 avatar: const Icon(Icons.add, size: 16),
                 label: Text(s.newTagLabel),
@@ -513,14 +531,27 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                   spacing: 8,
                   runSpacing: 4,
                   children: collections
-                      .map((col) => FilterChip(
-                            label: Text(col.name),
-                            selected: state.selectedCollectionIds
-                                .contains(col.id),
-                            onSelected: (_) => ref
-                                .read(captureProvider.notifier)
-                                .toggleCollection(col.id),
-                          ))
+                      .map((col) {
+                        final sel =
+                            state.selectedCollectionIds.contains(col.id);
+                        return FilterChip(
+                          label: Text(col.name),
+                          selected: sel,
+                          selectedColor: VerLinkColors.primaryBlack,
+                          checkmarkColor: VerLinkColors.green,
+                          labelStyle: TextStyle(
+                            color: sel ? VerLinkColors.green : null,
+                            fontWeight: sel ? FontWeight.w600 : null,
+                          ),
+                          side: sel
+                              ? const BorderSide(
+                                  color: VerLinkColors.primaryBlack)
+                              : null,
+                          onSelected: (_) => ref
+                              .read(captureProvider.notifier)
+                              .toggleCollection(col.id),
+                        );
+                      })
                       .toList(),
                 ),
           loading: () => const SizedBox.shrink(),

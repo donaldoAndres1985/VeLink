@@ -1,6 +1,6 @@
-<div align="center">
+﻿<div align="center">
 
-# VeLink
+# VerLink
 
 **Tu segunda memoria digital**
 
@@ -16,13 +16,13 @@ Guarda, organiza y redescubre todo el contenido valioso que encuentras en intern
 
 ---
 
-## ¿Qué es VeLink?
+## ¿Qué es VerLink?
 
-VeLink es una aplicacion de productividad personal que centraliza todo el contenido valioso que descubres mientras navegas en internet y redes sociales.
+VerLink es una aplicacion de productividad personal que centraliza todo el contenido valioso que descubres mientras navegas en internet y redes sociales.
 
 Cada dia consumes contenido en Instagram, YouTube, TikTok, LinkedIn, GitHub y decenas de sitios mas. El problema: lo pierdes. Guardas screenshots desordenados, envias links a tu propio chat, usas bookmarks que nunca vuelves a abrir.
 
-**VeLink lo resuelve:** comparte cualquier link hacia VeLink desde el Share Sheet del sistema, y el contenido queda guardado con imagen preview, titulo, descripcion y plataforma de origen — listo para que lo encuentres cuando lo necesites.
+**VerLink lo resuelve:** comparte cualquier link hacia VerLink desde el Share Sheet del sistema, y el contenido queda guardado con imagen preview, titulo, descripcion y plataforma de origen — listo para que lo encuentres cuando lo necesites.
 
 > *"El lugar donde vive todo lo interesante que descubriste."*
 
@@ -122,8 +122,8 @@ link_tags (relacion N:N)
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/donaldoAndres1985/VeLink.git
-cd VeLink
+git clone https://github.com/donaldoAndres1985/VerLink.git
+cd VerLink
 ```
 
 ### 2. Instalar dependencias
@@ -190,7 +190,7 @@ v4  Second brain AI
 
 ## Historias de Usuario
 
-Todas las historias de usuario del MVP estan documentadas en la [Wiki del repositorio](https://github.com/donaldoAndres1985/VeLink/wiki/Historias-de-usuario).
+Todas las historias de usuario del MVP estan documentadas en la [Wiki del repositorio](https://github.com/donaldoAndres1985/VerLink/wiki/Historias-de-usuario).
 
 22 HUs organizadas en 9 iteraciones de desarrollo.
 
@@ -198,7 +198,7 @@ Todas las historias de usuario del MVP estan documentadas en la [Wiki del reposi
 
 ## Issues y seguimiento
 
-El desarrollo se gestiona mediante [GitHub Issues](https://github.com/donaldoAndres1985/VeLink/issues), una issue por cada historia de usuario, etiquetadas por iteracion.
+El desarrollo se gestiona mediante [GitHub Issues](https://github.com/donaldoAndres1985/VerLink/issues), una issue por cada historia de usuario, etiquetadas por iteracion.
 
 ---
 

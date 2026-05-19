@@ -1,12 +1,12 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
 import 'package:velink/core/l10n/app_strings.dart';
 import 'package:velink/core/preferences/preferences_provider.dart';
+import 'package:velink/features/capture/providers/capture_provider.dart';
 import 'package:velink/features/collections/providers/collection_providers.dart';
 import 'package:velink/features/collections/screens/organize_screen.dart';
-import 'package:velink/features/capture/providers/capture_provider.dart';
 import '../../../helpers/database_helper.dart';
 
 Widget buildOrganizeWidget() {
@@ -43,10 +43,10 @@ void main() {
       expect(find.text('Etiquetas'), findsOneWidget);
     });
 
-    testWidgets('muestra FAB', (tester) async {
+    testWidgets('muestra título Organizar en el header', (tester) async {
       await tester.pumpWidget(buildOrganizeWidget());
       await tester.pumpAndSettle();
-      expect(find.byType(FloatingActionButton), findsOneWidget);
+      expect(find.text('Organizar'), findsOneWidget);
     });
   });
 

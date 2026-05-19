@@ -1,4 +1,4 @@
-# VeLink — Instrucciones para Claude Code
+﻿# VerLink — Instrucciones para Claude Code
 
 ## TDD — Test Driven Development (Obligatorio)
 

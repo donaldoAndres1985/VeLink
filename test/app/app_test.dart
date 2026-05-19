@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' hide isNull;
+﻿import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -69,55 +69,54 @@ void main() {
           allTagsProvider.overrideWith((_) => Stream.value(const [])),
           searchResultsProvider.overrideWith((_) async => const []),
         ],
-        child: const VeLinkApp(),
+        child: const VerLinkApp(),
       );
 
   group('MainShell — navegación', () {
     testWidgets('muestra pantalla de inicio por defecto', (tester) async {
       await tester.pumpWidget(buildApp());
       await tester.pump();
-      expect(find.text('VeLink'), findsOneWidget);
+      // Home screen shows 'Guardados' as title (in header and navbar)
+      expect(find.text('Guardados'), findsAtLeastNWidgets(1));
     });
 
     testWidgets('tiene 4 tabs en la barra de navegación', (tester) async {
       await tester.pumpWidget(buildApp());
       await tester.pump();
-      expect(find.byType(BottomNavigationBar), findsOneWidget);
-      final bar = tester.widget<BottomNavigationBar>(
-          find.byType(BottomNavigationBar));
-      expect(bar.items.length, 4);
+      // 'Guardados' aparece en el header Y en la navbar
+      expect(find.text('Guardados'), findsAtLeastNWidgets(1));
+      expect(find.text('Revisar'), findsOneWidget);
+      expect(find.text('Organizar'), findsOneWidget);
+      expect(find.text('Ajustes'), findsOneWidget);
     });
   });
 
   group('MainShell — navegación por deslizamiento', () {
-    testWidgets('deslizar hacia la izquierda pasa a la pantalla Pendientes',
+    testWidgets('deslizar hacia la izquierda pasa a la pantalla Revisar',
         (tester) async {
       await tester.pumpWidget(buildApp());
       await tester.pump();
 
-      final barBefore = tester.widget<BottomNavigationBar>(
-          find.byType(BottomNavigationBar));
-      expect(barBefore.currentIndex, 0);
+      // Home screen is active on start
+      expect(find.text('Guardados'), findsAtLeastNWidgets(1));
 
       await tester.fling(
           find.byType(PageView), const Offset(-500, 0), 1500);
       await tester.pumpAndSettle();
 
-      final barAfter = tester.widget<BottomNavigationBar>(
-          find.byType(BottomNavigationBar));
-      expect(barAfter.currentIndex, 1);
+      // Pending screen is now shown with its empty state
+      expect(find.text('No hay links por revisar'), findsOneWidget);
     });
 
     testWidgets('tap en tab inferior sincroniza el PageView', (tester) async {
       await tester.pumpWidget(buildApp());
       await tester.pump();
 
-      await tester.tap(find.text('Pendientes'));
+      await tester.tap(find.text('Revisar'));
       await tester.pumpAndSettle();
 
-      final bar = tester.widget<BottomNavigationBar>(
-          find.byType(BottomNavigationBar));
-      expect(bar.currentIndex, 1);
+      // Pending screen is now shown with its empty state
+      expect(find.text('No hay links por revisar'), findsOneWidget);
     });
   });
 

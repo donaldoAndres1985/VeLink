@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
@@ -130,12 +130,14 @@ void main() {
     testWidgets('muestra Eliminar mis datos', (tester) async {
       await tester.pumpWidget(_wrap());
       await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('Eliminar mis datos'), 100);
       expect(find.text('Eliminar mis datos'), findsWidgets);
     });
 
     testWidgets('muestra Contactar soporte', (tester) async {
       await tester.pumpWidget(_wrap());
       await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('Contactar soporte'), 100);
       expect(find.text('Contactar soporte'), findsOneWidget);
     });
 
@@ -144,14 +146,16 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Política de privacidad'));
       await tester.pumpAndSettle();
-      expect(find.text('POLÍTICA DE PRIVACIDAD — VeLink', findRichText: true), findsNothing);
+      expect(find.text('POLÍTICA DE PRIVACIDAD — VerLink', findRichText: true), findsNothing);
       expect(find.byType(SingleChildScrollView), findsOneWidget);
     });
 
     testWidgets('tap en Eliminar mis datos muestra diálogo de confirmación', (tester) async {
       await tester.pumpWidget(_wrap());
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Eliminar mis datos').first);
+      await tester.drag(find.byType(ListView), const Offset(0, -400));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Eliminar mis datos'));
       await tester.pumpAndSettle();
       expect(find.text('Eliminar todo'), findsOneWidget);
       expect(find.text('Cancelar'), findsOneWidget);

@@ -25,18 +25,18 @@ Widget buildPendingWidget({List<Link> links = const []}) {
 
 void main() {
   group('PendientesScreen — app bar', () {
-    testWidgets('muestra título Pendientes en el app bar', (tester) async {
+    testWidgets('muestra título Revisar en el header', (tester) async {
       await tester.pumpWidget(buildPendingWidget());
       await tester.pumpAndSettle();
-      expect(find.text('Pendientes'), findsOneWidget);
+      expect(find.text('Revisar'), findsOneWidget);
     });
   });
 
   group('PendientesScreen — estado vacío', () {
-    testWidgets('muestra mensaje cuando no hay links pendientes', (tester) async {
+    testWidgets('muestra mensaje cuando no hay links por revisar', (tester) async {
       await tester.pumpWidget(buildPendingWidget());
       await tester.pumpAndSettle();
-      expect(find.text('No hay links pendientes'), findsOneWidget);
+      expect(find.text('No hay links por revisar'), findsOneWidget);
     });
   });
 

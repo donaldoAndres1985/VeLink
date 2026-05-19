@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -78,7 +78,7 @@ class BackupService {
     final dateStr =
         '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
     final tmpDir = await getTemporaryDirectory();
-    final file = File('${tmpDir.path}/velink_backup_$dateStr.json');
+    final file = File('${tmpDir.path}/verlink_backup_$dateStr.json');
     await file.writeAsString(const JsonEncoder.withIndent('  ').convert(backup));
 
     await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));

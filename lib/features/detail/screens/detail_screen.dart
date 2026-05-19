@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/database/database.dart';
 import '../../../core/preferences/preferences_provider.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../features/capture/providers/capture_provider.dart';
 import '../../../features/capture/services/platform_detector.dart';
 import '../../../features/notifications/providers/notification_provider.dart';
@@ -94,8 +95,9 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
       initialTime: TimeOfDay.fromDateTime(widget.link.remindAt ?? now),
     );
     if (time == null || !mounted) return;
-    final scheduledAt =
-        DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    final scheduledAt = DateTime(
+      date.year, date.month, date.day, time.hour, time.minute,
+    );
     final title = widget.link.title ?? widget.link.url;
     await ref
         .read(linkReminderUseCaseProvider)
@@ -124,35 +126,51 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
     final allTagsAsync = ref.watch(allTagsProvider);
     final platformInfo =
         PlatformInfo.forPlatform(PlatformDetector.detect(widget.link.url));
-    final theme = Theme.of(context);
     final s = ref.watch(appStringsProvider);
+    final hasImage = widget.link.previewImageUrl != null;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(s.detailTitle),
+        leading: const BackButton(),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            tooltip: s.linkMenuTooltip,
-            onPressed: () {},
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: IconButton(
+              icon: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: VerLinkColors.softSurface,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.share_outlined,
+                  size: 18,
+                  color: VerLinkColors.textSecondary,
+                ),
+              ),
+              tooltip: s.linkMenuTooltip,
+              onPressed: () {},
+            ),
           ),
         ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildLinkCard(context, platformInfo, theme, s),
+              _buildHeroCard(context, platformInfo, s, hasImage),
               const SizedBox(height: 20),
-              _buildTagsSection(context, tagsAsync, allTagsAsync, theme, s),
+              _buildTagsSection(context, tagsAsync, allTagsAsync, s),
               const SizedBox(height: 20),
-              _buildNotesSection(context, theme, s),
+              _buildNotesSection(context, s),
               const SizedBox(height: 20),
-              _buildReminderSection(context, theme, s),
+              _buildReminderSection(context, s),
               const SizedBox(height: 20),
-              _buildInfoSection(platformInfo, theme, s),
+              _buildInfoSection(platformInfo, s),
             ],
           ),
         ),
@@ -160,128 +178,170 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
     );
   }
 
-  Widget _buildLinkCard(
+  Widget _buildHeroCard(
     BuildContext context,
     PlatformInfo platformInfo,
-    ThemeData theme,
     dynamic s,
+    bool hasImage,
   ) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: theme.colorScheme.outlineVariant),
+    return Container(
+      decoration: BoxDecoration(
+        color: VerLinkColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+            color: VerLinkColors.shadow08,
+            blurRadius: 20,
+            offset: Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (widget.link.previewImageUrl != null)
+          if (hasImage)
             ClipRRect(
               borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(12)),
+                  const BorderRadius.vertical(top: Radius.circular(20)),
               child: Image.network(
                 widget.link.previewImageUrl!,
                 width: double.infinity,
-                height: 120,
+                height: 180,
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => const SizedBox.shrink(),
               ),
             ),
           Padding(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    Icon(platformInfo.icon, size: 13, color: platformInfo.color),
-                    const SizedBox(width: 4),
-                    Text(
-                      platformInfo.label,
-                      style: TextStyle(
-                        color: platformInfo.color,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: platformInfo.color.withAlpha(25),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            platformInfo.icon,
+                            size: 11,
+                            color: platformInfo.color,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            platformInfo.label,
+                            style: TextStyle(
+                              color: platformInfo.color,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                    if (widget.link.isFavorite) ...[
+                      const SizedBox(width: 8),
+                      const Icon(
+                        Icons.star_rounded,
+                        size: 16,
+                        color: VerLinkColors.warning,
+                      ),
+                    ],
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 10),
                 TextField(
                   key: const Key('title_field'),
                   controller: _titleController,
                   focusNode: _titleFocusNode,
                   style: const TextStyle(
                     fontWeight: FontWeight.w700,
-                    fontSize: 17,
+                    fontSize: 18,
+                    color: VerLinkColors.textPrimary,
+                    height: 1.3,
                   ),
                   decoration: InputDecoration(
                     border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
                     contentPadding: EdgeInsets.zero,
                     isDense: true,
                     hintText: s.noTitle,
+                    filled: false,
                   ),
                   maxLines: 3,
                   minLines: 1,
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) => _saveTitle(),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
                   widget.link.url,
-                  style: TextStyle(
-                    color: theme.colorScheme.primary,
+                  style: const TextStyle(
+                    color: VerLinkColors.greenSecondary,
                     fontSize: 12,
+                    fontWeight: FontWeight.w400,
                   ),
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (widget.link.description != null) ...[
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   Text(
                     widget.link.description!,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 13,
-                      color: theme.colorScheme.onSurfaceVariant,
+                      color: VerLinkColors.textSecondary,
+                      height: 1.5,
                     ),
-                    maxLines: 2,
+                    maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
                 Row(
                   children: [
-                    FilledButton.icon(
-                      icon: const Icon(Icons.open_in_new, size: 15),
-                      label: Text(s.openLink),
-                      onPressed: () async {
-                        _urlWasOpened = true;
-                        try {
-                          await launchUrl(
-                            Uri.parse(widget.link.url),
-                            mode: LaunchMode.externalApplication,
-                          );
-                        } catch (_) {}
-                      },
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 8),
-                        textStyle: const TextStyle(fontSize: 13),
-                        minimumSize: const Size(0, 44),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    Expanded(
+                      child: FilledButton.icon(
+                        icon: const Icon(Icons.open_in_new, size: 16),
+                        label: Text(s.openLink),
+                        onPressed: () async {
+                          _urlWasOpened = true;
+                          try {
+                            await launchUrl(
+                              Uri.parse(widget.link.url),
+                              mode: LaunchMode.externalApplication,
+                            );
+                          } catch (_) {}
+                        },
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          textStyle: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 10),
                     OutlinedButton.icon(
-                      icon: const Icon(Icons.copy_outlined, size: 15),
+                      icon: const Icon(Icons.copy_outlined, size: 16),
                       label: Text(s.copyUrl),
                       onPressed: () => _copyUrl(s.urlCopied),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 8),
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         textStyle: const TextStyle(fontSize: 13),
-                        minimumSize: const Size(0, 44),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                     ),
                   ],
@@ -298,154 +358,151 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
     BuildContext context,
     AsyncValue<List<Tag>> tagsAsync,
     AsyncValue<List<Tag>> allTagsAsync,
-    ThemeData theme,
     dynamic s,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          s.tagsSection,
-          style: theme.textTheme.titleSmall
-              ?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        allTagsAsync.when(
-          data: (allTags) => allTags.isEmpty
-              ? Text(
-                  s.noTagsAssigned,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                )
-              : tagsAsync.when(
-                  data: (linkTags) {
-                    final linkTagIds = linkTags.map((t) => t.id).toSet();
-                    return Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      children: allTags
-                          .map((tag) => FilterChip(
-                                label: Text(
-                                  tag.name,
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                                selected: linkTagIds.contains(tag.id),
-                                onSelected: (selected) {
-                                  if (selected) {
-                                    ref
-                                        .read(databaseProvider)
-                                        .addTagToLink(widget.link.id, tag.id);
-                                  } else {
-                                    ref
-                                        .read(databaseProvider)
-                                        .removeTagFromLink(
-                                            widget.link.id, tag.id);
-                                  }
-                                },
-                                materialTapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 4),
-                                visualDensity: VisualDensity.compact,
-                              ))
-                          .toList(),
-                    );
-                  },
-                  loading: () => const SizedBox.shrink(),
-                  error: (_, __) => const SizedBox.shrink(),
+    return _SectionCard(
+      title: s.tagsSection,
+      icon: Icons.label_outline_rounded,
+      child: allTagsAsync.when(
+        data: (allTags) => allTags.isEmpty
+            ? Text(
+                s.noTagsAssigned,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: VerLinkColors.textTertiary,
                 ),
-          loading: () => const SizedBox.shrink(),
-          error: (_, __) => const SizedBox.shrink(),
-        ),
-      ],
+              )
+            : tagsAsync.when(
+                data: (linkTags) {
+                  final linkTagIds = linkTags.map((t) => t.id).toSet();
+                  return Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: allTags
+                        .map((tag) => FilterChip(
+                              label: Text(tag.name),
+                              selected: linkTagIds.contains(tag.id),
+                              onSelected: (selected) {
+                                if (selected) {
+                                  ref
+                                      .read(databaseProvider)
+                                      .addTagToLink(widget.link.id, tag.id);
+                                } else {
+                                  ref
+                                      .read(databaseProvider)
+                                      .removeTagFromLink(
+                                          widget.link.id, tag.id);
+                                }
+                              },
+                            ))
+                        .toList(),
+                  );
+                },
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              ),
+        loading: () => const SizedBox.shrink(),
+        error: (_, __) => const SizedBox.shrink(),
+      ),
     );
   }
 
-  Widget _buildNotesSection(BuildContext context, ThemeData theme, dynamic s) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          s.notesSection,
-          style: theme.textTheme.titleSmall
-              ?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          key: const Key('notes_field'),
-          controller: _notesController,
-          maxLines: null,
-          minLines: 3,
-          decoration: InputDecoration(
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
+  Widget _buildNotesSection(BuildContext context, dynamic s) {
+    return _SectionCard(
+      title: s.notesSection,
+      icon: Icons.notes_rounded,
+      child: Column(
+        children: [
+          TextField(
+            key: const Key('notes_field'),
+            controller: _notesController,
+            maxLines: null,
+            minLines: 3,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide:
+                    const BorderSide(color: VerLinkColors.outline),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide:
+                    const BorderSide(color: VerLinkColors.outline),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide:
+                    const BorderSide(color: VerLinkColors.green, width: 1.5),
+              ),
+              hintText: s.notesHint,
+              contentPadding: const EdgeInsets.all(14),
+              filled: true,
+              fillColor: VerLinkColors.softSurface,
             ),
-            hintText: s.notesHint,
-            contentPadding: const EdgeInsets.all(12),
           ),
-        ),
-        const SizedBox(height: 8),
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton(
-            onPressed: _saveNotes,
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              minimumSize: const Size(0, 44),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerRight,
+            child: FilledButton(
+              onPressed: _saveNotes,
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+                minimumSize: const Size(0, 40),
+              ),
+              child: Text(s.save),
             ),
-            child: Text(s.save),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildReminderSection(
-      BuildContext context, ThemeData theme, dynamic s) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          s.reminderSection,
-          style: theme.textTheme.titleSmall
-              ?.copyWith(fontWeight: FontWeight.w600),
+  Widget _buildReminderSection(BuildContext context, dynamic s) {
+    return _SectionCard(
+      title: s.reminderSection,
+      icon: Icons.alarm_rounded,
+      child: Container(
+        decoration: BoxDecoration(
+          color: VerLinkColors.softSurface,
+          borderRadius: BorderRadius.circular(12),
         ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: theme.colorScheme.outlineVariant),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: widget.link.remindAt != null
-              ? _buildReminderActive(theme, s)
-              : _buildReminderEmpty(theme, s),
-        ),
-      ],
+        child: widget.link.remindAt != null
+            ? _buildReminderActive(s)
+            : _buildReminderEmpty(s),
+      ),
     );
   }
 
-  Widget _buildReminderActive(ThemeData theme, dynamic s) {
+  Widget _buildReminderActive(dynamic s) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
         children: [
-          Icon(Icons.alarm, size: 18, color: theme.colorScheme.primary),
+          const Icon(
+            Icons.alarm_rounded,
+            size: 18,
+            color: VerLinkColors.green,
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               _formatRemindAt(widget.link.remindAt!),
-              style: const TextStyle(fontSize: 14),
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: VerLinkColors.textPrimary,
+              ),
             ),
           ),
           TextButton(
             onPressed: _clearReminder,
             style: TextButton.styleFrom(
+              foregroundColor: VerLinkColors.error,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              minimumSize: const Size(0, 44),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              minimumSize: const Size(0, 40),
             ),
             child: Text(
               s.deleteReminderLabel,
@@ -457,28 +514,28 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
     );
   }
 
-  Widget _buildReminderEmpty(ThemeData theme, dynamic s) {
+  Widget _buildReminderEmpty(dynamic s) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
         children: [
-          Icon(
+          const Icon(
             Icons.alarm_outlined,
             size: 18,
-            color: theme.colorScheme.onSurfaceVariant,
+            color: VerLinkColors.textTertiary,
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               s.noReminder,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
-                color: theme.colorScheme.onSurfaceVariant,
+                color: VerLinkColors.textTertiary,
               ),
             ),
           ),
           TextButton.icon(
-            icon: const Icon(Icons.add, size: 15),
+            icon: const Icon(Icons.add_alarm_rounded, size: 15),
             label: Text(
               s.addReminderLabel,
               style: const TextStyle(fontSize: 12),
@@ -486,8 +543,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
             onPressed: _pickReminder,
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              minimumSize: const Size(0, 44),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              minimumSize: const Size(0, 40),
             ),
           ),
         ],
@@ -495,34 +551,87 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
     );
   }
 
-  Widget _buildInfoSection(
-      PlatformInfo platformInfo, ThemeData theme, dynamic s) {
+  Widget _buildInfoSection(PlatformInfo platformInfo, dynamic s) {
     return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-        borderRadius: BorderRadius.circular(10),
+        color: VerLinkColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: VerLinkColors.outlineVariant),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
         children: [
           Icon(
             platformInfo.icon,
-            size: 14,
-            color: theme.colorScheme.onSurfaceVariant,
+            size: 16,
+            color: VerLinkColors.textTertiary,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
               s.savedOnDate(
                 platformInfo.label,
                 _formatCreatedAt(widget.link.createdAt, s.monthAbbrevs),
               ),
-              style: TextStyle(
-                fontSize: 12,
-                color: theme.colorScheme.onSurfaceVariant,
+              style: const TextStyle(
+                fontSize: 13,
+                color: VerLinkColors.textSecondary,
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Section card ──────────────────────────────────────────────────────────────
+
+class _SectionCard extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Widget child;
+
+  const _SectionCard({
+    required this.title,
+    required this.icon,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: VerLinkColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: const [
+          BoxShadow(
+            color: VerLinkColors.shadow06,
+            blurRadius: 16,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 16, color: VerLinkColors.green),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: VerLinkColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          child,
         ],
       ),
     );

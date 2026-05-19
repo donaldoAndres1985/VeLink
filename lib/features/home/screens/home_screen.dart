@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/preferences/preferences_provider.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/link_card.dart';
+import '../../../shared/widgets/screen_header.dart';
 import '../providers/home_provider.dart';
-import '../../capture/screens/capture_screen.dart';
 import '../../search/providers/search_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -16,6 +16,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   late final TextEditingController _searchController;
+  bool _searchFocused = false;
 
   @override
   void initState() {
@@ -32,6 +33,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void _clearSearch() {
     _searchController.clear();
     ref.read(searchQueryProvider.notifier).state = '';
+    setState(() => _searchFocused = false);
   }
 
   @override
@@ -43,72 +45,128 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final s = ref.watch(appStringsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(s.homeTitle)),
-      floatingActionButton: Semantics(
-        label: s.addLink,
-        button: true,
-        child: FloatingActionButton(
-          key: const Key('add_link_fab'),
-          onPressed: () => _handleFabTap(context),
-          tooltip: s.addLink,
-          child: const Icon(Icons.add),
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(s),
+            const SizedBox(height: 10),
+            _buildSearchBar(s),
+            _buildFilterBar(context, ref, filter, s),
+            Expanded(
+              child: query.trim().isEmpty
+                  ? linksAsync.when(
+                      skipLoadingOnRefresh: true,
+                      data: (links) => links.isEmpty
+                          ? _buildEmptyState(context, s)
+                          : _buildList(links),
+                      loading: () => _buildSkeletonList(),
+                      error: (_, __) => _buildError(s.errorLoadLinks),
+                    )
+                  : searchAsync.when(
+                      skipLoadingOnRefresh: true,
+                      data: (links) => links.isEmpty
+                          ? _buildSearchEmpty(context, s)
+                          : _buildList(links),
+                      loading: () => _buildSkeletonList(),
+                      error: (_, __) => _buildError(s.errorSearch),
+                    ),
+            ),
+          ],
         ),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: s.searchLinks,
-                prefixIcon: const Icon(Icons.search),
-                isDense: true,
-              ),
-              onChanged: (v) =>
-                  ref.read(searchQueryProvider.notifier).state = v,
+    );
+  }
+
+  Widget _buildHeader(dynamic s) {
+    return ScreenHeader(title: s.navLinks, subtitle: s.homeSubtitle);
+  }
+
+  Widget _buildSearchBar(dynamic s) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Container(
+        decoration: BoxDecoration(
+          color: VerLinkColors.surface,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: const [
+            BoxShadow(
+              color: VerLinkColors.shadow08,
+              blurRadius: 16,
+              offset: Offset(0, 4),
             ),
+          ],
+          border: Border.all(
+            color: _searchFocused
+                ? VerLinkColors.green
+                : VerLinkColors.outline,
+            width: _searchFocused ? 1.5 : 1,
           ),
-          _buildFilterBar(context, ref, filter, s),
-          Expanded(
-            child: query.trim().isEmpty
-                ? linksAsync.when(
-                    skipLoadingOnRefresh: true,
-                    data: (links) => links.isEmpty
-                        ? Center(
-                            child: Semantics(
-                              label: s.noLinksYet,
-                              child: Text(s.noLinksYet),
-                            ),
-                          )
-                        : ListView.builder(
-                            padding: const EdgeInsets.only(
-                                left: 12, top: 12, right: 12, bottom: kBottomNavigationBarHeight + 56.0 + 24.0),
-                            itemCount: links.length,
-                            itemBuilder: (_, i) => LinkCard(link: links[i]),
-                          ),
-                    loading: () =>
-                        const Center(child: CircularProgressIndicator()),
-                    error: (_, __) =>
-                        Center(child: Text(s.errorLoadLinks)),
-                  )
-                : searchAsync.when(
-                    skipLoadingOnRefresh: true,
-                    data: (links) => links.isEmpty
-                        ? Center(child: Text(s.noResults))
-                        : ListView.builder(
-                            padding: const EdgeInsets.only(
-                                left: 12, top: 12, right: 12, bottom: kBottomNavigationBarHeight + 56.0 + 24.0),
-                            itemCount: links.length,
-                            itemBuilder: (_, i) => LinkCard(link: links[i]),
-                          ),
-                    loading: () =>
-                        const Center(child: CircularProgressIndicator()),
-                    error: (_, __) =>
-                        Center(child: Text(s.errorSearch)),
+        ),
+        child: Row(
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(left: 16),
+              child: Icon(
+                Icons.search_rounded,
+                size: 20,
+                color: VerLinkColors.textTertiary,
+              ),
+            ),
+            Expanded(
+              child: TextField(
+                controller: _searchController,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: VerLinkColors.textPrimary,
+                  fontWeight: FontWeight.w400,
+                ),
+                decoration: InputDecoration(
+                  hintText: s.searchLinks,
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 14,
                   ),
-          ),
-        ],
+                  isDense: true,
+                  filled: false,
+                ),
+                onTap: () => setState(() => _searchFocused = true),
+                onChanged: (v) {
+                  ref.read(searchQueryProvider.notifier).state = v;
+                },
+                onTapOutside: (_) {
+                  setState(() => _searchFocused = false);
+                  FocusScope.of(context).unfocus();
+                },
+              ),
+            ),
+            if (_searchController.text.isNotEmpty)
+              GestureDetector(
+                onTap: _clearSearch,
+                child: const Padding(
+                  padding: EdgeInsets.only(right: 12),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 18,
+                    color: VerLinkColors.textTertiary,
+                  ),
+                ),
+              )
+            else
+              const Padding(
+                padding: EdgeInsets.only(right: 12),
+                child: Icon(
+                  Icons.tune_rounded,
+                  size: 18,
+                  color: VerLinkColors.textTertiary,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -116,11 +174,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildFilterBar(
       BuildContext context, WidgetRef ref, HomeFilter filter, dynamic s) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: _FilterBtn(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _PremiumFilterChip(
               label: s.filterAll,
               selected: filter == HomeFilter.todos,
               onTap: () {
@@ -129,27 +188,142 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 _clearSearch();
               },
             ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _FilterBtn(
+            const SizedBox(width: 8),
+            _PremiumFilterChip(
               label: s.filterFavorites,
-              leadingIcon: Icons.star_outline,
+              icon: Icons.star_rounded,
               selected: filter == HomeFilter.favoritos,
               onTap: () => ref.read(homeFilterProvider.notifier).state =
                   HomeFilter.favoritos,
             ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _FilterBtn(
+            const SizedBox(width: 8),
+            _PremiumFilterChip(
               label: s.filterPlatform,
-              leadingIcon: Icons.filter_list,
+              icon: Icons.filter_list_rounded,
+              selected: ref.watch(selectedPlatformProvider) != null,
               onTap: () => _showFilterSheet(context, ref, s),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildList(List links) {
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(
+        16,
+        8,
+        16,
+        AppTheme.contentBottomPaddingFab,
+      ),
+      itemCount: links.length,
+      itemBuilder: (_, i) => LinkCard(link: links[i]),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context, dynamic s) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [VerLinkColors.greenLight, VerLinkColors.softSurface],
+                ),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: const Icon(
+                Icons.link_rounded,
+                size: 36,
+                color: VerLinkColors.green,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              s.noLinksYet,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: VerLinkColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Semantics(
+              label: s.noLinksYet,
+              child: const Text(
+                'Toca el botón + para guardar\ntu primer link.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: VerLinkColors.textSecondary,
+                  height: 1.5,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchEmpty(BuildContext context, dynamic s) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.search_off_rounded,
+              size: 56,
+              color: VerLinkColors.textTertiary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              s.noResults,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: VerLinkColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Intenta con otro término de búsqueda.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: VerLinkColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildError(String message) {
+    return Center(
+      child: Text(
+        message,
+        style: const TextStyle(color: VerLinkColors.textSecondary),
+      ),
+    );
+  }
+
+  Widget _buildSkeletonList() {
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      itemCount: 6,
+      itemBuilder: (_, __) => const _SkeletonCard(),
     );
   }
 
@@ -169,150 +343,184 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  void _handleFabTap(BuildContext context) async {
-    try {
-      final data = await Clipboard.getData(Clipboard.kTextPlain);
-      final text = data?.text?.trim() ?? '';
-      if (text.startsWith('http://') || text.startsWith('https://')) {
-        if (!context.mounted) return;
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => CaptureScreen(url: text)),
-        );
-        return;
-      }
-    } catch (_) {}
-    if (!context.mounted) return;
-    _showAddLinkDialog(context);
-  }
-
-  void _showAddLinkDialog(BuildContext context) {
-    final s = ref.read(appStringsProvider);
-    final controller = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(s.addLink),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: 'https://...',
-            suffixIcon: IconButton(
-              icon: const Icon(Icons.content_paste),
-              tooltip: s.paste,
-              onPressed: () async {
-                try {
-                  final data =
-                      await Clipboard.getData(Clipboard.kTextPlain);
-                  if (data?.text != null) {
-                    controller.text = data!.text!.trim();
-                    controller.selection = TextSelection.collapsed(
-                        offset: controller.text.length);
-                  }
-                } catch (_) {}
-              },
-            ),
-          ),
-          onSubmitted: (url) {
-            Navigator.pop(ctx);
-            final trimmed = url.trim();
-            if (trimmed.isNotEmpty) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => CaptureScreen(url: trimmed)),
-              );
-            }
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(s.cancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              final trimmed = controller.text.trim();
-              Navigator.pop(ctx);
-              if (trimmed.isNotEmpty) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => CaptureScreen(url: trimmed)),
-                );
-              }
-            },
-            child: Text(s.go),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
-class _FilterBtn extends StatelessWidget {
+// ── Premium filter chip ───────────────────────────────────────────────────────
+
+class _PremiumFilterChip extends StatelessWidget {
   final String label;
-  final IconData? leadingIcon;
+  final IconData? icon;
   final bool selected;
   final VoidCallback onTap;
 
-  const _FilterBtn({
+  const _PremiumFilterChip({
     required this.label,
-    this.leadingIcon,
+    this.icon,
     this.selected = false,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     return Semantics(
       label: label,
       button: true,
       selected: selected,
-      child: SizedBox(
-        height: 40,
-        child: Material(
-          color: selected
-              ? colors.primaryContainer
-              : colors.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(20),
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (leadingIcon != null) ...[
-                  Icon(
-                    leadingIcon,
-                    size: 14,
-                    color: selected
-                        ? colors.onPrimaryContainer
-                        : colors.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 4),
-                ],
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight:
-                        selected ? FontWeight.w600 : FontWeight.w400,
-                    color: selected
-                        ? colors.onPrimaryContainer
-                        : colors.onSurface,
-                  ),
-                ),
-              ],
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+          decoration: BoxDecoration(
+            color: selected ? VerLinkColors.primaryBlack : VerLinkColors.surface,
+            borderRadius: BorderRadius.circular(50),
+            border: Border.all(
+              color: selected ? VerLinkColors.primaryBlack : VerLinkColors.outline,
+              width: 1,
             ),
+            boxShadow: selected
+                ? const [
+                    BoxShadow(
+                      color: VerLinkColors.shadow12,
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                Icon(
+                  icon,
+                  size: 14,
+                  color: selected
+                      ? VerLinkColors.green
+                      : VerLinkColors.textSecondary,
+                ),
+                const SizedBox(width: 6),
+              ],
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight:
+                      selected ? FontWeight.w600 : FontWeight.w500,
+                  color: selected
+                      ? VerLinkColors.green
+                      : VerLinkColors.textSecondary,
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 }
+
+// ── Skeleton loader ───────────────────────────────────────────────────────────
+
+class _SkeletonCard extends StatefulWidget {
+  const _SkeletonCard();
+
+  @override
+  State<_SkeletonCard> createState() => _SkeletonCardState();
+}
+
+class _SkeletonCardState extends State<_SkeletonCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+    _anim = Tween<double>(begin: 0.4, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _anim,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 14),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: VerLinkColors.surface,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: const [
+            BoxShadow(
+              color: VerLinkColors.shadow06,
+              blurRadius: 20,
+              offset: Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 78,
+              height: 78,
+              decoration: BoxDecoration(
+                color: VerLinkColors.softSurface,
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 60,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: VerLinkColors.softSurface,
+                      borderRadius: BorderRadius.circular(9),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    height: 15,
+                    decoration: BoxDecoration(
+                      color: VerLinkColors.softSurface,
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    width: 100,
+                    height: 13,
+                    decoration: BoxDecoration(
+                      color: VerLinkColors.softSurface,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Platform filter sheet ─────────────────────────────────────────────────────
 
 const _kPlatforms = [
   (label: 'Todas', value: null),
@@ -348,22 +556,66 @@ class _PlatformFilterSheet extends StatelessWidget {
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(filterTitle,
-                style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 12),
+            Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: VerLinkColors.outlineVariant,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ],
+            ),
+            Text(
+              filterTitle,
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: VerLinkColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 16),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: platforms.map((p) {
-                return ChoiceChip(
-                  label: Text(p.label),
-                  selected: selectedPlatform == p.value,
-                  onSelected: (_) => onSelect(p.value),
+                final isSelected = selectedPlatform == p.value;
+                return GestureDetector(
+                  onTap: () => onSelect(p.value),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 9),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? VerLinkColors.primaryBlack
+                          : VerLinkColors.surface,
+                      borderRadius: BorderRadius.circular(50),
+                      border: Border.all(
+                        color: isSelected
+                            ? VerLinkColors.primaryBlack
+                            : VerLinkColors.outline,
+                      ),
+                    ),
+                    child: Text(
+                      p.label,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: isSelected
+                            ? VerLinkColors.green
+                            : VerLinkColors.textSecondary,
+                      ),
+                    ),
+                  ),
                 );
               }).toList(),
             ),

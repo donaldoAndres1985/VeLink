@@ -1,4 +1,4 @@
-class AppStrings {
+﻿class AppStrings {
   final String _lang;
 
   AppStrings(String languageCode) : _lang = languageCode == 'en' ? 'en' : 'es';
@@ -6,8 +6,8 @@ class AppStrings {
   String _s({required String es, required String en}) => _lang == 'en' ? en : es;
 
   // ── Navigation ───────────────────────────────────────────────────────────
-  String get navLinks => 'Links';
-  String get navPending => _s(es: 'Pendientes', en: 'Pending');
+  String get navLinks => _s(es: 'Guardados', en: 'Saved');
+  String get navPending => _s(es: 'Revisar', en: 'Review');
   String get navTags => _s(es: 'Etiquetas', en: 'Labels');
   String get navSettings => _s(es: 'Ajustes', en: 'Settings');
 
@@ -20,13 +20,17 @@ class AppStrings {
   String get retry => _s(es: 'Reintentar', en: 'Retry');
 
   // ── Home ─────────────────────────────────────────────────────────────────
-  String get homeTitle => 'VeLink';
-  String get searchLinks => _s(es: 'Buscar links...', en: 'Search links...');
+  String get homeTitle => 'VerLink';
+  String get searchLinks => _s(es: 'Buscar guardados...', en: 'Search saved...');
   String get filterAll => _s(es: 'Todos', en: 'All');
   String get filterFavorites => _s(es: 'Favoritos', en: 'Favorites');
   String get filterPlatform => _s(es: 'Filtrar', en: 'Filter');
   String get addLink => _s(es: 'Agregar link', en: 'Add link');
-  String get noLinksYet => _s(es: 'No hay links guardados aún', en: 'No saved links yet');
+  String get noLinksYet => _s(es: 'Aún no tienes links guardados', en: 'No saved links yet');
+  String get homeSubtitle => _s(es: 'Guarda hoy, recuerda siempre.', en: 'Save today, remember always.');
+  String get pendingSubtitle => _s(es: 'Links pendientes por revisar.', en: 'Links waiting to be reviewed.');
+  String get organizeSubtitle => _s(es: 'Organiza tus ideas y colecciones.', en: 'Organize your ideas and collections.');
+  String get settingsSubtitle => _s(es: 'Personaliza tu experiencia.', en: 'Customize your experience.');
   String get errorLoadLinks => _s(es: 'Error al cargar los links', en: 'Error loading links');
   String get errorSearch => _s(es: 'Error al buscar', en: 'Search error');
   String get filterByPlatform => _s(es: 'Filtrar por plataforma', en: 'Filter by platform');
@@ -35,9 +39,9 @@ class AppStrings {
   String get platformAll => _s(es: 'Todas', en: 'All');
 
   // ── Pending ──────────────────────────────────────────────────────────────
-  String get pendingTitle => _s(es: 'Pendientes', en: 'Pending');
-  String get searchPending => _s(es: 'Buscar pendientes...', en: 'Search pending...');
-  String get noPendingLinks => _s(es: 'No hay links pendientes', en: 'No pending links');
+  String get pendingTitle => _s(es: 'Revisar', en: 'Review');
+  String get searchPending => _s(es: 'Buscar por revisar...', en: 'Search to review...');
+  String get noPendingLinks => _s(es: 'No hay links por revisar', en: 'Nothing to review');
   String get noPendingDesc => _s(
     es: 'Los links que aún no has revisado aparecen aquí.',
     en: "Links you haven't reviewed yet will appear here.",
@@ -274,11 +278,11 @@ class AppStrings {
 }
 
 const _kPrivacyEs = '''
-POLÍTICA DE PRIVACIDAD — VeLink
+POLÍTICA DE PRIVACIDAD — VerLink
 Última actualización: mayo 2026
 
 1. INFORMACIÓN QUE ALMACENAMOS
-VeLink almacena localmente en tu dispositivo:
+VerLink almacena localmente en tu dispositivo:
 • Links guardados y sus metadatos (título, descripción, URL, plataforma)
 • Imágenes y capturas de pantalla agregadas manualmente
 • Notas y recordatorios asociados a links
@@ -292,28 +296,28 @@ VeLink almacena localmente en tu dispositivo:
 
 3. ALMACENAMIENTO Y PRIVACIDAD
 • Todos los datos se almacenan localmente en tu dispositivo.
-• VeLink no cuenta con servidores propios ni envía datos a la nube.
+• VerLink no cuenta con servidores propios ni envía datos a la nube.
 • Las imágenes de preview se obtienen de URLs externas (Open Graph) y se cargan bajo demanda; dichas URLs están sujetas a la política de privacidad de cada sitio.
 
 4. ANALYTICS Y LOGS DE ERRORES
-VeLink no recopila datos de uso, analytics ni logs de errores de forma automática.
+VerLink no recopila datos de uso, analytics ni logs de errores de forma automática.
 
 5. MENORES DE EDAD
-VeLink no está dirigida a menores de 13 años. Si eres menor de 13 años, no uses esta aplicación.
+VerLink no está dirigida a menores de 13 años. Si eres menor de 13 años, no uses esta aplicación.
 
 6. ELIMINACIÓN DE DATOS
 Puedes eliminar todos tus datos locales desde Ajustes > Eliminar mis datos. Esta acción es permanente e irreversible.
 
 7. CONTACTO
-Para consultas sobre privacidad: soporte@velink.app
+Para consultas sobre privacidad: soporte@verlink.app
 ''';
 
 const _kPrivacyEn = '''
-PRIVACY POLICY — VeLink
+PRIVACY POLICY — VerLink
 Last updated: May 2026
 
 1. INFORMATION WE STORE
-VeLink stores locally on your device:
+VerLink stores locally on your device:
 • Saved links and their metadata (title, description, URL, platform)
 • Images and screenshots added manually by you
 • Notes and reminders associated with links
@@ -327,58 +331,58 @@ VeLink stores locally on your device:
 
 3. STORAGE AND PRIVACY
 • All data is stored locally on your device.
-• VeLink has no servers and does not send data to the cloud.
+• VerLink has no servers and does not send data to the cloud.
 • Preview images are fetched from external URLs (Open Graph) on demand; those URLs are subject to the privacy policy of each respective site.
 
 4. ANALYTICS AND CRASH LOGS
-VeLink does not automatically collect usage data, analytics, or crash logs.
+VerLink does not automatically collect usage data, analytics, or crash logs.
 
 5. CHILDREN
-VeLink is not directed at children under 13. If you are under 13, do not use this application.
+VerLink is not directed at children under 13. If you are under 13, do not use this application.
 
 6. DATA DELETION
 You can delete all your local data from Settings > Delete my data. This action is permanent and irreversible.
 
 7. CONTACT
-For privacy inquiries: soporte@velink.app
+For privacy inquiries: soporte@verlink.app
 ''';
 
 const _kTermsEs = '''
-TÉRMINOS DE USO — VeLink
+TÉRMINOS DE USO — VerLink
 Última actualización: mayo 2026
 
 1. USO PERMITIDO
-VeLink es una aplicación para guardar y organizar links personales. El usuario es el único responsable del contenido que guarda en la aplicación y del uso que hace de los links almacenados.
+VerLink es una aplicación para guardar y organizar links personales. El usuario es el único responsable del contenido que guarda en la aplicación y del uso que hace de los links almacenados.
 
 2. CONTENIDO EXTERNO
-VeLink no controla, modera ni es responsable del contenido de los links externos guardados. Los metadatos (título, descripción, imagen) se obtienen de sitios de terceros; VeLink no garantiza su exactitud ni disponibilidad.
+VerLink no controla, modera ni es responsable del contenido de los links externos guardados. Los metadatos (título, descripción, imagen) se obtienen de sitios de terceros; VerLink no garantiza su exactitud ni disponibilidad.
 
 3. LIMITACIÓN DE RESPONSABILIDAD
-VeLink se proporciona "tal cual", sin garantías de ningún tipo. El desarrollador no se hace responsable de pérdida de datos, daños o cualquier perjuicio derivado del uso de la aplicación.
+VerLink se proporciona "tal cual", sin garantías de ningún tipo. El desarrollador no se hace responsable de pérdida de datos, daños o cualquier perjuicio derivado del uso de la aplicación.
 
 4. MODIFICACIONES
 Podemos actualizar estos términos en cualquier momento. El uso continuado de la aplicación implica la aceptación de los términos actualizados.
 
 5. CONTACTO
-soporte@velink.app
+soporte@verlink.app
 ''';
 
 const _kTermsEn = '''
-TERMS OF USE — VeLink
+TERMS OF USE — VerLink
 Last updated: May 2026
 
 1. PERMITTED USE
-VeLink is an application for saving and organizing personal links. The user is solely responsible for the content saved in the application and for the use made of stored links.
+VerLink is an application for saving and organizing personal links. The user is solely responsible for the content saved in the application and for the use made of stored links.
 
 2. EXTERNAL CONTENT
-VeLink does not control, moderate, or take responsibility for the content of saved external links. Metadata (title, description, image) is fetched from third-party sites; VeLink does not guarantee its accuracy or availability.
+VerLink does not control, moderate, or take responsibility for the content of saved external links. Metadata (title, description, image) is fetched from third-party sites; VerLink does not guarantee its accuracy or availability.
 
 3. LIMITATION OF LIABILITY
-VeLink is provided "as is" without warranties of any kind. The developer is not liable for data loss, damages, or any harm resulting from the use of the application.
+VerLink is provided "as is" without warranties of any kind. The developer is not liable for data loss, damages, or any harm resulting from the use of the application.
 
 4. CHANGES
 We may update these terms at any time. Continued use of the application implies acceptance of the updated terms.
 
 5. CONTACT
-soporte@velink.app
+soporte@verlink.app
 ''';

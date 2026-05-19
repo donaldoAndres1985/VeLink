@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/preferences/preferences_provider.dart';
+import '../../../core/theme/app_theme.dart' show VerLinkColors;
+import '../../../shared/widgets/screen_header.dart';
 import '../../tags/screens/tags_screen.dart';
-import '../../tags/screens/create_tag_dialog.dart';
 import 'collections_screen.dart';
-import 'create_collection_dialog.dart';
+import '../providers/organize_tab_provider.dart';
 
 class OrganizeScreen extends ConsumerStatefulWidget {
   const OrganizeScreen({super.key});
@@ -21,7 +22,10 @@ class _OrganizeScreenState extends ConsumerState<OrganizeScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(() => setState(() {}));
+    _tabController.addListener(() {
+      setState(() {});
+      ref.read(organizeTabIndexProvider.notifier).state = _tabController.index;
+    });
   }
 
   @override
@@ -33,54 +37,36 @@ class _OrganizeScreenState extends ConsumerState<OrganizeScreen>
   @override
   Widget build(BuildContext context) {
     final s = ref.watch(appStringsProvider);
-    final isCollectionsTab = _tabController.index == 0;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(s.navOrganize),
-        bottom: TabBar(
-          controller: _tabController,
-          // ignore: deprecated_member_use
-          dividerColor: Colors.white.withOpacity(0.08),
-          tabs: [
-            Tab(text: s.tabCollections),
-            Tab(text: s.tabLabels),
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ScreenHeader(title: s.navOrganize, subtitle: s.organizeSubtitle),
+            const SizedBox(height: 10),
+            TabBar(
+              controller: _tabController,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              tabs: [
+                Tab(text: s.tabCollections),
+                Tab(text: s.tabLabels),
+              ],
+            ),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: const [
+                  CollectionsContent(),
+                  TagsContent(),
+                ],
+              ),
+            ),
           ],
         ),
       ),
-      floatingActionButton: Semantics(
-        label: isCollectionsTab ? s.createCollection : s.createTagTitle,
-        button: true,
-        child: FloatingActionButton(
-          onPressed: () => _onFabPressed(context, isCollectionsTab),
-          tooltip: isCollectionsTab ? s.createCollection : s.createTagTitle,
-          child: const Icon(Icons.add),
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        physics: const NeverScrollableScrollPhysics(),
-        children: const [
-          CollectionsContent(),
-          TagsContent(),
-        ],
-      ),
     );
-  }
-
-  void _onFabPressed(BuildContext context, bool isCollectionsTab) {
-    if (isCollectionsTab) {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        builder: (_) => const CreateCollectionDialog(),
-      );
-    } else {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        builder: (_) => const CreateTagDialog(),
-      );
-    }
   }
 }

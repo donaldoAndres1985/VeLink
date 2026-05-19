@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
@@ -26,10 +25,10 @@ Widget buildHomeWidget({List<Link> links = const []}) {
 
 void main() {
   group('HomeScreen — app bar', () {
-    testWidgets('muestra VeLink en el app bar', (tester) async {
+    testWidgets('muestra título Guardados en el header', (tester) async {
       await tester.pumpWidget(buildHomeWidget());
       await tester.pumpAndSettle();
-      expect(find.text('VeLink'), findsOneWidget);
+      expect(find.text('Guardados'), findsOneWidget);
     });
   });
 
@@ -37,33 +36,7 @@ void main() {
     testWidgets('muestra mensaje cuando no hay links guardados', (tester) async {
       await tester.pumpWidget(buildHomeWidget());
       await tester.pumpAndSettle();
-      expect(find.text('No hay links guardados aún'), findsOneWidget);
-    });
-  });
-
-  group('HomeScreen — FAB', () {
-    testWidgets('muestra FloatingActionButton para agregar link', (tester) async {
-      await tester.pumpWidget(buildHomeWidget());
-      await tester.pumpAndSettle();
-      expect(find.byType(FloatingActionButton), findsOneWidget);
-    });
-
-    testWidgets('FAB muestra diálogo al tocar', (tester) async {
-      // Mock clipboard to return null so _handleFabTap falls through to dialog
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(SystemChannels.platform, (MethodCall call) async {
-        if (call.method == 'Clipboard.getData') return null;
-        return null;
-      });
-      addTearDown(() {
-        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(SystemChannels.platform, null);
-      });
-      await tester.pumpWidget(buildHomeWidget());
-      await tester.pumpAndSettle();
-      await tester.tap(find.byType(FloatingActionButton));
-      await tester.pumpAndSettle();
-      expect(find.text('Agregar link'), findsOneWidget);
+      expect(find.text('Aún no tienes links guardados'), findsOneWidget);
     });
   });
 
@@ -170,7 +143,7 @@ void main() {
       ));
       await tester.pumpAndSettle();
       final listView = tester.widget<ListView>(find.byType(ListView).first);
-      expect((listView.padding as EdgeInsets).bottom, kBottomNavigationBarHeight + 56.0 + 24.0);
+      expect((listView.padding as EdgeInsets).bottom, 176.0);
     });
   });
 

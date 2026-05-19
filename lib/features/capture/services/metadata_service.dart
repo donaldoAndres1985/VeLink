@@ -1,4 +1,4 @@
-import 'package:dio/dio.dart';
+﻿import 'package:dio/dio.dart';
 import 'package:html/parser.dart' as html_parser;
 import '../models/og_metadata.dart';
 
@@ -55,7 +55,7 @@ class DioMetadataService implements MetadataService {
         url,
         options: Options(
           headers: {
-            'User-Agent': 'Mozilla/5.0 (compatible; VeLink/1.0; +https://velink.app)',
+            'User-Agent': 'Mozilla/5.0 (compatible; VerLink/1.0; +https://verlink.app)',
           },
           responseType: ResponseType.plain,
           receiveTimeout: const Duration(seconds: 12),
