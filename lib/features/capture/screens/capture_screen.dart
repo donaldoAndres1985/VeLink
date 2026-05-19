@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database.dart';
 import '../../../core/preferences/preferences_provider.dart';
-import '../../../core/theme/app_theme.dart';
 import '../models/og_metadata.dart';
 import '../providers/capture_provider.dart';
 import '../services/platform_detector.dart';
@@ -484,24 +483,14 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
         tagsAsync.when(
           data: (tags) => Wrap(
             spacing: 8,
-            runSpacing: 4,
+            runSpacing: 8,
             children: [
               ...tags.map((tag) {
                 final sel = state.selectedTagIds.contains(tag.id);
-                final vc = VeLinkSemanticColors.of(context);
-                return FilterChip(
-                  label: Text(tag.name),
+                return _SelectableChip(
+                  label: tag.name,
                   selected: sel,
-                  selectedColor: vc.chipSelectedBg,
-                  checkmarkColor: VerLinkColors.green,
-                  labelStyle: TextStyle(
-                    color: sel ? VerLinkColors.green : null,
-                    fontWeight: sel ? FontWeight.w600 : null,
-                  ),
-                  side: sel
-                      ? BorderSide(color: vc.chipSelectedBg)
-                      : null,
-                  onSelected: (_) =>
+                  onTap: () =>
                       ref.read(captureProvider.notifier).toggleTag(tag.id),
                 );
               }),
@@ -550,25 +539,15 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                 )
               : Wrap(
                   spacing: 8,
-                  runSpacing: 4,
+                  runSpacing: 8,
                   children: collections
                       .map((col) {
                         final sel =
                             state.selectedCollectionIds.contains(col.id);
-                        final vc = VeLinkSemanticColors.of(context);
-                        return FilterChip(
-                          label: Text(col.name),
+                        return _SelectableChip(
+                          label: col.name,
                           selected: sel,
-                          selectedColor: vc.chipSelectedBg,
-                          checkmarkColor: VerLinkColors.green,
-                          labelStyle: TextStyle(
-                            color: sel ? VerLinkColors.green : null,
-                            fontWeight: sel ? FontWeight.w600 : null,
-                          ),
-                          side: sel
-                              ? BorderSide(color: vc.chipSelectedBg)
-                              : null,
-                          onSelected: (_) => ref
+                          onTap: () => ref
                               .read(captureProvider.notifier)
                               .toggleCollection(col.id),
                         );
@@ -675,5 +654,141 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     if (trimmed.isEmpty) return;
     ref.read(captureProvider.notifier).createTag(trimmed);
     Navigator.pop(context);
+  }
+}
+
+// ── Selectable chip — tags and collections ───────────────────────────────────
+
+class _SelectableChip extends StatefulWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _SelectableChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  State<_SelectableChip> createState() => _SelectableChipState();
+}
+
+class _SelectableChipState extends State<_SelectableChip>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pressCtrl;
+  late final Animation<double> _scaleAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _pressCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 90),
+      reverseDuration: const Duration(milliseconds: 160),
+    );
+    _scaleAnim = Tween<double>(begin: 1.0, end: 0.93).animate(
+      CurvedAnimation(parent: _pressCtrl, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pressCtrl.dispose();
+    super.dispose();
+  }
+
+  // Selected palette — soft green that works on both light and dark surfaces
+  static const _kSelBg     = Color(0xFFA8D37B);
+  static const _kSelText   = Color(0xFF1A2D0C);
+  static const _kSelBorder = Color(0xFF8ABF5A);
+  static const _kSelGlow   = Color(0xFF8FBF6A);
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final sel = widget.selected;
+
+    final bg = sel
+        ? _kSelBg
+        : isDark ? const Color(0xFF1B1B22) : Colors.white;
+    final textColor = sel
+        ? _kSelText
+        : isDark ? const Color(0xFF9292AE) : const Color(0xFF5E5E66);
+    final borderColor = sel
+        ? _kSelBorder
+        : isDark ? const Color(0xFF2B2B3E) : const Color(0xFFE8E4DC);
+
+    return Semantics(
+      label: widget.label,
+      selected: sel,
+      button: true,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        onTapDown: (_) => _pressCtrl.forward(),
+        onTapUp: (_) => _pressCtrl.reverse(),
+        onTapCancel: () => _pressCtrl.reverse(),
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedBuilder(
+          animation: _scaleAnim,
+          builder: (ctx, child) =>
+              Transform.scale(scale: _scaleAnim.value, child: child),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: borderColor,
+                width: sel ? 1.5 : 1.0,
+              ),
+              boxShadow: sel
+                  ? [
+                      BoxShadow(
+                        color: _kSelGlow.withOpacity(0.28),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180),
+                  transitionBuilder: (child, anim) =>
+                      ScaleTransition(scale: anim, child: child),
+                  child: sel
+                      ? const Padding(
+                          key: ValueKey('check'),
+                          padding: EdgeInsets.only(right: 5),
+                          child: Icon(
+                            Icons.check_rounded,
+                            size: 13,
+                            color: _kSelText,
+                          ),
+                        )
+                      : const SizedBox.shrink(key: ValueKey('none')),
+                ),
+                AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeInOut,
+                  style: TextStyle(
+                    color: textColor,
+                    fontWeight:
+                        sel ? FontWeight.w600 : FontWeight.w400,
+                    fontSize: 13,
+                  ),
+                  child: Text(widget.label),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -163,6 +163,35 @@ void main() {
       await tester.pump(Duration.zero);
     });
 
+    testWidgets('chip de tag seleccionado muestra icono de selección visual', (tester) async {
+      final db = createTestDatabase();
+      addTearDown(db.close);
+      await db.insertTag(TagsCompanion(name: Value('flutter')));
+
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          appStringsProvider.overrideWithValue(AppStrings('es')),
+          captureServiceProvider.overrideWithValue(MockCaptureService()),
+          metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          allCollectionsProvider.overrideWith((ref) => Stream.value(<Collection>[])),
+        ],
+        child: const MaterialApp(home: CaptureScreen(url: 'https://example.com')),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.check_rounded), findsNothing,
+          reason: 'Chip sin seleccionar no debe mostrar check');
+
+      await tester.tap(find.text('flutter'));
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.check_rounded), findsOneWidget,
+          reason: 'Chip seleccionado debe mostrar icono de check');
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(Duration.zero);
+    });
+
     testWidgets('tap en chip de tag lo marca como seleccionado', (tester) async {
       final db = createTestDatabase();
       addTearDown(db.close);
@@ -180,14 +209,12 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      final chipBefore = tester.widget<FilterChip>(find.byType(FilterChip).first);
-      expect(chipBefore.selected, isFalse);
+      expect(find.byIcon(Icons.check_rounded), findsNothing);
 
       await tester.tap(find.text('flutter'));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
-      final chipAfter = tester.widget<FilterChip>(find.byType(FilterChip).first);
-      expect(chipAfter.selected, isTrue);
+      expect(find.byIcon(Icons.check_rounded), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
       await tester.pump(Duration.zero);
     });
@@ -266,7 +293,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Trabajo'), findsOneWidget);
-      expect(find.byType(FilterChip), findsOneWidget);
     });
 
     testWidgets('tap en chip de colección lo selecciona', (tester) async {
@@ -296,15 +322,13 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      final chipBefore = tester.widget<FilterChip>(find.byType(FilterChip).first);
-      expect(chipBefore.selected, isFalse);
+      expect(find.byIcon(Icons.check_rounded), findsNothing);
 
       await tester.ensureVisible(find.text('Música'));
       await tester.tap(find.text('Música'));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
-      final chipAfter = tester.widget<FilterChip>(find.byType(FilterChip).first);
-      expect(chipAfter.selected, isTrue);
+      expect(find.byIcon(Icons.check_rounded), findsOneWidget);
     });
   });
 
