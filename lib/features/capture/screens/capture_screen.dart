@@ -128,10 +128,6 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                       label: s.save,
                       button: true,
                       child: FilledButton(
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size(0, 48),
-                          foregroundColor: VerLinkColors.green,
-                        ),
                         onPressed: state.isSaving
                             ? null
                             : () async {
@@ -468,17 +464,18 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
             children: [
               ...tags.map((tag) {
                 final sel = state.selectedTagIds.contains(tag.id);
+                final vc = VeLinkSemanticColors.of(context);
                 return FilterChip(
                   label: Text(tag.name),
                   selected: sel,
-                  selectedColor: VerLinkColors.primaryBlack,
+                  selectedColor: vc.chipSelectedBg,
                   checkmarkColor: VerLinkColors.green,
                   labelStyle: TextStyle(
                     color: sel ? VerLinkColors.green : null,
                     fontWeight: sel ? FontWeight.w600 : null,
                   ),
                   side: sel
-                      ? const BorderSide(color: VerLinkColors.primaryBlack)
+                      ? BorderSide(color: vc.chipSelectedBg)
                       : null,
                   onSelected: (_) =>
                       ref.read(captureProvider.notifier).toggleTag(tag.id),
@@ -534,18 +531,18 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                       .map((col) {
                         final sel =
                             state.selectedCollectionIds.contains(col.id);
+                        final vc = VeLinkSemanticColors.of(context);
                         return FilterChip(
                           label: Text(col.name),
                           selected: sel,
-                          selectedColor: VerLinkColors.primaryBlack,
+                          selectedColor: vc.chipSelectedBg,
                           checkmarkColor: VerLinkColors.green,
                           labelStyle: TextStyle(
                             color: sel ? VerLinkColors.green : null,
                             fontWeight: sel ? FontWeight.w600 : null,
                           ),
                           side: sel
-                              ? const BorderSide(
-                                  color: VerLinkColors.primaryBlack)
+                              ? BorderSide(color: vc.chipSelectedBg)
                               : null,
                           onSelected: (_) => ref
                               .read(captureProvider.notifier)

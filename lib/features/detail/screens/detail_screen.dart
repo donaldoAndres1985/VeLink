@@ -129,6 +129,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
     final s = ref.watch(appStringsProvider);
     final hasImage = widget.link.previewImageUrl != null;
 
+    final vc = VeLinkSemanticColors.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(s.detailTitle),
@@ -141,13 +142,13 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: VerLinkColors.softSurface,
+                  color: vc.surfaceContainer,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.share_outlined,
                   size: 18,
-                  color: VerLinkColors.textSecondary,
+                  color: vc.textSecondary,
                 ),
               ),
               tooltip: s.linkMenuTooltip,
@@ -184,15 +185,16 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
     dynamic s,
     bool hasImage,
   ) {
+    final vc = VeLinkSemanticColors.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: VerLinkColors.surface,
+        color: vc.surface,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: VerLinkColors.shadow08,
+            color: vc.shadow08,
             blurRadius: 20,
-            offset: Offset(0, 6),
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -249,10 +251,10 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
                     ),
                     if (widget.link.isFavorite) ...[
                       const SizedBox(width: 8),
-                      const Icon(
+                      Icon(
                         Icons.star_rounded,
                         size: 16,
-                        color: VerLinkColors.warning,
+                        color: vc.warning,
                       ),
                     ],
                   ],
@@ -262,10 +264,10 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
                   key: const Key('title_field'),
                   controller: _titleController,
                   focusNode: _titleFocusNode,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 18,
-                    color: VerLinkColors.textPrimary,
+                    color: vc.textPrimary,
                     height: 1.3,
                   ),
                   decoration: InputDecoration(
@@ -297,9 +299,9 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
                   const SizedBox(height: 8),
                   Text(
                     widget.link.description!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: VerLinkColors.textSecondary,
+                      color: vc.textSecondary,
                       height: 1.5,
                     ),
                     maxLines: 3,
@@ -360,6 +362,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
     AsyncValue<List<Tag>> allTagsAsync,
     dynamic s,
   ) {
+    final vc = VeLinkSemanticColors.of(context);
     return _SectionCard(
       title: s.tagsSection,
       icon: Icons.label_outline_rounded,
@@ -367,9 +370,9 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
         data: (allTags) => allTags.isEmpty
             ? Text(
                 s.noTagsAssigned,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: VerLinkColors.textTertiary,
+                  color: vc.textTertiary,
                 ),
               )
             : tagsAsync.when(
@@ -408,6 +411,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
   }
 
   Widget _buildNotesSection(BuildContext context, dynamic s) {
+    final vc = VeLinkSemanticColors.of(context);
     return _SectionCard(
       title: s.notesSection,
       icon: Icons.notes_rounded,
@@ -421,13 +425,11 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
             decoration: InputDecoration(
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
-                borderSide:
-                    const BorderSide(color: VerLinkColors.outline),
+                borderSide: BorderSide(color: vc.outline),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
-                borderSide:
-                    const BorderSide(color: VerLinkColors.outline),
+                borderSide: BorderSide(color: vc.outline),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
@@ -437,7 +439,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
               hintText: s.notesHint,
               contentPadding: const EdgeInsets.all(14),
               filled: true,
-              fillColor: VerLinkColors.softSurface,
+              fillColor: vc.surfaceContainer,
             ),
           ),
           const SizedBox(height: 10),
@@ -461,22 +463,24 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
   }
 
   Widget _buildReminderSection(BuildContext context, dynamic s) {
+    final vc = VeLinkSemanticColors.of(context);
     return _SectionCard(
       title: s.reminderSection,
       icon: Icons.alarm_rounded,
       child: Container(
         decoration: BoxDecoration(
-          color: VerLinkColors.softSurface,
+          color: vc.surfaceContainer,
           borderRadius: BorderRadius.circular(12),
         ),
         child: widget.link.remindAt != null
-            ? _buildReminderActive(s)
-            : _buildReminderEmpty(s),
+            ? _buildReminderActive(context, s)
+            : _buildReminderEmpty(context, s),
       ),
     );
   }
 
-  Widget _buildReminderActive(dynamic s) {
+  Widget _buildReminderActive(BuildContext context, dynamic s) {
+    final vc = VeLinkSemanticColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
@@ -490,10 +494,10 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
           Expanded(
             child: Text(
               _formatRemindAt(widget.link.remindAt!),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: VerLinkColors.textPrimary,
+                color: vc.textPrimary,
               ),
             ),
           ),
@@ -514,23 +518,24 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
     );
   }
 
-  Widget _buildReminderEmpty(dynamic s) {
+  Widget _buildReminderEmpty(BuildContext context, dynamic s) {
+    final vc = VeLinkSemanticColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.alarm_outlined,
             size: 18,
-            color: VerLinkColors.textTertiary,
+            color: vc.textTertiary,
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               s.noReminder,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: VerLinkColors.textTertiary,
+                color: vc.textTertiary,
               ),
             ),
           ),
@@ -552,19 +557,20 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
   }
 
   Widget _buildInfoSection(PlatformInfo platformInfo, dynamic s) {
+    final vc = VeLinkSemanticColors.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: VerLinkColors.surface,
+        color: vc.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: VerLinkColors.outlineVariant),
+        border: Border.all(color: vc.outlineVariant),
       ),
       child: Row(
         children: [
           Icon(
             platformInfo.icon,
             size: 16,
-            color: VerLinkColors.textTertiary,
+            color: vc.textTertiary,
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -573,9 +579,9 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
                 platformInfo.label,
                 _formatCreatedAt(widget.link.createdAt, s.monthAbbrevs),
               ),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: VerLinkColors.textSecondary,
+                color: vc.textSecondary,
               ),
             ),
           ),
@@ -600,16 +606,17 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final vc = VeLinkSemanticColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: VerLinkColors.surface,
+        color: vc.surface,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: VerLinkColors.shadow06,
+            color: vc.shadow06,
             blurRadius: 16,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -622,10 +629,10 @@ class _SectionCard extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: VerLinkColors.textPrimary,
+                  color: vc.textPrimary,
                 ),
               ),
             ],

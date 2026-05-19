@@ -87,6 +87,7 @@ class AppTheme {
   static ThemeData get light => ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
+        extensions: const [VeLinkSemanticColors.light],
         colorScheme: const ColorScheme.light(
           primary: VerLinkColors.green,
           onPrimary: Colors.white,
@@ -359,6 +360,7 @@ class AppTheme {
   static ThemeData get dark => ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
+        extensions: const [VeLinkSemanticColors.dark],
         colorScheme: ColorScheme.dark(
           primary: VerLinkColors.green,
           onPrimary: Colors.white,
@@ -580,18 +582,155 @@ class AppTheme {
 }
 
 class DarkColors {
-  static const background = Color(0xFF0B0B12);
-  static const surface = Color(0xFF141420);
-  static const surfaceElevated = Color(0xFF1C1C2A);
-  static const navBar = Color(0xFF0F0F1A);
+  static const background       = Color(0xFF0D0D15);
+  static const surface          = Color(0xFF14141F);
+  static const surfaceElevated  = Color(0xFF1C1C2C);
+  static const surfaceVariant   = Color(0xFF222235);
+  static const navBar           = Color(0xFF0F0F1B);
 
-  static const textPrimary = Color(0xFFEDEDF5);
-  static const textSecondary = Color(0xFF8E8EA8);
-  static const textTertiary = Color(0xFF525268);
+  static const textPrimary      = Color(0xFFECECF5);
+  static const textSecondary    = Color(0xFF9292AE);
+  static const textTertiary     = Color(0xFF515168);
 
-  static const outline = Color(0xFF252535);
-  static const outlineVariant = Color(0xFF1E1E2C);
+  static const outline          = Color(0xFF2B2B3E);
+  static const outlineVariant   = Color(0xFF1E1E2E);
 
-  static const error = Color(0xFFFF6B6B);
-  static const warning = Color(0xFFFFC94D);
+  static const error            = Color(0xFFFF6B6B);
+  static const warning          = Color(0xFFEFAA44);
+  static const greenContainer   = Color(0xFF172612);
+}
+
+@immutable
+class VeLinkSemanticColors extends ThemeExtension<VeLinkSemanticColors> {
+  final Color surface;
+  final Color surfaceContainer;
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color textTertiary;
+  final Color outline;
+  final Color outlineVariant;
+  final Color shadow06;
+  final Color shadow08;
+  final Color shadow12;
+  final Color shadow25;
+  final Color chipSelectedBg;
+  final Color greenLight;
+  final Color warning;
+  final Color navBarBg;
+
+  const VeLinkSemanticColors({
+    required this.surface,
+    required this.surfaceContainer,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.textTertiary,
+    required this.outline,
+    required this.outlineVariant,
+    required this.shadow06,
+    required this.shadow08,
+    required this.shadow12,
+    required this.shadow25,
+    required this.chipSelectedBg,
+    required this.greenLight,
+    required this.warning,
+    required this.navBarBg,
+  });
+
+  static VeLinkSemanticColors of(BuildContext context) =>
+      Theme.of(context).extension<VeLinkSemanticColors>() ??
+      VeLinkSemanticColors.light;
+
+  static const light = VeLinkSemanticColors(
+    surface:          Color(0xFFFFFFFF),
+    surfaceContainer: Color(0xFFF1EEE8),
+    textPrimary:      Color(0xFF111111),
+    textSecondary:    Color(0xFF5E5E66),
+    textTertiary:     Color(0xFF8A8A95),
+    outline:          Color(0xFFE8E4DC),
+    outlineVariant:   Color(0xFFEBE7E0),
+    shadow06:         Color(0x0F000000),
+    shadow08:         Color(0x14000000),
+    shadow12:         Color(0x1F000000),
+    shadow25:         Color(0x40000000),
+    chipSelectedBg:   Color(0xFF0B0B0F),
+    greenLight:       Color(0xFFE8F5DA),
+    warning:          Color(0xFFD89B3C),
+    navBarBg:         Color(0xFF0B0B0F),
+  );
+
+  static const dark = VeLinkSemanticColors(
+    surface:          Color(0xFF14141F),
+    surfaceContainer: Color(0xFF1C1C2C),
+    textPrimary:      Color(0xFFECECF5),
+    textSecondary:    Color(0xFF9292AE),
+    textTertiary:     Color(0xFF515168),
+    outline:          Color(0xFF2B2B3E),
+    outlineVariant:   Color(0xFF1E1E2E),
+    shadow06:         Color(0x00000000),
+    shadow08:         Color(0x00000000),
+    shadow12:         Color(0x1A000000),
+    shadow25:         Color(0x00000000),
+    chipSelectedBg:   Color(0xFF222235),
+    greenLight:       Color(0xFF172612),
+    warning:          Color(0xFFEFAA44),
+    navBarBg:         Color(0xFF0F0F1B),
+  );
+
+  @override
+  VeLinkSemanticColors copyWith({
+    Color? surface,
+    Color? surfaceContainer,
+    Color? textPrimary,
+    Color? textSecondary,
+    Color? textTertiary,
+    Color? outline,
+    Color? outlineVariant,
+    Color? shadow06,
+    Color? shadow08,
+    Color? shadow12,
+    Color? shadow25,
+    Color? chipSelectedBg,
+    Color? greenLight,
+    Color? warning,
+    Color? navBarBg,
+  }) =>
+      VeLinkSemanticColors(
+        surface:          surface          ?? this.surface,
+        surfaceContainer: surfaceContainer ?? this.surfaceContainer,
+        textPrimary:      textPrimary      ?? this.textPrimary,
+        textSecondary:    textSecondary    ?? this.textSecondary,
+        textTertiary:     textTertiary     ?? this.textTertiary,
+        outline:          outline          ?? this.outline,
+        outlineVariant:   outlineVariant   ?? this.outlineVariant,
+        shadow06:         shadow06         ?? this.shadow06,
+        shadow08:         shadow08         ?? this.shadow08,
+        shadow12:         shadow12         ?? this.shadow12,
+        shadow25:         shadow25         ?? this.shadow25,
+        chipSelectedBg:   chipSelectedBg   ?? this.chipSelectedBg,
+        greenLight:       greenLight       ?? this.greenLight,
+        warning:          warning          ?? this.warning,
+        navBarBg:         navBarBg         ?? this.navBarBg,
+      );
+
+  @override
+  VeLinkSemanticColors lerp(VeLinkSemanticColors? other, double t) {
+    if (other is! VeLinkSemanticColors) return this;
+    return VeLinkSemanticColors(
+      surface:          Color.lerp(surface,          other.surface,          t)!,
+      surfaceContainer: Color.lerp(surfaceContainer, other.surfaceContainer, t)!,
+      textPrimary:      Color.lerp(textPrimary,      other.textPrimary,      t)!,
+      textSecondary:    Color.lerp(textSecondary,    other.textSecondary,    t)!,
+      textTertiary:     Color.lerp(textTertiary,     other.textTertiary,     t)!,
+      outline:          Color.lerp(outline,          other.outline,          t)!,
+      outlineVariant:   Color.lerp(outlineVariant,   other.outlineVariant,   t)!,
+      shadow06:         Color.lerp(shadow06,         other.shadow06,         t)!,
+      shadow08:         Color.lerp(shadow08,         other.shadow08,         t)!,
+      shadow12:         Color.lerp(shadow12,         other.shadow12,         t)!,
+      shadow25:         Color.lerp(shadow25,         other.shadow25,         t)!,
+      chipSelectedBg:   Color.lerp(chipSelectedBg,   other.chipSelectedBg,   t)!,
+      greenLight:       Color.lerp(greenLight,       other.greenLight,       t)!,
+      warning:          Color.lerp(warning,          other.warning,          t)!,
+      navBarBg:         Color.lerp(navBarBg,         other.navBarBg,         t)!,
+    );
+  }
 }

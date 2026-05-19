@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/preferences/preferences_provider.dart';
 import '../../../core/theme/app_theme.dart';
@@ -11,6 +11,7 @@ class PendientesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final vc = VeLinkSemanticColors.of(context);
     final linksAsync = ref.watch(pendingLinksProvider);
     final searchQuery = ref.watch(pendingSearchQueryProvider);
     final s = ref.watch(appStringsProvider);
@@ -27,32 +28,32 @@ class PendientesScreen extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Container(
                 decoration: BoxDecoration(
-                  color: VerLinkColors.surface,
+                  color: vc.surface,
                   borderRadius: BorderRadius.circular(28),
-                  boxShadow: const [
+                  boxShadow: [
                     BoxShadow(
-                      color: VerLinkColors.shadow08,
+                      color: vc.shadow08,
                       blurRadius: 16,
-                      offset: Offset(0, 4),
+                      offset: const Offset(0, 4),
                     ),
                   ],
-                  border: Border.all(color: VerLinkColors.outline),
+                  border: Border.all(color: vc.outline),
                 ),
                 child: Row(
                   children: [
-                    const Padding(
-                      padding: EdgeInsets.only(left: 16),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16),
                       child: Icon(
                         Icons.search_rounded,
                         size: 20,
-                        color: VerLinkColors.textTertiary,
+                        color: vc.textTertiary,
                       ),
                     ),
                     Expanded(
                       child: TextField(
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
-                          color: VerLinkColors.textPrimary,
+                          color: vc.textPrimary,
                         ),
                         decoration: InputDecoration(
                           hintText: s.searchPending,
@@ -101,12 +102,12 @@ class PendientesScreen extends ConsumerWidget {
                               width: 80,
                               height: 80,
                               decoration: BoxDecoration(
-                                gradient: const LinearGradient(
+                                gradient: LinearGradient(
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    VerLinkColors.greenLight,
-                                    VerLinkColors.softSurface,
+                                    vc.greenLight,
+                                    vc.surfaceContainer,
                                   ],
                                 ),
                                 borderRadius: BorderRadius.circular(24),
@@ -126,10 +127,10 @@ class PendientesScreen extends ConsumerWidget {
                                 searchQuery.trim().isEmpty
                                     ? s.noPendingLinks
                                     : s.noResults,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w700,
-                                  color: VerLinkColors.textPrimary,
+                                  color: vc.textPrimary,
                                 ),
                               ),
                             ),
@@ -137,8 +138,8 @@ class PendientesScreen extends ConsumerWidget {
                               const SizedBox(height: 8),
                               Text(
                                 s.noPendingDesc,
-                                style: const TextStyle(
-                                  color: VerLinkColors.textSecondary,
+                                style: TextStyle(
+                                  color: vc.textSecondary,
                                   fontSize: 14,
                                   height: 1.5,
                                 ),
@@ -171,7 +172,7 @@ class PendientesScreen extends ConsumerWidget {
                 error: (_, __) => Center(
                   child: Text(
                     s.errorLoadLinks,
-                    style: const TextStyle(color: VerLinkColors.textSecondary),
+                    style: TextStyle(color: vc.textSecondary),
                   ),
                 ),
               ),

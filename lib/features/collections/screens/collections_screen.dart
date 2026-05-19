@@ -17,55 +17,55 @@ class CollectionsContent extends ConsumerWidget {
 
     return collectionsAsync.when(
       data: (collections) => collections.isEmpty
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(40),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            VerLinkColors.greenLight,
-                            VerLinkColors.softSurface,
-                          ],
+          ? Builder(builder: (context) {
+              final vc = VeLinkSemanticColors.of(context);
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(40),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [vc.greenLight, vc.surfaceContainer],
+                          ),
+                          borderRadius: BorderRadius.circular(24),
                         ),
-                        borderRadius: BorderRadius.circular(24),
+                        child: const Icon(
+                          Icons.folder_outlined,
+                          size: 36,
+                          color: VerLinkColors.green,
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.folder_outlined,
-                        size: 36,
-                        color: VerLinkColors.green,
+                      const SizedBox(height: 20),
+                      Text(
+                        s.noCollectionsYet,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: vc.textPrimary,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      s.noCollectionsYet,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: VerLinkColors.textPrimary,
+                      const SizedBox(height: 8),
+                      Text(
+                        s.noCollectionsDesc,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: vc.textSecondary,
+                          height: 1.5,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      s.noCollectionsDesc,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: VerLinkColors.textSecondary,
-                        height: 1.5,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            )
+              );
+            })
           : ListView.builder(
               padding: const EdgeInsets.fromLTRB(
                 16,
@@ -84,7 +84,13 @@ class CollectionsContent extends ConsumerWidget {
         ),
       ),
       error: (_, __) => Center(
-        child: Text(ref.read(appStringsProvider).errorLoadCollections),
+        child: Builder(builder: (ctx) {
+          final vc = VeLinkSemanticColors.of(ctx);
+          return Text(
+            ref.read(appStringsProvider).errorLoadCollections,
+            style: TextStyle(color: vc.textSecondary),
+          );
+        }),
       ),
     );
   }
@@ -102,6 +108,7 @@ class _CollectionCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final vc = VeLinkSemanticColors.of(context);
     final countAsync = ref.watch(collectionLinkCountProvider(collection.id));
     final s = ref.watch(appStringsProvider);
     final collectionColor = _hexToColor(collection.color);
@@ -109,13 +116,13 @@ class _CollectionCard extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: VerLinkColors.surface,
+        color: vc.surface,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: VerLinkColors.shadow06,
+            color: vc.shadow06,
             blurRadius: 16,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -132,7 +139,7 @@ class _CollectionCard extends ConsumerWidget {
               ),
             ),
             splashColor: collectionColor.withAlpha(20),
-            highlightColor: VerLinkColors.softSurface,
+            highlightColor: vc.surfaceContainer,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -157,10 +164,10 @@ class _CollectionCard extends ConsumerWidget {
                       children: [
                         Text(
                           collection.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 15,
-                            color: VerLinkColors.textPrimary,
+                            color: vc.textPrimary,
                           ),
                         ),
                         if (collection.description != null &&
@@ -168,9 +175,9 @@ class _CollectionCard extends ConsumerWidget {
                           const SizedBox(height: 2),
                           Text(
                             collection.description!,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: VerLinkColors.textSecondary,
+                              color: vc.textSecondary,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -180,9 +187,9 @@ class _CollectionCard extends ConsumerWidget {
                         countAsync.when(
                           data: (count) => Text(
                             s.collectionLinkCount(count),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: VerLinkColors.textTertiary,
+                              color: vc.textTertiary,
                               fontWeight: FontWeight.w400,
                             ),
                           ),
@@ -289,6 +296,7 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final vc = VeLinkSemanticColors.of(context);
     return Tooltip(
       message: tooltip,
       child: GestureDetector(
@@ -297,13 +305,13 @@ class _ActionButton extends StatelessWidget {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: (color ?? VerLinkColors.textTertiary).withAlpha(15),
+            color: (color ?? vc.textTertiary).withAlpha(15),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
             icon,
             size: 18,
-            color: color ?? VerLinkColors.textSecondary,
+            color: color ?? vc.textSecondary,
           ),
         ),
       ),

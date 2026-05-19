@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database.dart';
+import '../../../core/preferences/preferences_provider.dart';
 
 const _kColors = [
   '#6366F1',
@@ -48,6 +49,7 @@ class _CreateTagDialogState extends ConsumerState<CreateTagDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final s = ref.watch(appStringsProvider);
     return SafeArea(
       top: false,
       child: Padding(
@@ -56,18 +58,18 @@ class _CreateTagDialogState extends ConsumerState<CreateTagDialog> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Nueva etiqueta',
+          Text(s.createTagTitle,
               style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 16),
           TextField(
             controller: _nameController,
-            decoration: const InputDecoration(
-              labelText: 'Nombre',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: s.collectionNameLabel,
+              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 16),
-          const Text('Color', style: TextStyle(fontWeight: FontWeight.w500)),
+          Text(s.collectionColorLabel, style: const TextStyle(fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -94,9 +96,9 @@ class _CreateTagDialogState extends ConsumerState<CreateTagDialog> {
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
+            child: FilledButton(
               onPressed: _save,
-              child: const Text('Guardar'),
+              child: Text(s.save),
             ),
           ),
         ],

@@ -15,6 +15,7 @@ class AjustesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final vc = VeLinkSemanticColors.of(context);
     final s = ref.watch(appStringsProvider);
     final notificationsEnabled = ref.watch(notificationsEnabledProvider);
     final currentLocale = ref.watch(localePrefProvider);
@@ -116,9 +117,9 @@ class AjustesScreen extends ConsumerWidget {
                         icon: Icons.privacy_tip_outlined,
                         title: s.privacyPolicyTitle,
                         subtitle: s.privacyPolicySubtitle,
-                        trailing: const Icon(
+                        trailing: Icon(
                           Icons.chevron_right,
-                          color: VerLinkColors.textTertiary,
+                          color: vc.textTertiary,
                         ),
                         onTap: () => Navigator.push(
                           context,
@@ -139,9 +140,9 @@ class AjustesScreen extends ConsumerWidget {
                         icon: Icons.article_outlined,
                         title: s.termsTitle,
                         subtitle: s.termsSubtitle,
-                        trailing: const Icon(
+                        trailing: Icon(
                           Icons.chevron_right,
-                          color: VerLinkColors.textTertiary,
+                          color: vc.textTertiary,
                         ),
                         onTap: () => Navigator.push(
                           context,
@@ -164,9 +165,9 @@ class AjustesScreen extends ConsumerWidget {
                         icon: Icons.upload_outlined,
                         title: s.settingsExportData,
                         subtitle: s.settingsExportDataSubtitle,
-                        trailing: const Icon(
+                        trailing: Icon(
                           Icons.chevron_right,
-                          color: VerLinkColors.textTertiary,
+                          color: vc.textTertiary,
                         ),
                         onTap: () => _exportData(context, ref, s),
                       ),
@@ -179,9 +180,9 @@ class AjustesScreen extends ConsumerWidget {
                         icon: Icons.download_outlined,
                         title: s.settingsImportData,
                         subtitle: s.settingsImportDataSubtitle,
-                        trailing: const Icon(
+                        trailing: Icon(
                           Icons.chevron_right,
-                          color: VerLinkColors.textTertiary,
+                          color: vc.textTertiary,
                         ),
                         onTap: () => _importData(context, ref, s),
                       ),
@@ -211,9 +212,9 @@ class AjustesScreen extends ConsumerWidget {
                         icon: Icons.mail_outline,
                         title: s.settingsContactSupport,
                         subtitle: s.contactSupportSubtitle,
-                        trailing: const Icon(
+                        trailing: Icon(
                           Icons.chevron_right,
-                          color: VerLinkColors.textTertiary,
+                          color: vc.textTertiary,
                         ),
                         onTap: () =>
                             launchUrl(Uri.parse('mailto:soporte@verlink.app')),
@@ -381,15 +382,16 @@ class _SectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final vc = VeLinkSemanticColors.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 20, 4, 8),
       child: Text(
         title.toUpperCase(),
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
           letterSpacing: 1.2,
-          color: VerLinkColors.textTertiary,
+          color: vc.textTertiary,
         ),
       ),
     );
@@ -402,15 +404,16 @@ class _SettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final vc = VeLinkSemanticColors.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: VerLinkColors.surface,
+        color: vc.surface,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: VerLinkColors.shadow06,
+            color: vc.shadow06,
             blurRadius: 16,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -424,11 +427,12 @@ class _CardDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Divider(
+    final vc = VeLinkSemanticColors.of(context);
+    return Divider(
       height: 1,
       indent: 72,
       endIndent: 0,
-      color: VerLinkColors.outlineVariant,
+      color: vc.outlineVariant,
     );
   }
 }
@@ -474,6 +478,7 @@ class _SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final vc = VeLinkSemanticColors.of(context);
     return ListTile(
       leading: _IconContainer(icon: icon, color: iconColor),
       title: Text(
@@ -484,18 +489,18 @@ class _SettingsTile extends StatelessWidget {
                 fontWeight: FontWeight.w500,
                 fontSize: 15,
               )
-            : const TextStyle(
+            : TextStyle(
                 fontWeight: FontWeight.w500,
                 fontSize: 15,
-                color: VerLinkColors.textPrimary,
+                color: vc.textPrimary,
               ),
       ),
       subtitle: subtitle != null
           ? Text(
               subtitle!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: VerLinkColors.textSecondary,
+                color: vc.textSecondary,
               ),
             )
           : null,
@@ -525,6 +530,7 @@ class _LanguageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final vc = VeLinkSemanticColors.of(context);
     return Semantics(
       label: label,
       button: true,
@@ -534,17 +540,17 @@ class _LanguageTile extends StatelessWidget {
         leading: const _IconContainer(icon: Icons.language),
         title: Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w500,
             fontSize: 15,
-            color: VerLinkColors.textPrimary,
+            color: vc.textPrimary,
           ),
         ),
         subtitle: Text(
           subtitle,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: VerLinkColors.textSecondary,
+            color: vc.textSecondary,
           ),
         ),
         trailing: selected
@@ -552,9 +558,9 @@ class _LanguageTile extends StatelessWidget {
                 Icons.check_circle_rounded,
                 color: VerLinkColors.green,
               )
-            : const Icon(
+            : Icon(
                 Icons.radio_button_unchecked,
-                color: VerLinkColors.textTertiary,
+                color: vc.textTertiary,
               ),
         onTap: onTap,
         selected: selected,
@@ -581,6 +587,7 @@ class _NotificationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final vc = VeLinkSemanticColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -593,17 +600,17 @@ class _NotificationTile extends StatelessWidget {
           ),
           title: Text(
             s.settingsNotifications,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w500,
               fontSize: 15,
-              color: VerLinkColors.textPrimary,
+              color: vc.textPrimary,
             ),
           ),
           subtitle: Text(
             s.notificationsSubtitle,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: VerLinkColors.textSecondary,
+              color: vc.textSecondary,
             ),
           ),
           value: notificationsEnabled,
@@ -628,22 +635,23 @@ class _PermissionWarningTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final vc = VeLinkSemanticColors.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.warning_amber_outlined,
-            color: VerLinkColors.warning,
+            color: vc.warning,
             size: 18,
           ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: VerLinkColors.warning,
+                color: vc.warning,
               ),
             ),
           ),
@@ -672,6 +680,7 @@ class _ThemeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final vc = VeLinkSemanticColors.of(context);
     return Semantics(
       label: label,
       button: true,
@@ -681,17 +690,17 @@ class _ThemeTile extends StatelessWidget {
         leading: _IconContainer(icon: icon),
         title: Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w500,
             fontSize: 15,
-            color: VerLinkColors.textPrimary,
+            color: vc.textPrimary,
           ),
         ),
         subtitle: Text(
           subtitle,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: VerLinkColors.textSecondary,
+            color: vc.textSecondary,
           ),
         ),
         trailing: selected
@@ -699,9 +708,9 @@ class _ThemeTile extends StatelessWidget {
                 Icons.check_circle_rounded,
                 color: VerLinkColors.green,
               )
-            : const Icon(
+            : Icon(
                 Icons.radio_button_unchecked,
-                color: VerLinkColors.textTertiary,
+                color: vc.textTertiary,
               ),
         onTap: onTap,
         selected: selected,
@@ -729,17 +738,20 @@ class _LegalPage extends StatelessWidget {
           child: const BackButton(),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 96),
-        child: Text(
-          body,
-          style: const TextStyle(
-            fontSize: 14,
-            height: 1.7,
-            color: VerLinkColors.textSecondary,
+      body: Builder(builder: (context) {
+        final vc = VeLinkSemanticColors.of(context);
+        return SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 96),
+          child: Text(
+            body,
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.7,
+              color: vc.textSecondary,
+            ),
           ),
-        ),
-      ),
+        );
+      }),
     );
   }
 }

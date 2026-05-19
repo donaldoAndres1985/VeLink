@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/preferences/preferences_provider.dart';
 import '../../../core/theme/app_theme.dart';
@@ -38,6 +38,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final vc = VeLinkSemanticColors.of(context);
     final query = ref.watch(searchQueryProvider);
     final linksAsync = ref.watch(filteredHomeLinksProvider);
     final searchAsync = ref.watch(searchResultsProvider);
@@ -52,25 +53,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           children: [
             _buildHeader(s),
             const SizedBox(height: 10),
-            _buildSearchBar(s),
-            _buildFilterBar(context, ref, filter, s),
+            _buildSearchBar(vc, s),
+            _buildFilterBar(context, ref, vc, filter, s),
             Expanded(
               child: query.trim().isEmpty
                   ? linksAsync.when(
                       skipLoadingOnRefresh: true,
                       data: (links) => links.isEmpty
-                          ? _buildEmptyState(context, s)
+                          ? _buildEmptyState(context, vc, s)
                           : _buildList(links),
                       loading: () => _buildSkeletonList(),
-                      error: (_, __) => _buildError(s.errorLoadLinks),
+                      error: (_, __) => _buildError(vc, s.errorLoadLinks),
                     )
                   : searchAsync.when(
                       skipLoadingOnRefresh: true,
                       data: (links) => links.isEmpty
-                          ? _buildSearchEmpty(context, s)
+                          ? _buildSearchEmpty(context, vc, s)
                           : _buildList(links),
                       loading: () => _buildSkeletonList(),
-                      error: (_, __) => _buildError(s.errorSearch),
+                      error: (_, __) => _buildError(vc, s.errorSearch),
                     ),
             ),
           ],
@@ -83,43 +84,41 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return ScreenHeader(title: s.navLinks, subtitle: s.homeSubtitle);
   }
 
-  Widget _buildSearchBar(dynamic s) {
+  Widget _buildSearchBar(VeLinkSemanticColors vc, dynamic s) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Container(
         decoration: BoxDecoration(
-          color: VerLinkColors.surface,
+          color: vc.surface,
           borderRadius: BorderRadius.circular(28),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-              color: VerLinkColors.shadow08,
+              color: vc.shadow08,
               blurRadius: 16,
-              offset: Offset(0, 4),
+              offset: const Offset(0, 4),
             ),
           ],
           border: Border.all(
-            color: _searchFocused
-                ? VerLinkColors.green
-                : VerLinkColors.outline,
+            color: _searchFocused ? VerLinkColors.green : vc.outline,
             width: _searchFocused ? 1.5 : 1,
           ),
         ),
         child: Row(
           children: [
-            const Padding(
-              padding: EdgeInsets.only(left: 16),
+            Padding(
+              padding: const EdgeInsets.only(left: 16),
               child: Icon(
                 Icons.search_rounded,
                 size: 20,
-                color: VerLinkColors.textTertiary,
+                color: vc.textTertiary,
               ),
             ),
             Expanded(
               child: TextField(
                 controller: _searchController,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: VerLinkColors.textPrimary,
+                  color: vc.textPrimary,
                   fontWeight: FontWeight.w400,
                 ),
                 decoration: InputDecoration(
@@ -147,22 +146,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             if (_searchController.text.isNotEmpty)
               GestureDetector(
                 onTap: _clearSearch,
-                child: const Padding(
-                  padding: EdgeInsets.only(right: 12),
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 12),
                   child: Icon(
                     Icons.close_rounded,
                     size: 18,
-                    color: VerLinkColors.textTertiary,
+                    color: vc.textTertiary,
                   ),
                 ),
               )
             else
-              const Padding(
-                padding: EdgeInsets.only(right: 12),
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
                 child: Icon(
                   Icons.tune_rounded,
                   size: 18,
-                  color: VerLinkColors.textTertiary,
+                  color: vc.textTertiary,
                 ),
               ),
           ],
@@ -171,8 +170,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildFilterBar(
-      BuildContext context, WidgetRef ref, HomeFilter filter, dynamic s) {
+  Widget _buildFilterBar(BuildContext context, WidgetRef ref,
+      VeLinkSemanticColors vc, HomeFilter filter, dynamic s) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
       child: SingleChildScrollView(
@@ -222,7 +221,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, dynamic s) {
+  Widget _buildEmptyState(
+      BuildContext context, VeLinkSemanticColors vc, dynamic s) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -233,10 +233,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [VerLinkColors.greenLight, VerLinkColors.softSurface],
+                  colors: [vc.greenLight, vc.surfaceContainer],
                 ),
                 borderRadius: BorderRadius.circular(24),
               ),
@@ -249,21 +249,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             const SizedBox(height: 20),
             Text(
               s.noLinksYet,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: VerLinkColors.textPrimary,
+                color: vc.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
             Semantics(
               label: s.noLinksYet,
-              child: const Text(
+              child: Text(
                 'Toca el botón + para guardar\ntu primer link.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
-                  color: VerLinkColors.textSecondary,
+                  color: vc.textSecondary,
                   height: 1.5,
                 ),
               ),
@@ -274,34 +274,35 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildSearchEmpty(BuildContext context, dynamic s) {
+  Widget _buildSearchEmpty(
+      BuildContext context, VeLinkSemanticColors vc, dynamic s) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.search_off_rounded,
               size: 56,
-              color: VerLinkColors.textTertiary,
+              color: vc.textTertiary,
             ),
             const SizedBox(height: 16),
             Text(
               s.noResults,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: VerLinkColors.textPrimary,
+                color: vc.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Intenta con otro término de búsqueda.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                color: VerLinkColors.textSecondary,
+                color: vc.textSecondary,
               ),
             ),
           ],
@@ -310,11 +311,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildError(String message) {
+  Widget _buildError(VeLinkSemanticColors vc, String message) {
     return Center(
       child: Text(
         message,
-        style: const TextStyle(color: VerLinkColors.textSecondary),
+        style: TextStyle(color: vc.textSecondary),
       ),
     );
   }
@@ -342,7 +343,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
-
 }
 
 // ── Premium filter chip ───────────────────────────────────────────────────────
@@ -362,6 +362,7 @@ class _PremiumFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final vc = VeLinkSemanticColors.of(context);
     return Semantics(
       label: label,
       button: true,
@@ -372,18 +373,18 @@ class _PremiumFilterChip extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
           decoration: BoxDecoration(
-            color: selected ? VerLinkColors.primaryBlack : VerLinkColors.surface,
+            color: selected ? vc.chipSelectedBg : vc.surface,
             borderRadius: BorderRadius.circular(50),
             border: Border.all(
-              color: selected ? VerLinkColors.primaryBlack : VerLinkColors.outline,
+              color: selected ? vc.chipSelectedBg : vc.outline,
               width: 1,
             ),
             boxShadow: selected
-                ? const [
+                ? [
                     BoxShadow(
-                      color: VerLinkColors.shadow12,
+                      color: vc.shadow12,
                       blurRadius: 8,
-                      offset: Offset(0, 2),
+                      offset: const Offset(0, 2),
                     ),
                   ]
                 : null,
@@ -397,7 +398,7 @@ class _PremiumFilterChip extends StatelessWidget {
                   size: 14,
                   color: selected
                       ? VerLinkColors.green
-                      : VerLinkColors.textSecondary,
+                      : vc.textSecondary,
                 ),
                 const SizedBox(width: 6),
               ],
@@ -407,9 +408,7 @@ class _PremiumFilterChip extends StatelessWidget {
                   fontSize: 13,
                   fontWeight:
                       selected ? FontWeight.w600 : FontWeight.w500,
-                  color: selected
-                      ? VerLinkColors.green
-                      : VerLinkColors.textSecondary,
+                  color: selected ? VerLinkColors.green : vc.textSecondary,
                 ),
               ),
             ],
@@ -454,19 +453,20 @@ class _SkeletonCardState extends State<_SkeletonCard>
 
   @override
   Widget build(BuildContext context) {
+    final vc = VeLinkSemanticColors.of(context);
     return FadeTransition(
       opacity: _anim,
       child: Container(
         margin: const EdgeInsets.only(bottom: 14),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: VerLinkColors.surface,
+          color: vc.surface,
           borderRadius: BorderRadius.circular(18),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-              color: VerLinkColors.shadow06,
+              color: vc.shadow06,
               blurRadius: 20,
-              offset: Offset(0, 6),
+              offset: const Offset(0, 6),
             ),
           ],
         ),
@@ -476,7 +476,7 @@ class _SkeletonCardState extends State<_SkeletonCard>
               width: 78,
               height: 78,
               decoration: BoxDecoration(
-                color: VerLinkColors.softSurface,
+                color: vc.surfaceContainer,
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
@@ -489,7 +489,7 @@ class _SkeletonCardState extends State<_SkeletonCard>
                     width: 60,
                     height: 18,
                     decoration: BoxDecoration(
-                      color: VerLinkColors.softSurface,
+                      color: vc.surfaceContainer,
                       borderRadius: BorderRadius.circular(9),
                     ),
                   ),
@@ -497,7 +497,7 @@ class _SkeletonCardState extends State<_SkeletonCard>
                   Container(
                     height: 15,
                     decoration: BoxDecoration(
-                      color: VerLinkColors.softSurface,
+                      color: vc.surfaceContainer,
                       borderRadius: BorderRadius.circular(7),
                     ),
                   ),
@@ -506,7 +506,7 @@ class _SkeletonCardState extends State<_SkeletonCard>
                     width: 100,
                     height: 13,
                     decoration: BoxDecoration(
-                      color: VerLinkColors.softSurface,
+                      color: vc.surfaceContainer,
                       borderRadius: BorderRadius.circular(6),
                     ),
                   ),
@@ -549,6 +549,7 @@ class _PlatformFilterSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final vc = VeLinkSemanticColors.of(context);
     final platforms = [
       (label: platformAll, value: null as String?),
       ..._kPlatforms.skip(1),
@@ -568,7 +569,7 @@ class _PlatformFilterSheet extends StatelessWidget {
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 8),
                   decoration: BoxDecoration(
-                    color: VerLinkColors.outlineVariant,
+                    color: vc.outlineVariant,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -576,10 +577,10 @@ class _PlatformFilterSheet extends StatelessWidget {
             ),
             Text(
               filterTitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
-                color: VerLinkColors.textPrimary,
+                color: vc.textPrimary,
               ),
             ),
             const SizedBox(height: 16),
@@ -595,14 +596,10 @@ class _PlatformFilterSheet extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 9),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? VerLinkColors.primaryBlack
-                          : VerLinkColors.surface,
+                      color: isSelected ? vc.chipSelectedBg : vc.surface,
                       borderRadius: BorderRadius.circular(50),
                       border: Border.all(
-                        color: isSelected
-                            ? VerLinkColors.primaryBlack
-                            : VerLinkColors.outline,
+                        color: isSelected ? vc.chipSelectedBg : vc.outline,
                       ),
                     ),
                     child: Text(
@@ -612,7 +609,7 @@ class _PlatformFilterSheet extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                         color: isSelected
                             ? VerLinkColors.green
-                            : VerLinkColors.textSecondary,
+                            : vc.textSecondary,
                       ),
                     ),
                   ),

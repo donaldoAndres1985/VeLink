@@ -302,23 +302,24 @@ class _FloatingNavBarState extends State<_FloatingNavBar> {
 
   @override
   Widget build(BuildContext context) {
+    final vc = VeLinkSemanticColors.of(context);
     return Container(
-      decoration: const BoxDecoration(
-        color: VerLinkColors.primaryBlack,
-        borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+        color: vc.navBarBg,
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
         ),
         boxShadow: [
           BoxShadow(
-            color: VerLinkColors.shadow25,
+            color: vc.shadow25,
             blurRadius: 24,
-            offset: Offset(0, -8),
+            offset: const Offset(0, -8),
           ),
           BoxShadow(
-            color: VerLinkColors.shadow12,
+            color: vc.shadow12,
             blurRadius: 8,
-            offset: Offset(0, -2),
+            offset: const Offset(0, -2),
           ),
         ],
       ),
@@ -345,6 +346,7 @@ class _FloatingNavBarState extends State<_FloatingNavBar> {
 
   Widget _buildNavItem(int i) {
     final isActive = i == widget.currentIndex;
+    final vc = VeLinkSemanticColors.of(context);
     return Semantics(
       label: widget.labels[i],
       button: true,
@@ -365,9 +367,7 @@ class _FloatingNavBarState extends State<_FloatingNavBar> {
                   isActive ? widget.activeIcons[i] : widget.icons[i],
                   key: ValueKey('nav_${i}_$isActive'),
                   size: 22,
-                  color: isActive
-                      ? VerLinkColors.green
-                      : const Color(0xFF6B7280),
+                  color: isActive ? VerLinkColors.green : vc.textTertiary,
                 ),
               ),
               const SizedBox(height: 4),
@@ -376,9 +376,7 @@ class _FloatingNavBarState extends State<_FloatingNavBar> {
                 style: TextStyle(
                   fontSize: 9,
                   fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
-                  color: isActive
-                      ? VerLinkColors.green
-                      : const Color(0xFF6B7280),
+                  color: isActive ? VerLinkColors.green : vc.textTertiary,
                 ),
                 child: Text(widget.labels[i]),
               ),

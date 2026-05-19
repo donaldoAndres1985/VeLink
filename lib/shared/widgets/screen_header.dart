@@ -13,6 +13,7 @@ class ScreenHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final vc = VeLinkSemanticColors.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: Row(
@@ -24,10 +25,10 @@ class ScreenHeader extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 42,
                     fontWeight: FontWeight.w700,
-                    color: VerLinkColors.textPrimary,
+                    color: vc.textPrimary,
                     height: 1.05,
                     letterSpacing: -0.5,
                   ),
@@ -35,9 +36,9 @@ class ScreenHeader extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: VerLinkColors.textTertiary,
+                    color: vc.textTertiary,
                     fontWeight: FontWeight.w400,
                     height: 1.4,
                   ),
@@ -73,7 +74,7 @@ class ScreenHeader extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
-                      color: VerLinkColors.textPrimary,
+                      color: vc.textPrimary,
                       letterSpacing: -0.2,
                     ),
                   ),
