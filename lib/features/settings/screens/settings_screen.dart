@@ -18,6 +18,7 @@ class AjustesScreen extends ConsumerWidget {
     final s = ref.watch(appStringsProvider);
     final notificationsEnabled = ref.watch(notificationsEnabledProvider);
     final currentLocale = ref.watch(localePrefProvider);
+    final currentThemeMode = ref.watch(themeModeProvider);
     final permAsync = ref.watch(notifPermissionProvider);
 
     return Scaffold(
@@ -37,6 +38,30 @@ class AjustesScreen extends ConsumerWidget {
                   AppTheme.contentBottomPadding + 16,
                 ),
                 children: [
+                  _SectionLabel(title: s.settingsAppearance),
+                  _SettingsCard(children: [
+                    _ThemeTile(
+                      label: s.themeLight,
+                      subtitle: s.themeLightSubtitle,
+                      icon: Icons.light_mode_outlined,
+                      themeKey: 'theme_light',
+                      selected: currentThemeMode == ThemeMode.light,
+                      onTap: () => ref
+                          .read(themeModeProvider.notifier)
+                          .setThemeMode(ThemeMode.light),
+                    ),
+                    const _CardDivider(),
+                    _ThemeTile(
+                      label: s.themeDark,
+                      subtitle: s.themeDarkSubtitle,
+                      icon: Icons.dark_mode_outlined,
+                      themeKey: 'theme_dark',
+                      selected: currentThemeMode == ThemeMode.dark,
+                      onTap: () => ref
+                          .read(themeModeProvider.notifier)
+                          .setThemeMode(ThemeMode.dark),
+                    ),
+                  ]),
                   _SectionLabel(title: s.settingsLanguage),
                   _SettingsCard(children: [
                     _LanguageTile(
@@ -623,6 +648,66 @@ class _PermissionWarningTile extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ThemeTile extends StatelessWidget {
+  final String label;
+  final String subtitle;
+  final IconData icon;
+  final String themeKey;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ThemeTile({
+    required this.label,
+    required this.subtitle,
+    required this.icon,
+    required this.themeKey,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: label,
+      button: true,
+      selected: selected,
+      child: ListTile(
+        key: Key(themeKey),
+        leading: _IconContainer(icon: icon),
+        title: Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.w500,
+            fontSize: 15,
+            color: VerLinkColors.textPrimary,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(
+            fontSize: 12,
+            color: VerLinkColors.textSecondary,
+          ),
+        ),
+        trailing: selected
+            ? const Icon(
+                Icons.check_circle_rounded,
+                color: VerLinkColors.green,
+              )
+            : const Icon(
+                Icons.radio_button_unchecked,
+                color: VerLinkColors.textTertiary,
+              ),
+        onTap: onTap,
+        selected: selected,
+        minVerticalPadding: 4,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       ),
     );
   }

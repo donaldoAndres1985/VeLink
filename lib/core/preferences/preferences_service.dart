@@ -6,6 +6,8 @@ abstract class PreferencesService {
   Future<void> setLocale(Locale locale);
   bool getNotificationsEnabled();
   Future<void> setNotificationsEnabled(bool enabled);
+  ThemeMode getThemeMode();
+  Future<void> setThemeMode(ThemeMode mode);
 }
 
 class SharedPreferencesService implements PreferencesService {
@@ -13,6 +15,7 @@ class SharedPreferencesService implements PreferencesService {
 
   static const _keyLocale = 'locale';
   static const _keyNotifications = 'notifications_enabled';
+  static const _keyThemeMode = 'theme_mode';
 
   SharedPreferencesService(this._prefs);
 
@@ -35,5 +38,16 @@ class SharedPreferencesService implements PreferencesService {
   @override
   Future<void> setNotificationsEnabled(bool enabled) async {
     await _prefs.setBool(_keyNotifications, enabled);
+  }
+
+  @override
+  ThemeMode getThemeMode() {
+    final value = _prefs.getString(_keyThemeMode) ?? 'light';
+    return value == 'dark' ? ThemeMode.dark : ThemeMode.light;
+  }
+
+  @override
+  Future<void> setThemeMode(ThemeMode mode) async {
+    await _prefs.setString(_keyThemeMode, mode == ThemeMode.dark ? 'dark' : 'light');
   }
 }

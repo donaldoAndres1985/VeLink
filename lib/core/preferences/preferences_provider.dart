@@ -4,6 +4,25 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../l10n/app_strings.dart';
 import 'preferences_service.dart';
 
+// ── ThemeMode ────────────────────────────────────────────────────────────────
+
+class ThemeModeNotifier extends StateNotifier<ThemeMode> {
+  final PreferencesService _prefs;
+
+  ThemeModeNotifier(this._prefs, ThemeMode initial) : super(initial);
+
+  Future<void> setThemeMode(ThemeMode mode) async {
+    await _prefs.setThemeMode(mode);
+    state = mode;
+  }
+}
+
+final themeModeProvider =
+    StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
+  final prefs = ref.read(preferencesServiceProvider);
+  return ThemeModeNotifier(prefs, prefs.getThemeMode());
+});
+
 final sharedPreferencesProvider = Provider<SharedPreferences>(
   (_) => throw UnimplementedError('Override in main with SharedPreferences.getInstance()'),
 );

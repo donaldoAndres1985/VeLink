@@ -12,10 +12,15 @@ import '../../helpers/database_helper.dart';
 class _FakePrefs implements PreferencesService {
   Locale _locale;
   bool _notifications;
+  ThemeMode _themeMode;
 
-  _FakePrefs({Locale locale = const Locale('es'), bool notifications = true})
-      : _locale = locale,
-        _notifications = notifications;
+  _FakePrefs({
+    Locale locale = const Locale('es'),
+    bool notifications = true,
+    ThemeMode themeMode = ThemeMode.light,
+  })  : _locale = locale,
+        _notifications = notifications,
+        _themeMode = themeMode;
 
   @override
   Locale getLocale() => _locale;
@@ -26,10 +31,23 @@ class _FakePrefs implements PreferencesService {
   @override
   Future<void> setNotificationsEnabled(bool enabled) async =>
       _notifications = enabled;
+  @override
+  ThemeMode getThemeMode() => _themeMode;
+  @override
+  Future<void> setThemeMode(ThemeMode mode) async => _themeMode = mode;
 }
 
-Widget _wrap({String lang = 'es', bool notifications = true, bool notifPermGranted = true}) {
-  final prefs = _FakePrefs(locale: Locale(lang), notifications: notifications);
+Widget _wrap({
+  String lang = 'es',
+  bool notifications = true,
+  bool notifPermGranted = true,
+  ThemeMode themeMode = ThemeMode.light,
+}) {
+  final prefs = _FakePrefs(
+    locale: Locale(lang),
+    notifications: notifications,
+    themeMode: themeMode,
+  );
   final db = createTestDatabase();
   addTearDown(db.close);
   return ProviderScope(
@@ -39,6 +57,7 @@ Widget _wrap({String lang = 'es', bool notifications = true, bool notifPermGrant
       notificationsEnabledProvider.overrideWith(
         (ref) => NotificationsEnabledNotifier(prefs, notifications),
       ),
+      themeModeProvider.overrideWith((ref) => ThemeModeNotifier(prefs, themeMode)),
       notifPermissionProvider.overrideWith((ref) => Future.value(notifPermGranted)),
       databaseProvider.overrideWithValue(db),
     ],
@@ -98,6 +117,8 @@ void main() {
 
     testWidgets('tap en switch muestra snackbar de confirmación', (tester) async {
       await tester.pumpWidget(_wrap(notifications: true));
+      await tester.ensureVisible(find.byKey(const Key('notifications_switch')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('notifications_switch')));
       await tester.pump();
       expect(find.text('Notificaciones desactivadas'), findsOneWidget);
@@ -118,12 +139,14 @@ void main() {
     testWidgets('muestra sección Legal con Política de privacidad', (tester) async {
       await tester.pumpWidget(_wrap());
       await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('Política de privacidad'), 100);
       expect(find.text('Política de privacidad'), findsOneWidget);
     });
 
     testWidgets('muestra sección Legal con Términos de uso', (tester) async {
       await tester.pumpWidget(_wrap());
       await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('Términos de uso'), 100);
       expect(find.text('Términos de uso'), findsOneWidget);
     });
 
@@ -144,6 +167,8 @@ void main() {
     testWidgets('tap en Política de privacidad navega a página con texto', (tester) async {
       await tester.pumpWidget(_wrap());
       await tester.pumpAndSettle();
+      await tester.drag(find.byType(ListView), const Offset(0, -200));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Política de privacidad'));
       await tester.pumpAndSettle();
       expect(find.text('POLÍTICA DE PRIVACIDAD — VerLink', findRichText: true), findsNothing);
@@ -155,6 +180,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.drag(find.byType(ListView), const Offset(0, -400));
       await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('Eliminar mis datos'), 50);
+      await tester.pump();
       await tester.tap(find.text('Eliminar mis datos'));
       await tester.pumpAndSettle();
       expect(find.text('Eliminar todo'), findsOneWidget);
@@ -177,6 +204,47 @@ void main() {
         find.text('Las notificaciones están desactivadas en la configuración del sistema.'),
         findsNothing,
       );
+    });
+
+    testWidgets('muestra sección Apariencia con tiles Claro y Oscuro', (tester) async {
+      await tester.pumpWidget(_wrap());
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('theme_light')), findsOneWidget);
+      expect(find.byKey(const Key('theme_dark')), findsOneWidget);
+      expect(find.text('Claro'), findsOneWidget);
+      expect(find.text('Oscuro'), findsOneWidget);
+    });
+
+    testWidgets('tema Claro marcado cuando themeMode=light', (tester) async {
+      await tester.pumpWidget(_wrap(themeMode: ThemeMode.light));
+      await tester.pumpAndSettle();
+      final tile = tester.widget<ListTile>(find.byKey(const Key('theme_light')));
+      expect(tile.selected, isTrue);
+    });
+
+    testWidgets('tema Oscuro marcado cuando themeMode=dark', (tester) async {
+      await tester.pumpWidget(_wrap(themeMode: ThemeMode.dark));
+      await tester.pumpAndSettle();
+      final tile = tester.widget<ListTile>(find.byKey(const Key('theme_dark')));
+      expect(tile.selected, isTrue);
+    });
+
+    testWidgets('tap en Oscuro lo selecciona', (tester) async {
+      await tester.pumpWidget(_wrap(themeMode: ThemeMode.light));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('theme_dark')));
+      await tester.pump();
+      final tile = tester.widget<ListTile>(find.byKey(const Key('theme_dark')));
+      expect(tile.selected, isTrue);
+    });
+
+    testWidgets('tap en Claro lo selecciona', (tester) async {
+      await tester.pumpWidget(_wrap(themeMode: ThemeMode.dark));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('theme_light')));
+      await tester.pump();
+      final tile = tester.widget<ListTile>(find.byKey(const Key('theme_light')));
+      expect(tile.selected, isTrue);
     });
   });
 }

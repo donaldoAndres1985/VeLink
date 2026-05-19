@@ -167,6 +167,11 @@
   String get settingsTitle => _s(es: 'Ajustes', en: 'Settings');
   String get settingsLanguage => _s(es: 'Idioma', en: 'Language');
   String get settingsNotifications => _s(es: 'Notificaciones', en: 'Notifications');
+  String get settingsAppearance => _s(es: 'Apariencia', en: 'Appearance');
+  String get themeLight => _s(es: 'Claro', en: 'Light');
+  String get themeDark => _s(es: 'Oscuro', en: 'Dark');
+  String get themeLightSubtitle => _s(es: 'Tema claro predeterminado', en: 'Default light theme');
+  String get themeDarkSubtitle => _s(es: 'Tema oscuro elegante', en: 'Elegant dark theme');
   String get settingsAppInfo => _s(es: 'Información de la app', en: 'App info');
   String get languageSpanish => 'Español';
   String get languageEnglish => 'English';

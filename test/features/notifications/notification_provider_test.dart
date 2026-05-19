@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart' hide isNull;
-import 'package:flutter/material.dart' show Locale;
+import 'package:flutter/material.dart' show Locale, ThemeMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -22,6 +22,10 @@ class _FakePrefs implements PreferencesService {
   bool getNotificationsEnabled() => true;
   @override
   Future<void> setNotificationsEnabled(bool enabled) async {}
+  @override
+  ThemeMode getThemeMode() => ThemeMode.light;
+  @override
+  Future<void> setThemeMode(ThemeMode mode) async {}
 }
 
 void main() {

@@ -23,13 +23,14 @@ class VerLinkApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(localePrefProvider);
     final s = ref.watch(appStringsProvider);
+    final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp(
       title: s.homeTitle,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.light,
+      themeMode: themeMode,
       locale: locale,
       supportedLocales: const [Locale('es'), Locale('en')],
       localizationsDelegates: [

@@ -29,6 +29,10 @@ class _FakePrefs implements PreferencesService {
   bool getNotificationsEnabled() => true;
   @override
   Future<void> setNotificationsEnabled(bool enabled) async {}
+  @override
+  ThemeMode getThemeMode() => ThemeMode.light;
+  @override
+  Future<void> setThemeMode(ThemeMode mode) async {}
 }
 
 void main() {
@@ -60,6 +64,9 @@ void main() {
           ),
           localePrefProvider.overrideWith(
             (ref) => LocaleNotifier(_FakePrefs(), const Locale('es')),
+          ),
+          themeModeProvider.overrideWith(
+            (ref) => ThemeModeNotifier(_FakePrefs(), ThemeMode.light),
           ),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
