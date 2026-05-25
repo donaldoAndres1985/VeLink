@@ -279,37 +279,57 @@ class AjustesScreen extends ConsumerWidget {
       );
       return;
     }
+
     final linksCount = (preview['links'] as List?)?.length ?? 0;
     final tagsCount = (preview['tags'] as List?)?.length ?? 0;
     final collsCount = (preview['collections'] as List?)?.length ?? 0;
-    final confirmed = await showDialog<bool>(
+
+    // Elegir modo: Combinar o Reemplazar
+    final replace = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(s.settingsImportData),
-        content: Text(s.importPreviewMsg(linksCount, tagsCount, collsCount)),
-        actions: [
-          Semantics(
-            label: s.cancel,
-            button: true,
-            child: TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
+      builder: (ctx) {
+        final vc = VeLinkSemanticColors.of(ctx);
+        return AlertDialog(
+          title: Text(s.importChooseMode),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                s.importPreviewMsg(linksCount, tagsCount, collsCount),
+                style: TextStyle(fontSize: 13, color: vc.textSecondary),
+              ),
+              const SizedBox(height: 16),
+              _ImportModeOption(
+                icon: Icons.merge_rounded,
+                title: s.importMerge,
+                desc: s.importMergeDesc,
+                onTap: () => Navigator.pop(ctx, false),
+              ),
+              const SizedBox(height: 8),
+              _ImportModeOption(
+                icon: Icons.delete_sweep_rounded,
+                title: s.importReplace,
+                desc: s.importReplaceDesc,
+                isDestructive: true,
+                onTap: () => Navigator.pop(ctx, true),
+              ),
+              const SizedBox(height: 4),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, null),
               child: Text(s.cancel),
             ),
-          ),
-          Semantics(
-            label: s.importConfirm,
-            button: true,
-            child: FilledButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: Text(s.importConfirm),
-            ),
-          ),
-        ],
-      ),
+          ],
+        );
+      },
     );
-    if (confirmed != true || !context.mounted) return;
+    if (replace == null || !context.mounted) return;
+
     try {
-      final result = await service.importFromJson(filePath);
+      final result = await service.importFromJson(filePath, replace: replace);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -717,6 +737,61 @@ class _ThemeTile extends StatelessWidget {
         minVerticalPadding: 4,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      ),
+    );
+  }
+}
+
+class _ImportModeOption extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String desc;
+  final bool isDestructive;
+  final VoidCallback onTap;
+
+  const _ImportModeOption({
+    required this.icon,
+    required this.title,
+    required this.desc,
+    this.isDestructive = false,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final vc = VeLinkSemanticColors.of(context);
+    final color = isDestructive ? VerLinkColors.error : VerLinkColors.green;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          border: Border.all(color: isDestructive ? VerLinkColors.error.withAlpha(80) : vc.outline),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: color),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: color)),
+                  const SizedBox(height: 2),
+                  Text(desc,
+                      style: TextStyle(fontSize: 12, color: vc.textSecondary)),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, size: 18, color: vc.textTertiary),
+          ],
+        ),
       ),
     );
   }

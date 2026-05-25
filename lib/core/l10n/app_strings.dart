@@ -225,6 +225,21 @@
     en: 'Import completed: $imported links imported, $skipped duplicates skipped.',
   );
   String get importConfirm => _s(es: 'Importar', en: 'Import');
+  String get importChooseMode => _s(es: '¿Cómo importar?', en: 'How to import?');
+  String get importMerge => _s(es: 'Combinar', en: 'Merge');
+  String get importMergeDesc => _s(
+    es: 'Agrega los links del archivo sin eliminar los actuales.',
+    en: 'Adds links from the file without deleting current data.',
+  );
+  String get importReplace => _s(es: 'Reemplazar', en: 'Replace');
+  String get importReplaceDesc => _s(
+    es: 'Elimina todos tus datos actuales y los reemplaza con el archivo.',
+    en: 'Deletes all current data and replaces it with the file.',
+  );
+  String get importReplaceWarning => _s(
+    es: '⚠️ Esta acción eliminará permanentemente todos tus datos actuales.',
+    en: '⚠️ This action will permanently delete all your current data.',
+  );
   String get notificationsSubtitle => _s(es: 'Recibir recordatorios y actualizaciones', en: 'Receive reminders and updates');
   String get notificationsStatusEnabled => _s(es: 'Las notificaciones están activadas. Recibirás recordatorios y actualizaciones.', en: 'Notifications are enabled. You will receive reminders and updates.');
   String get notificationsStatusDisabled => _s(es: 'Las notificaciones están desactivadas.', en: 'Notifications are disabled.');
@@ -369,6 +384,27 @@ Puedes eliminar todos tus datos locales desde Ajustes > Eliminar mis datos. Esta
 
 7. CONTACTO
 Para consultas sobre privacidad: soporte@verlink.app
+
+8. PERMISOS DE LA APLICACIÓN
+VeLink puede solicitar los siguientes permisos del dispositivo:
+• Internet: para abrir links y cargar metadatos o miniaturas desde sitios externos.
+• Cámara: para agregar manualmente una captura a un link.
+• Galería/Fotos: para seleccionar una imagen manualmente.
+• Notificaciones: para mostrar recordatorios configurados por el usuario.
+• Alarmas exactas: para programar notificaciones en la hora indicada.
+Puedes administrar estos permisos desde la configuración del sistema operativo.
+
+9. SERVICIOS DE TERCEROS Y SITIOS EXTERNOS
+Para obtener imágenes de vista previa y metadatos, la app puede conectarse desde tu dispositivo al sitio web asociado al link guardado. Esos sitios externos pueden recibir información técnica de la solicitud, como dirección IP, user-agent u otros datos de conexión, de acuerdo con sus propias políticas de privacidad. VeLink no controla esos sitios externos ni almacena esa información en servidores propios.
+
+10. NO VENTA DE DATOS
+VeLink no vende, alquila ni comparte tus datos personales con terceros para publicidad conductual.
+
+11. RETENCIÓN DE DATOS
+Los datos se conservan localmente en tu dispositivo hasta que los elimines desde la app (Ajustes > Eliminar mis datos), borres los datos de la aplicación desde el sistema operativo o desinstales la app.
+
+12. CAMBIOS FUTUROS
+Si en el futuro VeLink incorpora sincronización en la nube, cuentas de usuario, analítica, publicidad o funciones de inteligencia artificial que impliquen tratamiento adicional de datos, actualizaremos esta política antes de habilitar dichas funciones.
 ''';
 
 const _kPrivacyEn = '''
@@ -404,6 +440,27 @@ You can delete all your local data from Settings > Delete my data. This action i
 
 7. CONTACT
 For privacy inquiries: soporte@verlink.app
+
+8. APP PERMISSIONS
+VeLink may request the following device permissions:
+• Internet: to open links and fetch metadata or thumbnails from external sites.
+• Camera: to manually add a screenshot to a link.
+• Gallery/Photos: to manually select an image.
+• Notifications: to display reminders configured by the user.
+• Exact alarms: to schedule notifications at the specified time.
+You can manage these permissions from your device's system settings.
+
+9. THIRD-PARTY SERVICES AND EXTERNAL SITES
+To fetch preview images and metadata, the app may connect from your device to the website associated with the saved link. Those external websites may receive standard technical request information, such as IP address, user-agent, or other connection data, according to their own privacy policies. VeLink does not control those external websites and does not store that information on its own servers.
+
+10. NO DATA SALE
+VeLink does not sell, rent, or share your personal data with third parties for behavioral advertising.
+
+11. DATA RETENTION
+Data is stored locally on your device until you delete it from the app (Settings > Delete my data), clear the app's data from the operating system, or uninstall the app.
+
+12. FUTURE CHANGES
+If VeLink ever incorporates cloud synchronization, user accounts, analytics, advertising, or AI features that involve additional data processing, we will update this policy before enabling those features.
 ''';
 
 const _kTermsEs = '''
@@ -424,6 +481,18 @@ Podemos actualizar estos términos en cualquier momento. El uso continuado de la
 
 5. CONTACTO
 soporte@verlink.app
+
+6. EDAD MÍNIMA
+VeLink no está dirigida a menores de 13 años. Al usar la aplicación, declaras que tienes al menos 13 años o que cuentas con autorización de tus padres o tutores.
+
+7. USO PROHIBIDO
+No debes usar VeLink para guardar, organizar o distribuir contenido ilegal, fraudulento, abusivo, malicioso, que infrinja derechos de terceros o que viole las leyes aplicables.
+
+8. DISPONIBILIDAD DE METADATOS
+Las miniaturas, títulos, descripciones y otros metadatos de links externos pueden no estar siempre disponibles, ya que dependen de sitios y servicios de terceros que VeLink no controla.
+
+9. FUNCIONES FUTURAS Y MONETIZACIÓN
+Algunas funciones futuras podrían ofrecerse bajo planes gratuitos o pagos. Cualquier cambio relevante será informado dentro de la app o en la tienda correspondiente antes de aplicarse.
 ''';
 
 const _kTermsEn = '''
@@ -444,4 +513,16 @@ We may update these terms at any time. Continued use of the application implies 
 
 5. CONTACT
 soporte@verlink.app
+
+6. MINIMUM AGE
+VeLink is not directed at children under 13. By using the app, you confirm that you are at least 13 years old or that you have the appropriate authorization from a parent or guardian.
+
+7. PROHIBITED USE
+You may not use VeLink to save, organize, or distribute illegal, fraudulent, abusive, malicious content, or content that infringes third-party rights or violates applicable laws.
+
+8. METADATA AVAILABILITY
+Thumbnails, titles, descriptions, and other metadata from external links may not always be available, as they depend on third-party sites and services that VeLink does not control.
+
+9. FUTURE FEATURES AND MONETIZATION
+Some future features may be offered under free or paid plans. Any relevant changes will be communicated within the app or on the corresponding store before taking effect.
 ''';
