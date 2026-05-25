@@ -246,6 +246,32 @@ void main() {
     });
   });
 
+  group('LinkCard — menú compartir', () {
+    testWidgets('muestra opción Compartir en el menú', (tester) async {
+      await tester.pumpWidget(buildLinkCardWidget(
+        makeLink(url: 'https://example.com', title: 'Ejemplo'),
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Compartir'), findsOneWidget);
+    });
+
+    testWidgets('el ícono de compartir es share_rounded', (tester) async {
+      await tester.pumpWidget(buildLinkCardWidget(
+        makeLink(url: 'https://example.com'),
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.share_rounded), findsOneWidget);
+    });
+  });
+
   group('LinkCard — acciones del menú', () {
     testWidgets('Marcar favorito establece isFavorite=true en DB', (tester) async {
       final db = createTestDatabase();

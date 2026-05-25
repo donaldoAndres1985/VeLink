@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/database/database.dart';
 import '../../core/preferences/preferences_provider.dart';
@@ -312,6 +313,20 @@ class LinkCard extends ConsumerWidget {
             ),
           ),
           PopupMenuItem(
+            value: _LinkAction.share,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.share_rounded,
+                  size: 18,
+                  color: vc.textSecondary,
+                ),
+                const SizedBox(width: 10),
+                Text(s.shareLink),
+              ],
+            ),
+          ),
+          PopupMenuItem(
             value: _LinkAction.delete,
             child: Row(
               children: [
@@ -348,6 +363,12 @@ class LinkCard extends ConsumerWidget {
         db.setLinkReviewed(link.id, !link.isRead);
         _snack(context,
             link.isRead ? s.markedAsPending : s.markedAsReviewed);
+      case _LinkAction.share:
+        final title = (link.title != null && link.title!.isNotEmpty)
+            ? link.title!
+            : link.url;
+        final text = s.shareLinkText(title, link.url);
+        Share.share(text);
       case _LinkAction.delete:
         db.deleteLink(link.id);
         _snack(context, s.linkDeleted);
@@ -378,4 +399,4 @@ class LinkCard extends ConsumerWidget {
   }
 }
 
-enum _LinkAction { toggleFavorite, toggleReviewed, delete }
+enum _LinkAction { toggleFavorite, toggleReviewed, share, delete }

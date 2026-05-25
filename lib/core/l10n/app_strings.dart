@@ -119,6 +119,8 @@
   String get undo => _s(es: 'Deshacer', en: 'Undo');
   String get openLinkTooltip => _s(es: 'Abrir enlace', en: 'Open link');
   String get linkMenuTooltip => _s(es: 'Más opciones para este link', en: 'More options for this link');
+  String get shareLink => _s(es: 'Compartir', en: 'Share');
+  String shareLinkText(String title, String url) => '$title\n$url';
   String get favoriteSemantics => _s(es: 'Link favorito', en: 'Favorite link');
   String platformSemantics(String platform) => _s(es: 'Plataforma: $platform', en: 'Platform: $platform');
 
@@ -242,6 +244,58 @@
   );
   String get privacyPolicyBody => _lang == 'en' ? _kPrivacyEn : _kPrivacyEs;
   String get termsBody => _lang == 'en' ? _kTermsEn : _kTermsEs;
+
+  // ── Resurface ────────────────────────────────────────────────────────────
+  String get resurfaceTitle => _s(es: 'Redescubrir', en: 'Rediscover');
+  String get resurfaceBadge => _s(es: 'Para ti', en: 'For you');
+  String savedDaysAgo(int n) => _s(
+    es: 'Guardado hace $n día${n != 1 ? "s" : ""}',
+    en: 'Saved $n day${n != 1 ? "s" : ""} ago',
+  );
+
+  // ── Stats ────────────────────────────────────────────────────────────────
+  String get statsTitle => _s(es: 'Tu actividad', en: 'Your Activity');
+  String get statsScore => _s(es: 'Productividad', en: 'Productivity');
+  String get statsStreak => _s(es: 'Racha', en: 'Streak');
+  String get statsStreakDays => _s(es: 'días', en: 'days');
+  String get statsReviewRate => _s(es: 'Tasa de revisión', en: 'Review rate');
+  String get statsPeriodWeek => _s(es: 'Semana', en: 'Week');
+  String get statsPeriodMonth => _s(es: 'Mes', en: 'Month');
+  String get statsTrend => _s(es: 'Tendencia', en: 'Trend');
+  String get statsPlatformsSection => _s(es: 'Plataformas', en: 'Platforms');
+  String get statsActivityYear => _s(es: 'Actividad', en: 'Activity');
+  String get statsTotalLinks => _s(es: 'Total guardados', en: 'Total saved');
+  String get statsThisWeek => _s(es: 'Esta semana', en: 'This week');
+  String get statsThisMonth => _s(es: 'Este mes', en: 'This month');
+  String get statsReviewed => _s(es: 'Revisados', en: 'Reviewed');
+  String get statsPending => _s(es: 'Pendientes', en: 'Pending');
+  String get statsFavorites => _s(es: 'Favoritos', en: 'Favorites');
+  String get statsTopPlatform => _s(es: 'Plataforma principal', en: 'Top platform');
+  String get statsEmptyState => _s(
+    es: 'Guarda links para ver\ntu actividad aquí.',
+    en: 'Save links to see\nyour activity here.',
+  );
+  String get statsAchievements => _s(es: 'Logros', en: 'Achievements');
+  String get statsNextMilestone => _s(es: 'Próximo logro', en: 'Next milestone');
+  String get statsShare => _s(es: 'Compartir', en: 'Share');
+
+  // ── Premium ──────────────────────────────────────────────────────────────────
+  String get premiumTitle => 'VerLink Premium';
+  String get premiumSubtitle => _s(es: 'Desbloquea todo el potencial', en: 'Unlock the full potential');
+  String get premiumUnlock => _s(es: 'Activar Premium', en: 'Activate Premium');
+  String get premiumMaybeLater => _s(es: 'Quizás después', en: 'Maybe later');
+  String get premiumFeatureStats => _s(es: 'Estadísticas avanzadas', en: 'Advanced statistics');
+  String get premiumFeatureCollections => _s(es: 'Colecciones ilimitadas', en: 'Unlimited collections');
+  String get premiumFeatureBackup => _s(es: 'Respaldo de datos', en: 'Data backup');
+  String get premiumFeatureBadges => _s(es: 'Logros y racha extendida', en: 'Achievements & extended streak');
+  String get premiumActive => _s(es: '¡Premium activado!', en: 'Premium activated!');
+  String get premiumStatsLocked => _s(es: 'Desbloquear estadísticas', en: 'Unlock statistics');
+  String get premiumViewPlans => _s(es: 'Ver planes', en: 'View plans');
+  String get premiumCollectionLimit => _s(es: 'Límite de colecciones', en: 'Collection limit');
+  String get premiumCollectionLimitDesc => _s(
+    es: 'Has alcanzado el límite de 3 colecciones gratuitas.',
+    en: 'You have reached the free 3-collection limit.',
+  );
 
   // ── Time Ago ─────────────────────────────────────────────────────────────
   String timeAgo(DateTime createdAt) {
