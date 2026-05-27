@@ -60,6 +60,37 @@ class AppDatabase extends _$AppDatabase {
   Future<int> deleteLink(int id) =>
       (delete(links)..where((l) => l.id.equals(id))).go();
 
+  /// Re-inserta un link borrado (para deshacer eliminaciones).
+  /// Preserva todos los campos originales, etiquetas y colecciones.
+  Future<int> restoreLink(
+    Link link, {
+    List<Tag> tags = const [],
+    List<Collection> collections = const [],
+  }) async {
+    final newId = await insertLink(LinksCompanion(
+      url: Value(link.url),
+      title: Value(link.title),
+      description: Value(link.description),
+      previewImageUrl: Value(link.previewImageUrl),
+      previewImagePath: Value(link.previewImagePath),
+      platform: Value(link.platform),
+      faviconUrl: Value(link.faviconUrl),
+      isFavorite: Value(link.isFavorite),
+      priority: Value(link.priority),
+      isRead: Value(link.isRead),
+      remindAt: Value(link.remindAt),
+      notes: Value(link.notes),
+      createdAt: Value(link.createdAt),
+    ));
+    for (final tag in tags) {
+      await addTagToLink(newId, tag.id);
+    }
+    for (final col in collections) {
+      await addLinkToCollection(newId, col.id);
+    }
+    return newId;
+  }
+
   Future<void> setLinkPriority(int linkId, int priority) =>
       (update(links)..where((l) => l.id.equals(linkId)))
           .write(LinksCompanion(priority: Value(priority)));
@@ -267,6 +298,150 @@ class AppDatabase extends _$AppDatabase {
     await delete(tags).go();
     await delete(collections).go();
   }
+
+  // ── Resurface & Stats ─────────────────────────────────────────────────────
+
+  Stream<List<Link>> watchForgottenLinks({int daysOld = 7, int limit = 8}) {
+    final cutoff = DateTime.now().subtract(Duration(days: daysOld));
+    return (select(links)
+          ..where((l) =>
+              l.isRead.equals(false) &
+              l.createdAt.isSmallerThanValue(cutoff))
+          ..orderBy([(l) => OrderingTerm.desc(l.createdAt)])
+          ..limit(limit))
+        .watch();
+  }
+
+  Future<LinkStats> getLinkStats() async {
+    final all = await getAllLinks();
+    final now = DateTime.now();
+    final weekAgo = now.subtract(const Duration(days: 7));
+    final monthAgo = DateTime(now.year, now.month - 1, now.day);
+
+    final thisWeek = all.where((l) => l.createdAt.isAfter(weekAgo)).length;
+    final thisMonth = all.where((l) => l.createdAt.isAfter(monthAgo)).length;
+    final reviewed = all.where((l) => l.isRead).length;
+    final pending = all.where((l) => !l.isRead).length;
+    final favorites = all.where((l) => l.isFavorite).length;
+
+    final platformCount = <String, int>{};
+    for (final l in all) {
+      platformCount[l.platform] = (platformCount[l.platform] ?? 0) + 1;
+    }
+    String? topPlatform;
+    if (platformCount.isNotEmpty) {
+      topPlatform = platformCount.entries
+          .reduce((a, b) => a.value >= b.value ? a : b)
+          .key;
+    }
+
+    return LinkStats(
+      total: all.length,
+      thisWeek: thisWeek,
+      thisMonth: thisMonth,
+      reviewed: reviewed,
+      pending: pending,
+      favorites: favorites,
+      topPlatform: topPlatform,
+      uniquePlatforms: platformCount.length,
+    );
+  }
+
+  Future<List<DayCount>> getLinksPerDay({int days = 7}) async {
+    final all = await getAllLinks();
+    final now = DateTime.now();
+    final origin = DateTime(now.year, now.month, now.day)
+        .subtract(Duration(days: days - 1));
+
+    final counts = <String, int>{};
+    for (final link in all) {
+      final d = link.createdAt;
+      final day = DateTime(d.year, d.month, d.day);
+      if (!day.isBefore(origin)) {
+        final key = _dayKey(day);
+        counts[key] = (counts[key] ?? 0) + 1;
+      }
+    }
+
+    return List.generate(days, (i) {
+      final date = origin.add(Duration(days: i));
+      return DayCount(date: date, count: counts[_dayKey(date)] ?? 0);
+    });
+  }
+
+  Future<List<PlatformCount>> getPlatformBreakdown() async {
+    final all = await getAllLinks();
+    if (all.isEmpty) return [];
+
+    final counts = <String, int>{};
+    for (final link in all) {
+      final p = link.platform;
+      counts[p] = (counts[p] ?? 0) + 1;
+    }
+    final sorted = counts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return sorted.map((e) => PlatformCount(platform: e.key, count: e.value)).toList();
+  }
+
+  Future<List<DayCount>> getLinksForYear() async {
+    const yearDays = 364;
+    final all = await getAllLinks();
+    final now = DateTime.now();
+    final origin = DateTime(now.year, now.month, now.day)
+        .subtract(const Duration(days: yearDays - 1));
+
+    final counts = <String, int>{};
+    for (final link in all) {
+      final d = link.createdAt;
+      final day = DateTime(d.year, d.month, d.day);
+      if (!day.isBefore(origin)) {
+        final key = _dayKey(day);
+        counts[key] = (counts[key] ?? 0) + 1;
+      }
+    }
+
+    return List.generate(yearDays, (i) {
+      final date = origin.add(Duration(days: i));
+      return DayCount(date: date, count: counts[_dayKey(date)] ?? 0);
+    });
+  }
+
+  static String _dayKey(DateTime dt) =>
+      '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+}
+
+class LinkStats {
+  final int total;
+  final int thisWeek;
+  final int thisMonth;
+  final int reviewed;
+  final int pending;
+  final int favorites;
+  final String? topPlatform;
+  final int uniquePlatforms;
+
+  const LinkStats({
+    required this.total,
+    required this.thisWeek,
+    required this.thisMonth,
+    required this.reviewed,
+    required this.pending,
+    required this.favorites,
+    this.topPlatform,
+    this.uniquePlatforms = 0,
+  });
+}
+
+class DayCount {
+  final DateTime date;
+  final int count;
+  const DayCount({required this.date, required this.count});
+}
+
+class PlatformCount {
+  final String platform;
+  final int count;
+  const PlatformCount({required this.platform, required this.count});
 }
 
 final databaseProvider = Provider<AppDatabase>((ref) {

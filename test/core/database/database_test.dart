@@ -663,4 +663,257 @@ void main() {
       expect(await db.getAllLinks(), isEmpty);
     });
   });
+
+  // ─── LINKS — watchForgottenLinks ─────────────────────────────────────────────
+
+  group('Links — watchForgottenLinks', () {
+    test('retorna links no revisados guardados hace más de 7 días', () async {
+      final old = DateTime.now().subtract(const Duration(days: 10));
+      await db.insertLink(LinksCompanion(
+        url: const Value('https://old.com'),
+        isRead: const Value(false),
+        createdAt: Value(old),
+      ));
+      final forgotten = await db.watchForgottenLinks().first;
+      expect(forgotten.length, 1);
+      expect(forgotten.first.url, 'https://old.com');
+    });
+
+    test('no retorna links revisados aunque sean antiguos', () async {
+      final old = DateTime.now().subtract(const Duration(days: 10));
+      await db.insertLink(LinksCompanion(
+        url: const Value('https://reviewed.com'),
+        isRead: const Value(true),
+        createdAt: Value(old),
+      ));
+      final forgotten = await db.watchForgottenLinks().first;
+      expect(forgotten, isEmpty);
+    });
+
+    test('no retorna links guardados recientemente', () async {
+      await db.insertLink(LinksCompanion.insert(url: 'https://recent.com'));
+      final forgotten = await db.watchForgottenLinks().first;
+      expect(forgotten, isEmpty);
+    });
+
+    test('respeta el límite de resultados', () async {
+      final old = DateTime.now().subtract(const Duration(days: 10));
+      for (var i = 0; i < 10; i++) {
+        await db.insertLink(LinksCompanion(
+          url: Value('https://old-$i.com'),
+          isRead: const Value(false),
+          createdAt: Value(old.subtract(Duration(seconds: i))),
+        ));
+      }
+      final forgotten = await db.watchForgottenLinks(limit: 5).first;
+      expect(forgotten.length, 5);
+    });
+  });
+
+  // ─── LINKS — getLinkStats ─────────────────────────────────────────────────────
+
+  group('Links — getLinkStats', () {
+    test('retorna total correcto', () async {
+      await db.insertLink(LinksCompanion.insert(url: 'https://a.com'));
+      await db.insertLink(LinksCompanion.insert(url: 'https://b.com'));
+      final stats = await db.getLinkStats();
+      expect(stats.total, 2);
+    });
+
+    test('retorna pendientes y revisados correctos', () async {
+      await db.insertLink(LinksCompanion.insert(url: 'https://pending.com'));
+      await db.insertLink(LinksCompanion.insert(
+        url: 'https://reviewed.com',
+        isRead: const Value(true),
+      ));
+      final stats = await db.getLinkStats();
+      expect(stats.pending, 1);
+      expect(stats.reviewed, 1);
+    });
+
+    test('retorna favoritos correctos', () async {
+      await db.insertLink(LinksCompanion.insert(
+        url: 'https://fav.com',
+        isFavorite: const Value(true),
+      ));
+      await db.insertLink(LinksCompanion.insert(url: 'https://normal.com'));
+      final stats = await db.getLinkStats();
+      expect(stats.favorites, 1);
+    });
+
+    test('retorna 0 cuando no hay links', () async {
+      final stats = await db.getLinkStats();
+      expect(stats.total, 0);
+      expect(stats.pending, 0);
+      expect(stats.reviewed, 0);
+      expect(stats.favorites, 0);
+      expect(stats.topPlatform, isNull);
+    });
+
+    test('retorna la plataforma más frecuente', () async {
+      await db.insertLink(LinksCompanion(
+        url: const Value('https://y1.com'),
+        platform: const Value('youtube'),
+      ));
+      await db.insertLink(LinksCompanion(
+        url: const Value('https://y2.com'),
+        platform: const Value('youtube'),
+      ));
+      await db.insertLink(LinksCompanion(
+        url: const Value('https://w1.com'),
+        platform: const Value('web'),
+      ));
+      final stats = await db.getLinkStats();
+      expect(stats.topPlatform, 'youtube');
+    });
+  });
+
+  group('Links — getLinksPerDay', () {
+    test('devuelve N entradas para los últimos N días', () async {
+      final result = await db.getLinksPerDay(days: 7);
+      expect(result.length, 7);
+    });
+
+    test('cuenta correctamente los links del día actual', () async {
+      await db.insertLink(const LinksCompanion(url: Value('https://a.com')));
+      await db.insertLink(const LinksCompanion(url: Value('https://b.com')));
+      final result = await db.getLinksPerDay(days: 7);
+      expect(result.last.count, 2);
+    });
+
+    test('excluye links fuera del período', () async {
+      final old = DateTime.now().subtract(const Duration(days: 30));
+      await db.insertLink(LinksCompanion(url: const Value('https://old.com'), createdAt: Value(old)));
+      final result = await db.getLinksPerDay(days: 7);
+      expect(result.every((d) => d.count == 0), isTrue);
+    });
+
+    test('devuelve 30 entradas cuando se pide mes', () async {
+      final result = await db.getLinksPerDay(days: 30);
+      expect(result.length, 30);
+    });
+  });
+
+  group('Links — getPlatformBreakdown', () {
+    test('devuelve lista vacía cuando no hay links', () async {
+      final result = await db.getPlatformBreakdown();
+      expect(result, isEmpty);
+    });
+
+    test('cuenta links por plataforma correctamente', () async {
+      await db.insertLink(const LinksCompanion(url: Value('https://a.com'), platform: Value('youtube')));
+      await db.insertLink(const LinksCompanion(url: Value('https://b.com'), platform: Value('youtube')));
+      await db.insertLink(const LinksCompanion(url: Value('https://c.com'), platform: Value('twitter')));
+      final result = await db.getPlatformBreakdown();
+      final youtube = result.firstWhere((p) => p.platform == 'youtube');
+      expect(youtube.count, 2);
+    });
+
+    test('ordena por frecuencia descendente', () async {
+      await db.insertLink(const LinksCompanion(url: Value('https://a.com'), platform: Value('twitter')));
+      await db.insertLink(const LinksCompanion(url: Value('https://b.com'), platform: Value('youtube')));
+      await db.insertLink(const LinksCompanion(url: Value('https://c.com'), platform: Value('youtube')));
+      final result = await db.getPlatformBreakdown();
+      expect(result.first.platform, 'youtube');
+    });
+  });
+
+  group('Links — getLinksForYear', () {
+    test('devuelve 364 entradas', () async {
+      final result = await db.getLinksForYear();
+      expect(result.length, 364);
+    });
+
+    test('el último día refleja links guardados hoy', () async {
+      await db.insertLink(const LinksCompanion(url: Value('https://today.com')));
+      final result = await db.getLinksForYear();
+      expect(result.last.count, 1);
+    });
+  });
+
+  group('Links — getLinkStats — uniquePlatforms', () {
+    test('retorna 0 cuando no hay links', () async {
+      final stats = await db.getLinkStats();
+      expect(stats.uniquePlatforms, 0);
+    });
+
+    test('cuenta plataformas únicas correctamente', () async {
+      await db.insertLink(const LinksCompanion(
+        url: Value('https://a.com'), platform: Value('youtube'),
+      ));
+      await db.insertLink(const LinksCompanion(
+        url: Value('https://b.com'), platform: Value('youtube'),
+      ));
+      await db.insertLink(const LinksCompanion(
+        url: Value('https://c.com'), platform: Value('twitter'),
+      ));
+      final stats = await db.getLinkStats();
+      expect(stats.uniquePlatforms, 2);
+    });
+
+    test('una sola plataforma cuenta como 1', () async {
+      await db.insertLink(const LinksCompanion(
+        url: Value('https://a.com'), platform: Value('web'),
+      ));
+      final stats = await db.getLinkStats();
+      expect(stats.uniquePlatforms, 1);
+    });
+  });
+
+  // ─── restoreLink ─────────────────────────────────────────────────────────────
+
+  group('Links — restoreLink', () {
+    test('restaura un link borrado con sus datos originales', () async {
+      await db.insertLink(const LinksCompanion(
+        url: Value('https://example.com'),
+        title: Value('Mi Link'),
+        platform: Value('web'),
+        isFavorite: Value(true),
+      ));
+      final link = (await db.getAllLinks()).first;
+
+      await db.deleteLink(link.id);
+      expect(await db.getAllLinks(), isEmpty);
+
+      await db.restoreLink(link);
+
+      final all = await db.getAllLinks();
+      expect(all.length, 1);
+      expect(all.first.url, 'https://example.com');
+      expect(all.first.title, 'Mi Link');
+      expect(all.first.isFavorite, isTrue);
+    });
+
+    test('restaura el link con las etiquetas originales', () async {
+      final linkId = await db.insertLink(LinksCompanion.insert(url: 'https://a.com'));
+      final tagId = await db.insertTag(TagsCompanion.insert(name: 'flutter'));
+      await db.addTagToLink(linkId, tagId);
+
+      final link = (await db.getAllLinks()).first;
+      final tags = await db.getTagsForLink(link.id);
+
+      await db.deleteLink(link.id);
+
+      final newId = await db.restoreLink(link, tags: tags);
+      final restoredTags = await db.getTagsForLink(newId);
+
+      expect(restoredTags.map((t) => t.name), contains('flutter'));
+    });
+
+    test('restaura el link con sus colecciones originales', () async {
+      final linkId = await db.insertLink(LinksCompanion.insert(url: 'https://b.com'));
+      final colId = await db.insertCollection(CollectionsCompanion.insert(name: 'Favoritos'));
+      await db.addLinkToCollection(linkId, colId);
+
+      final link = (await db.getAllLinks()).first;
+      final cols = await db.getCollectionsForLink(link.id);
+
+      await db.deleteLink(link.id);
+
+      final newId = await db.restoreLink(link, collections: cols);
+      final restoredCols = await db.getCollectionsForLink(newId);
+
+      expect(restoredCols.map((c) => c.name), contains('Favoritos'));
+    });
+  });
 }
