@@ -8,6 +8,12 @@ abstract class PreferencesService {
   Future<void> setNotificationsEnabled(bool enabled);
   ThemeMode getThemeMode();
   Future<void> setThemeMode(ThemeMode mode);
+  int getStreak();
+  Future<void> setStreak(int count);
+  String? getStreakLastDate();
+  Future<void> setStreakLastDate(String isoDate);
+  bool isPremium();
+  Future<void> setPremium(bool value);
 }
 
 class SharedPreferencesService implements PreferencesService {
@@ -16,6 +22,9 @@ class SharedPreferencesService implements PreferencesService {
   static const _keyLocale = 'locale';
   static const _keyNotifications = 'notifications_enabled';
   static const _keyThemeMode = 'theme_mode';
+  static const _keyStreak = 'streak_count';
+  static const _keyStreakDate = 'streak_last_date';
+  static const _keyPremium = 'is_premium';
 
   SharedPreferencesService(this._prefs);
 
@@ -49,5 +58,29 @@ class SharedPreferencesService implements PreferencesService {
   @override
   Future<void> setThemeMode(ThemeMode mode) async {
     await _prefs.setString(_keyThemeMode, mode == ThemeMode.dark ? 'dark' : 'light');
+  }
+
+  @override
+  int getStreak() => _prefs.getInt(_keyStreak) ?? 0;
+
+  @override
+  Future<void> setStreak(int count) async {
+    await _prefs.setInt(_keyStreak, count);
+  }
+
+  @override
+  String? getStreakLastDate() => _prefs.getString(_keyStreakDate);
+
+  @override
+  Future<void> setStreakLastDate(String isoDate) async {
+    await _prefs.setString(_keyStreakDate, isoDate);
+  }
+
+  @override
+  bool isPremium() => _prefs.getBool(_keyPremium) ?? false;
+
+  @override
+  Future<void> setPremium(bool value) async {
+    await _prefs.setBool(_keyPremium, value);
   }
 }

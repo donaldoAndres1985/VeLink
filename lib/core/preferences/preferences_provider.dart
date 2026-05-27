@@ -68,6 +68,65 @@ final notificationsEnabledProvider =
   return NotificationsEnabledNotifier(prefs, prefs.getNotificationsEnabled());
 });
 
+// ── Streak ───────────────────────────────────────────────────────────────────
+
+class StreakNotifier extends StateNotifier<int> {
+  final PreferencesService _prefs;
+
+  StreakNotifier(this._prefs) : super(_prefs.getStreak());
+
+  void recordOpen([DateTime? now]) {
+    now ??= DateTime.now();
+    final today = _dateKey(now);
+    final lastDate = _prefs.getStreakLastDate();
+
+    if (lastDate == today) return;
+
+    final int newStreak;
+    if (lastDate == null) {
+      newStreak = 1;
+    } else {
+      final yesterday = _dateKey(now.subtract(const Duration(days: 1)));
+      newStreak = lastDate == yesterday ? state + 1 : 1;
+    }
+
+    _prefs.setStreak(newStreak);
+    _prefs.setStreakLastDate(today);
+    state = newStreak;
+  }
+
+  static String _dateKey(DateTime dt) =>
+      '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+}
+
+final streakProvider = StateNotifierProvider<StreakNotifier, int>((ref) {
+  final prefs = ref.read(preferencesServiceProvider);
+  return StreakNotifier(prefs)..recordOpen();
+});
+
+// ── Premium ───────────────────────────────────────────────────────────────────
+
+class PremiumNotifier extends StateNotifier<bool> {
+  final PreferencesService _prefs;
+
+  PremiumNotifier(this._prefs) : super(_prefs.isPremium());
+
+  Future<void> upgrade() async {
+    await _prefs.setPremium(true);
+    state = true;
+  }
+
+  Future<void> downgrade() async {
+    await _prefs.setPremium(false);
+    state = false;
+  }
+}
+
+final premiumProvider = StateNotifierProvider<PremiumNotifier, bool>((ref) {
+  final prefs = ref.read(preferencesServiceProvider);
+  return PremiumNotifier(prefs);
+});
+
 // ── AppStrings ───────────────────────────────────────────────────────────────
 
 final appStringsProvider = Provider<AppStrings>((ref) {
