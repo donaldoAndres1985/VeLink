@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/preferences/preferences_provider.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../shared/widgets/link_card.dart';
 import '../../../shared/widgets/screen_header.dart';
+import '../../../shared/widgets/swipeable_link_card.dart';
 import '../providers/pending_provider.dart';
 
 class PendientesScreen extends ConsumerWidget {
@@ -16,10 +16,14 @@ class PendientesScreen extends ConsumerWidget {
     final searchQuery = ref.watch(pendingSearchQueryProvider);
     final s = ref.watch(appStringsProvider);
 
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: Column(
+    // ScaffoldMessenger aislado — mismo motivo que HomeScreen.
+    // Con _KeepAlivePage hay 5 Scaffolds registrados en el mismo messenger;
+    // sin aislamiento el timer de auto-dismiss del snackbar no funciona.
+    return ScaffoldMessenger(
+      child: Scaffold(
+        body: SafeArea(
+          bottom: false,
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ScreenHeader(title: s.pendingTitle, subtitle: s.pendingSubtitle),
@@ -160,7 +164,7 @@ class PendientesScreen extends ConsumerWidget {
                       AppTheme.contentBottomPadding,
                     ),
                     itemCount: links.length,
-                    itemBuilder: (_, i) => LinkCard(link: links[i]),
+                    itemBuilder: (_, i) => SwipeableLinkCard(link: links[i]),
                   );
                 },
                 loading: () => const Center(
@@ -180,6 +184,7 @@ class PendientesScreen extends ConsumerWidget {
           ],
         ),
       ),
-    );
+    ),  // Scaffold
+    );  // ScaffoldMessenger
   }
 }
