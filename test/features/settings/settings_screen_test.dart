@@ -35,6 +35,18 @@ class _FakePrefs implements PreferencesService {
   ThemeMode getThemeMode() => _themeMode;
   @override
   Future<void> setThemeMode(ThemeMode mode) async => _themeMode = mode;
+  @override
+  int getStreak() => 0;
+  @override
+  Future<void> setStreak(int count) async {}
+  @override
+  String? getStreakLastDate() => null;
+  @override
+  Future<void> setStreakLastDate(String isoDate) async {}
+  @override
+  bool isPremium() => true;
+  @override
+  Future<void> setPremium(bool value) async {}
 }
 
 Widget _wrap({
