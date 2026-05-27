@@ -6,6 +6,7 @@ import 'package:velink/core/l10n/app_strings.dart';
 import 'package:velink/core/preferences/preferences_provider.dart';
 import 'package:velink/features/home/providers/home_provider.dart';
 import 'package:velink/features/home/screens/home_screen.dart';
+import 'package:velink/features/home/widgets/resurface_section.dart';
 import 'package:velink/features/search/providers/search_provider.dart';
 import '../../helpers/database_helper.dart';
 import '../../helpers/link_factory.dart';
@@ -18,6 +19,7 @@ Widget buildHomeWidget({List<Link> links = const []}) {
       databaseProvider.overrideWithValue(db),
       appStringsProvider.overrideWithValue(AppStrings('es')),
       filteredHomeLinksProvider.overrideWith((ref) => Stream.value(links)),
+      forgottenLinksProvider.overrideWith((ref) => Stream.value(<Link>[])),
     ],
     child: const MaterialApp(home: HomeScreen()),
   );
@@ -165,6 +167,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           appStringsProvider.overrideWithValue(AppStrings('es')),
           filteredHomeLinksProvider.overrideWith((_) => Stream.value([link1, link2])),
+          forgottenLinksProvider.overrideWith((ref) => Stream.value(<Link>[])),
           searchResultsProvider.overrideWith((_) async => [link1]),
         ],
         child: const MaterialApp(home: HomeScreen()),

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/preferences/preferences_provider.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../shared/widgets/link_card.dart';
 import '../../../shared/widgets/screen_header.dart';
+import '../../../shared/widgets/swipeable_link_card.dart';
 import '../providers/home_provider.dart';
+import '../widgets/resurface_section.dart';
 import '../../search/providers/search_provider.dart';
+import '../../stats/screens/stats_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -45,10 +47,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final filter = ref.watch(homeFilterProvider);
     final s = ref.watch(appStringsProvider);
 
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: Column(
+    // ScaffoldMessenger aislado para esta pantalla.
+    // La app usa _KeepAlivePage → 5 Scaffolds vivos simultáneamente registrados
+    // en el ScaffoldMessenger de MaterialApp. Sin aislamiento el timer de
+    // auto-dismiss del snackbar queda vinculado a múltiples controladores de
+    // animación y el mensaje nunca desaparece.
+    return ScaffoldMessenger(
+      child: Scaffold(
+        body: SafeArea(
+          bottom: false,
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(s),
@@ -77,7 +85,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ],
         ),
       ),
-    );
+    ),  // Scaffold
+    );  // ScaffoldMessenger
   }
 
   Widget _buildHeader(dynamic s) {
@@ -173,37 +182,51 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildFilterBar(BuildContext context, WidgetRef ref,
       VeLinkSemanticColors vc, HomeFilter filter, dynamic s) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            _PremiumFilterChip(
-              label: s.filterAll,
-              selected: filter == HomeFilter.todos,
-              onTap: () {
-                ref.read(homeFilterProvider.notifier).state = HomeFilter.todos;
-                ref.read(selectedPlatformProvider.notifier).state = null;
-                _clearSearch();
-              },
+      padding: const EdgeInsets.fromLTRB(16, 10, 4, 6),
+      child: Row(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _PremiumFilterChip(
+                    label: s.filterAll,
+                    selected: filter == HomeFilter.todos,
+                    onTap: () {
+                      ref.read(homeFilterProvider.notifier).state =
+                          HomeFilter.todos;
+                      ref.read(selectedPlatformProvider.notifier).state = null;
+                      _clearSearch();
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  _PremiumFilterChip(
+                    label: s.filterFavorites,
+                    icon: Icons.star_rounded,
+                    selected: filter == HomeFilter.favoritos,
+                    onTap: () => ref.read(homeFilterProvider.notifier).state =
+                        HomeFilter.favoritos,
+                  ),
+                  const SizedBox(width: 8),
+                  _PremiumFilterChip(
+                    label: s.filterPlatform,
+                    icon: Icons.filter_list_rounded,
+                    selected: ref.watch(selectedPlatformProvider) != null,
+                    onTap: () => _showFilterSheet(context, ref, s),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(width: 8),
-            _PremiumFilterChip(
-              label: s.filterFavorites,
-              icon: Icons.star_rounded,
-              selected: filter == HomeFilter.favoritos,
-              onTap: () => ref.read(homeFilterProvider.notifier).state =
-                  HomeFilter.favoritos,
+          ),
+          IconButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const StatsScreen()),
             ),
-            const SizedBox(width: 8),
-            _PremiumFilterChip(
-              label: s.filterPlatform,
-              icon: Icons.filter_list_rounded,
-              selected: ref.watch(selectedPlatformProvider) != null,
-              onTap: () => _showFilterSheet(context, ref, s),
-            ),
-          ],
-        ),
+            icon: Icon(Icons.bar_chart_rounded, size: 22, color: vc.textSecondary),
+            tooltip: s.statsTitle,
+          ),
+        ],
       ),
     );
   }
@@ -216,8 +239,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         16,
         AppTheme.contentBottomPaddingFab,
       ),
-      itemCount: links.length,
-      itemBuilder: (_, i) => LinkCard(link: links[i]),
+      itemCount: links.length + 1,
+      itemBuilder: (_, i) {
+        if (i == 0) return const ResurfaceSection();
+        return SwipeableLinkCard(link: links[i - 1]);
+      },
     );
   }
 
