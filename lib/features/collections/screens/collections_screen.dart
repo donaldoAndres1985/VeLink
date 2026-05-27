@@ -1,19 +1,24 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database.dart';
+import '../../../core/l10n/app_strings.dart';
 import '../../../core/preferences/preferences_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../providers/collection_providers.dart';
+import '../../premium/screens/paywall_screen.dart';
 import 'collection_detail_screen.dart';
 import 'create_collection_dialog.dart';
 
 class CollectionsContent extends ConsumerWidget {
   const CollectionsContent({super.key});
 
+  static const _freeLimit = 3;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final collectionsAsync = ref.watch(allCollectionsProvider);
     final s = ref.watch(appStringsProvider);
+    final isPremium = ref.watch(premiumProvider);
 
     return collectionsAsync.when(
       data: (collections) => collections.isEmpty
@@ -66,17 +71,24 @@ class CollectionsContent extends ConsumerWidget {
                 ),
               );
             })
-          : ListView.builder(
-              padding: const EdgeInsets.fromLTRB(
-                16,
-                12,
-                16,
-                AppTheme.contentBottomPaddingFab,
-              ),
-              itemCount: collections.length,
-              itemBuilder: (_, i) =>
-                  _CollectionCard(collection: collections[i]),
-            ),
+          : Builder(builder: (ctx) {
+              final showBanner = !isPremium && collections.length >= _freeLimit;
+              return ListView.builder(
+                padding: const EdgeInsets.fromLTRB(
+                  16,
+                  12,
+                  16,
+                  AppTheme.contentBottomPaddingFab,
+                ),
+                itemCount: collections.length + (showBanner ? 1 : 0),
+                itemBuilder: (_, i) {
+                  if (showBanner && i == collections.length) {
+                    return _PremiumCollectionBanner(s: s);
+                  }
+                  return _CollectionCard(collection: collections[i]);
+                },
+              );
+            }),
       loading: () => const Center(
         child: CircularProgressIndicator(
           color: VerLinkColors.green,
@@ -314,6 +326,69 @@ class _ActionButton extends StatelessWidget {
             color: color ?? vc.textSecondary,
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _PremiumCollectionBanner extends StatelessWidget {
+  final AppStrings s;
+
+  const _PremiumCollectionBanner({required this.s});
+
+  @override
+  Widget build(BuildContext context) {
+    final vc = VeLinkSemanticColors.of(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            VerLinkColors.green.withValues(alpha: 0.08),
+            const Color(0xFFEAB308).withValues(alpha: 0.08),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: VerLinkColors.green.withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.lock_rounded, size: 18, color: Color(0xFFEAB308)),
+              const SizedBox(width: 8),
+              Text(
+                s.premiumCollectionLimit,
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: vc.textPrimary),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            s.premiumCollectionLimitDesc,
+            style: TextStyle(fontSize: 13, color: vc.textSecondary),
+          ),
+          const SizedBox(height: 12),
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: VerLinkColors.green,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+                side: BorderSide(color: VerLinkColors.green.withValues(alpha: 0.4)),
+              ),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PaywallScreen()),
+            ),
+            child: Text(s.premiumViewPlans, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+          ),
+        ],
       ),
     );
   }
