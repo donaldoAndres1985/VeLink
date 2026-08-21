@@ -216,6 +216,10 @@
   String get settingsExportError => _s(es: 'No se pudo exportar el respaldo.', en: 'Could not export backup.');
   String get importFileNotFound => _s(es: 'Archivo de respaldo inválido o no compatible.', en: 'Invalid or incompatible backup file.');
   String get importInvalidFile => _s(es: 'Archivo de respaldo inválido.', en: 'Invalid backup file.');
+  String get importGenericError => _s(
+    es: 'No se pudo completar la importación. No se guardó ningún cambio.',
+    en: 'Could not complete the import. No changes were saved.',
+  );
   String importPreviewMsg(int links, int tags, int colls) => _s(
     es: '$links links, $tags etiquetas, $colls colecciones. Se combinarán con los datos actuales.',
     en: '$links links, $tags labels, $colls collections. Will be merged with current data.',
@@ -308,9 +312,33 @@
   String get premiumViewPlans => _s(es: 'Ver planes', en: 'View plans');
   String get premiumCollectionLimit => _s(es: 'Límite de colecciones', en: 'Collection limit');
   String get premiumCollectionLimitDesc => _s(
-    es: 'Has alcanzado el límite de 3 colecciones gratuitas.',
-    en: 'You have reached the free 3-collection limit.',
+    es: 'Has alcanzado el límite de 2 colecciones gratuitas.',
+    en: 'You have reached the free 2-collection limit.',
   );
+  String get premiumUpgradeCardTitle => _s(es: 'Desbloquea VeLink Pro', en: 'Unlock VeLink Pro');
+  String get premiumUpgradeCardDesc => _s(
+    es: 'Obtén links ilimitados, colecciones ilimitadas, etiquetas avanzadas y estadísticas completas.',
+    en: 'Get unlimited links, unlimited collections, advanced labels and full stats.',
+  );
+  String get premiumUpgradeCardBtn => _s(es: 'Ver Premium', en: 'See Premium');
+  String get limitLinksReached => _s(
+    es: 'Llegaste al límite de 30 links gratuitos. Desbloquea links ilimitados con VeLink Pro.',
+    en: 'You reached the 30 free links limit. Unlock unlimited links with VeLink Pro.',
+  );
+  String get limitTagsReached => _s(
+    es: 'La versión gratuita permite hasta 3 etiquetas. Crea etiquetas ilimitadas con VeLink Pro.',
+    en: 'The free version allows up to 3 labels. Create unlimited labels with VeLink Pro.',
+  );
+  String get limitCollectionsReached => _s(
+    es: 'La versión gratuita permite hasta 2 colecciones. Organiza sin límites con VeLink Pro.',
+    en: 'The free version allows up to 2 collections. Organize without limits with VeLink Pro.',
+  );
+  String get settingsPremiumSection => _s(es: 'VeLink Pro', en: 'VeLink Pro');
+  String get premiumUpgradeAction => _s(es: 'Actualizar a VeLink Pro', en: 'Upgrade to VeLink Pro');
+  String get premiumRestorePurchase => _s(es: 'Restaurar compra', en: 'Restore purchase');
+  String get premiumFeatureLinks => _s(es: 'Links ilimitados', en: 'Unlimited links');
+  String get premiumFeatureTags => _s(es: 'Etiquetas ilimitadas', en: 'Unlimited labels');
+  String get premiumFeatureOrganize => _s(es: 'Organización avanzada', en: 'Advanced organization');
 
   // ── Time Ago ─────────────────────────────────────────────────────────────
   String timeAgo(DateTime createdAt) {

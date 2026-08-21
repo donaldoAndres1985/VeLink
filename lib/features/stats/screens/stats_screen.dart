@@ -8,6 +8,7 @@ import '../../../core/preferences/preferences_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../models/badge.dart';
 import '../../premium/screens/paywall_screen.dart';
+import '../../premium/presentation/widgets/premium_upgrade_card.dart';
 
 // ── Providers ──────────────────────────────────────────────────────────────
 
@@ -75,7 +76,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             ? _buildEmpty(vc, s)
             : _buildContent(stats, streak, isPremium, vc, s),
         loading: () => const Center(
-          child: CircularProgressIndicator(color: VerLinkColors.green, strokeWidth: 2),
+          child: CircularProgressIndicator(color: VerLinkColors.primary, strokeWidth: 2),
         ),
         error: (_, __) => Center(
           child: Text(s.errorLoadLinks, style: TextStyle(color: vc.textSecondary)),
@@ -193,6 +194,11 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 s: s,
               ),
               const SizedBox(height: 12),
+              // Upgrade card for free users
+              if (!isPremium) PremiumUpgradeCard(
+                customTitle: s.premiumStatsLocked,
+                customBtn: s.premiumViewPlans,
+              ),
               // Advanced sections — premium only
               if (isPremium) ...[
                 _SectionCard(
@@ -202,7 +208,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                     data: (data) => _TrendBarChart(data: data, range: _range, vc: vc),
                     loading: () => const SizedBox(
                       height: 80,
-                      child: Center(child: CircularProgressIndicator(strokeWidth: 2, color: VerLinkColors.green)),
+                      child: Center(child: CircularProgressIndicator(strokeWidth: 2, color: VerLinkColors.primary)),
                     ),
                     error: (_, __) => const SizedBox(height: 80),
                   ),
@@ -234,7 +240,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                     data: (yearData) => _ActivityHeatmap(data: yearData, vc: vc),
                     loading: () => const SizedBox(
                       height: 80,
-                      child: Center(child: CircularProgressIndicator(strokeWidth: 2, color: VerLinkColors.green)),
+                      child: Center(child: CircularProgressIndicator(strokeWidth: 2, color: VerLinkColors.primary)),
                     ),
                     error: (_, __) => const SizedBox(height: 80),
                   ),
@@ -303,7 +309,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   static Color _scoreColor(int score) {
-    if (score >= 80) return VerLinkColors.green;
+    if (score >= 80) return VerLinkColors.primary;
     if (score >= 50) return const Color(0xFFF59E0B);
     return VerLinkColors.error;
   }
@@ -374,10 +380,10 @@ class _Pill extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? VerLinkColors.green : Colors.transparent,
+          color: selected ? VerLinkColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selected ? VerLinkColors.green : vc.outline.withValues(alpha: 0.3),
+            color: selected ? VerLinkColors.primary : vc.outline.withValues(alpha: 0.3),
           ),
         ),
         child: Text(
@@ -470,7 +476,7 @@ class _TrendBarChart extends StatelessWidget {
                     height: barH,
                     decoration: BoxDecoration(
                       color: d.count > 0
-                          ? VerLinkColors.green
+                          ? VerLinkColors.primary
                           : vc.outline.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(3),
                     ),
@@ -674,9 +680,9 @@ class _ActivityHeatmapState extends State<_ActivityHeatmap> {
 
   Color _cellColor(int count) {
     if (count == 0) return widget.vc.outline.withValues(alpha: 0.15);
-    if (count <= 2) return VerLinkColors.green.withValues(alpha: 0.35);
-    if (count <= 4) return VerLinkColors.green.withValues(alpha: 0.65);
-    return VerLinkColors.green;
+    if (count <= 2) return VerLinkColors.primary.withValues(alpha: 0.35);
+    if (count <= 4) return VerLinkColors.primary.withValues(alpha: 0.65);
+    return VerLinkColors.primary;
   }
 }
 
@@ -781,7 +787,7 @@ class _StatCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: VerLinkColors.green),
+          Icon(icon, size: 18, color: VerLinkColors.primary),
           const SizedBox(height: 8),
           _AnimatedCounter(
             value: value,
@@ -820,7 +826,7 @@ class _ReviewRatioCard extends StatelessWidget {
   });
 
   Color get _barColor {
-    if (pct >= 80) return VerLinkColors.green;
+    if (pct >= 80) return VerLinkColors.primary;
     if (pct >= 50) return const Color(0xFFF59E0B);
     return VerLinkColors.error;
   }
@@ -886,7 +892,7 @@ class _PlatformCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.public_rounded, size: 18, color: VerLinkColors.green),
+          Icon(Icons.public_rounded, size: 18, color: VerLinkColors.primary),
           const SizedBox(height: 8),
           Text(platform,
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: vc.textPrimary)),
@@ -921,12 +927,12 @@ class _PremiumLockCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            VerLinkColors.green.withValues(alpha: 0.08),
+            VerLinkColors.primary.withValues(alpha: 0.08),
             const Color(0xFFEAB308).withValues(alpha: 0.08),
           ],
         ),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: VerLinkColors.green.withValues(alpha: 0.25)),
+        border: Border.all(color: VerLinkColors.primary.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [
@@ -961,11 +967,11 @@ class _PremiumLockCard extends StatelessWidget {
           const SizedBox(width: 10),
           TextButton(
             style: TextButton.styleFrom(
-              foregroundColor: VerLinkColors.green,
+              foregroundColor: VerLinkColors.primary,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
-                side: BorderSide(color: VerLinkColors.green.withValues(alpha: 0.4)),
+                side: BorderSide(color: VerLinkColors.primary.withValues(alpha: 0.4)),
               ),
             ),
             onPressed: onTap,

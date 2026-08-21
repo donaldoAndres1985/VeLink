@@ -6,6 +6,7 @@ import 'package:velink/core/database/database.dart';
 import 'package:velink/core/l10n/app_strings.dart';
 import 'package:velink/core/preferences/preferences_provider.dart';
 import 'package:velink/features/capture/providers/capture_provider.dart';
+import 'package:velink/features/premium/domain/premium_limits.dart';
 import 'package:velink/features/tags/screens/create_tag_dialog.dart';
 import '../../../helpers/database_helper.dart';
 
@@ -16,6 +17,7 @@ Widget buildCreateTagWidget({AppDatabase? database}) {
     overrides: [
       databaseProvider.overrideWithValue(db),
       appStringsProvider.overrideWithValue(AppStrings('es')),
+      canCreateTagProvider.overrideWith((ref) => Future.value(true)),
       allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
     ],
     child: const MaterialApp(home: Scaffold(body: CreateTagDialog())),

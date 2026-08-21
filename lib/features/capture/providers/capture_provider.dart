@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database.dart';
 import '../models/og_metadata.dart';
 import '../services/capture_service.dart';
+import '../services/image_cache_service.dart';
 import '../services/image_picker_service.dart';
 import '../services/metadata_service.dart';
 import '../services/platform_detector.dart';
@@ -82,11 +83,12 @@ class CaptureNotifier extends StateNotifier<CaptureState> {
   final CaptureService _service;
   final MetadataService _metadataService;
   final ImagePickerService _imagePicker;
+  final ImageCacheService _imageCache;
   StreamSubscription<String?>? _sub;
   StreamSubscription<String?>? _titleSub;
 
-  CaptureNotifier(
-      this._db, this._service, this._metadataService, this._imagePicker)
+  CaptureNotifier(this._db, this._service, this._metadataService,
+      this._imagePicker, this._imageCache)
       : super(CaptureState()) {
     _init();
   }
@@ -203,12 +205,23 @@ class CaptureNotifier extends StateNotifier<CaptureState> {
     final effectiveTitle = state.manualTitle ?? state.metadata?.title;
     final effectiveImageUrl =
         state.ogImageDismissed ? null : state.metadata?.imageUrl;
+
+    // Si el usuario no adjuntó una imagen manualmente, cachea localmente la
+    // imagen OG antes de guardar: muchas CDNs (Facebook, Instagram,
+    // LinkedIn...) sirven ese `og:image` con una URL firmada que expira en
+    // pocos días, y sin copia local la preview del link se rompe para
+    // siempre en cuanto esa URL vence.
+    var previewImagePath = state.pickedImagePath;
+    if (previewImagePath == null && effectiveImageUrl != null) {
+      previewImagePath = await _imageCache.cacheImage(effectiveImageUrl);
+    }
+
     final linkId = await _db.insertLink(LinksCompanion(
       url: Value(resolvedUrl),
       title: Value(effectiveTitle),
       description: Value(state.metadata?.description),
       previewImageUrl: Value(effectiveImageUrl),
-      previewImagePath: Value(state.pickedImagePath),
+      previewImagePath: Value(previewImagePath),
       platform: Value(platform.name),
       isFavorite: Value(state.isFavorite),
     ));
@@ -259,5 +272,6 @@ final captureProvider =
   final service = ref.watch(captureServiceProvider);
   final metadataService = ref.watch(metadataServiceProvider);
   final imagePicker = ref.watch(imagePickerServiceProvider);
-  return CaptureNotifier(db, service, metadataService, imagePicker);
+  final imageCache = ref.watch(imageCacheServiceProvider);
+  return CaptureNotifier(db, service, metadataService, imagePicker, imageCache);
 });

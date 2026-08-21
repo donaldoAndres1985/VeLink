@@ -288,7 +288,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
                 Text(
                   widget.link.url,
                   style: const TextStyle(
-                    color: VerLinkColors.greenSecondary,
+                    color: VerLinkColors.secondary,
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
                   ),
@@ -434,7 +434,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide:
-                    const BorderSide(color: VerLinkColors.green, width: 1.5),
+                    const BorderSide(color: VerLinkColors.primary, width: 1.5),
               ),
               hintText: s.notesHint,
               contentPadding: const EdgeInsets.all(14),
@@ -488,7 +488,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen>
           const Icon(
             Icons.alarm_rounded,
             size: 18,
-            color: VerLinkColors.green,
+            color: VerLinkColors.primary,
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -625,7 +625,7 @@ class _SectionCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 16, color: VerLinkColors.green),
+              Icon(icon, size: 16, color: VerLinkColors.primary),
               const SizedBox(width: 8),
               Text(
                 title,

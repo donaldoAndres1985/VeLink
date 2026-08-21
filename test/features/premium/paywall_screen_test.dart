@@ -47,10 +47,10 @@ void main() {
       expect(find.text('VerLink Premium'), findsWidgets);
     });
 
-    testWidgets('muestra botón Activar Premium', (tester) async {
+    testWidgets('muestra botón Actualizar a VeLink Pro', (tester) async {
       await tester.pumpWidget(_buildPaywall());
       await tester.pumpAndSettle();
-      expect(find.text('Activar Premium'), findsOneWidget);
+      expect(find.text('Actualizar a VeLink Pro'), findsOneWidget);
     });
 
     testWidgets('muestra botón Quizás después', (tester) async {
@@ -62,7 +62,18 @@ void main() {
     testWidgets('muestra feature de estadísticas avanzadas', (tester) async {
       await tester.pumpWidget(_buildPaywall());
       await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Estadísticas avanzadas'),
+        50,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(find.text('Estadísticas avanzadas'), findsOneWidget);
+    });
+
+    testWidgets('muestra feature de links ilimitados', (tester) async {
+      await tester.pumpWidget(_buildPaywall());
+      await tester.pumpAndSettle();
+      expect(find.text('Links ilimitados'), findsOneWidget);
     });
 
     testWidgets('muestra feature de colecciones ilimitadas', (tester) async {
@@ -84,7 +95,7 @@ void main() {
         ),
       ));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Activar Premium'));
+      await tester.tap(find.text('Actualizar a VeLink Pro'));
       await tester.pumpAndSettle();
       expect(prefs.isPremium(), isTrue);
     });

@@ -1,4 +1,5 @@
-﻿import 'package:file_picker/file_picker.dart';
+﻿import 'dart:async';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -9,6 +10,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/screen_header.dart';
 import '../../../features/backup/services/backup_service.dart';
 import '../../../features/notifications/providers/notification_provider.dart';
+import '../../../features/premium/screens/paywall_screen.dart';
 
 class AjustesScreen extends ConsumerWidget {
   const AjustesScreen({super.key});
@@ -221,6 +223,20 @@ class AjustesScreen extends ConsumerWidget {
                       ),
                     ),
                   ]),
+                  _SectionLabel(title: s.settingsPremiumSection),
+                  _SettingsCard(children: [
+                    _SettingsTile(
+                      icon: Icons.workspace_premium_rounded,
+                      iconColor: const Color(0xFFEAB308),
+                      title: s.premiumTitle,
+                      subtitle: s.premiumSubtitle,
+                      trailing: Icon(Icons.chevron_right, color: vc.textTertiary),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PaywallScreen()),
+                      ),
+                    ),
+                  ]),
                   _SectionLabel(title: s.settingsAppInfo),
                   _SettingsCard(children: [
                     _SettingsTile(
@@ -338,12 +354,28 @@ class AjustesScreen extends ConsumerWidget {
           ),
         );
       }
+      // Best-effort, en segundo plano: no bloquea el mensaje de éxito ni la
+      // pantalla. Las previews de los links importados van completándose
+      // solas a medida que la UI reacciona a los cambios en la base.
+      unawaited(service.cacheMissingPreviewImages());
     } on InvalidBackupException {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(s.importInvalidFile),
             duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (_) {
+      // Cualquier otro fallo a mitad de la importación (registro corrupto,
+      // I/O, etc.): la transacción ya revirtió los cambios en BackupService,
+      // pero el usuario debe enterarse en vez de creer que se importó todo.
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(s.importGenericError),
+            duration: const Duration(seconds: 4),
           ),
         );
       }
@@ -464,7 +496,7 @@ class _IconContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = color ?? VerLinkColors.green;
+    final c = color ?? VerLinkColors.primary;
     return Container(
       width: 44,
       height: 44,
@@ -576,7 +608,7 @@ class _LanguageTile extends StatelessWidget {
         trailing: selected
             ? const Icon(
                 Icons.check_circle_rounded,
-                color: VerLinkColors.green,
+                color: VerLinkColors.primary,
               )
             : Icon(
                 Icons.radio_button_unchecked,
@@ -726,7 +758,7 @@ class _ThemeTile extends StatelessWidget {
         trailing: selected
             ? const Icon(
                 Icons.check_circle_rounded,
-                color: VerLinkColors.green,
+                color: VerLinkColors.primary,
               )
             : Icon(
                 Icons.radio_button_unchecked,
@@ -760,7 +792,7 @@ class _ImportModeOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vc = VeLinkSemanticColors.of(context);
-    final color = isDestructive ? VerLinkColors.error : VerLinkColors.green;
+    final color = isDestructive ? VerLinkColors.error : VerLinkColors.primary;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),

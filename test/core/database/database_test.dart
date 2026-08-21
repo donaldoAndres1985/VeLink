@@ -498,6 +498,65 @@ void main() {
     });
   });
 
+  group('Links — setLinkPreviewImagePath', () {
+    test('guarda la ruta local de la imagen cacheada', () async {
+      final id = await db.insertLink(LinksCompanion.insert(url: 'https://example.com'));
+      await db.setLinkPreviewImagePath(id, '/data/link_previews/123.jpg');
+      final links = await db.getAllLinks();
+      expect(links.first.previewImagePath, '/data/link_previews/123.jpg');
+    });
+
+    test('no afecta otros campos del link', () async {
+      final id = await db.insertLink(LinksCompanion.insert(
+        url: 'https://example.com',
+        title: const Value('Mi título'),
+        previewImageUrl: const Value('https://cdn.com/img.jpg'),
+      ));
+      await db.setLinkPreviewImagePath(id, '/data/link_previews/123.jpg');
+      final link = (await db.getAllLinks()).first;
+      expect(link.title, 'Mi título');
+      expect(link.previewImageUrl, 'https://cdn.com/img.jpg');
+    });
+
+    test('no afecta otros links', () async {
+      final id1 = await db.insertLink(LinksCompanion.insert(url: 'https://uno.com'));
+      await db.insertLink(LinksCompanion.insert(url: 'https://dos.com'));
+      await db.setLinkPreviewImagePath(id1, '/data/link_previews/uno.jpg');
+      final links = await db.getAllLinks();
+      final uno = links.firstWhere((l) => l.url == 'https://uno.com');
+      final dos = links.firstWhere((l) => l.url == 'https://dos.com');
+      expect(uno.previewImagePath, '/data/link_previews/uno.jpg');
+      expect(dos.previewImagePath, null);
+    });
+  });
+
+  group('Links — setLinkPreviewImageUrl', () {
+    test('actualiza la URL remota de la imagen de preview', () async {
+      final id = await db.insertLink(LinksCompanion.insert(
+        url: 'https://example.com',
+        previewImageUrl: const Value('https://cdn.com/vencida.jpg'),
+      ));
+      await db.setLinkPreviewImageUrl(id, 'https://cdn.com/nueva.jpg');
+      final links = await db.getAllLinks();
+      expect(links.first.previewImageUrl, 'https://cdn.com/nueva.jpg');
+    });
+
+    test('no afecta otros campos ni otros links', () async {
+      final id1 = await db.insertLink(LinksCompanion.insert(
+        url: 'https://uno.com',
+        title: const Value('Mi título'),
+      ));
+      await db.insertLink(LinksCompanion.insert(url: 'https://dos.com'));
+      await db.setLinkPreviewImageUrl(id1, 'https://cdn.com/nueva.jpg');
+      final links = await db.getAllLinks();
+      final uno = links.firstWhere((l) => l.url == 'https://uno.com');
+      final dos = links.firstWhere((l) => l.url == 'https://dos.com');
+      expect(uno.title, 'Mi título');
+      expect(uno.previewImageUrl, 'https://cdn.com/nueva.jpg');
+      expect(dos.previewImageUrl, null);
+    });
+  });
+
   // ─── TAGS — GET ALL ──────────────────────────────────────────────────────────
 
   group('Tags — getAllTags', () {

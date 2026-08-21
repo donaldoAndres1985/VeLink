@@ -9,6 +9,7 @@ import 'package:velink/core/l10n/app_strings.dart';
 import 'package:velink/core/preferences/preferences_provider.dart';
 import 'package:velink/core/preferences/preferences_service.dart';
 import 'package:velink/features/capture/providers/capture_provider.dart';
+import 'package:velink/features/capture/services/image_cache_service.dart';
 import 'package:velink/features/home/providers/home_provider.dart';
 import 'package:velink/features/notifications/providers/notification_provider.dart';
 import 'package:velink/features/notifications/services/notification_service.dart';
@@ -16,6 +17,7 @@ import 'package:velink/features/pending/providers/pending_provider.dart';
 import 'package:velink/features/search/providers/search_provider.dart';
 import '../helpers/database_helper.dart';
 import '../helpers/mock_capture_service.dart';
+import '../helpers/mock_image_cache_service.dart';
 import '../helpers/mock_metadata_service.dart';
 
 class MockNotificationService extends Mock implements NotificationService {}
@@ -82,6 +84,7 @@ void main() {
           ),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
           recentLinksProvider.overrideWith((_) => Stream.value(const [])),
           filteredHomeLinksProvider.overrideWith((_) => Stream.value(const [])),
           pendingLinksProvider.overrideWith((_) => Stream.value(const [])),

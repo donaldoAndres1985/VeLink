@@ -98,12 +98,12 @@ class _SwipeableLinkCardState extends ConsumerState<SwipeableLinkCard>
               opacity: showReviewed ? 1.0 : 0.0,
               child: Container(
                 decoration: BoxDecoration(
-                  color: VerLinkColors.green.withOpacity(0.12),
+                  color: VerLinkColors.primary.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(18),
                 ),
                 alignment: Alignment.centerRight,
                 padding: const EdgeInsets.only(right: 20),
-                child: const Icon(Icons.check_circle_rounded, color: VerLinkColors.green, size: 24),
+                child: const Icon(Icons.check_circle_rounded, color: VerLinkColors.primary, size: 24),
               ),
             ),
           ),

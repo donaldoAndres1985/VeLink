@@ -6,11 +6,13 @@ import 'package:velink/core/database/database.dart';
 import 'package:velink/core/l10n/app_strings.dart';
 import 'package:velink/core/preferences/preferences_provider.dart';
 import 'package:velink/features/capture/providers/capture_provider.dart';
+import 'package:velink/features/capture/services/image_cache_service.dart';
 import 'package:velink/features/saved/providers/saved_provider.dart';
 import 'package:velink/features/saved/screens/saved_screen.dart';
 import '../../helpers/database_helper.dart';
 import '../../helpers/link_factory.dart';
 import '../../helpers/mock_capture_service.dart';
+import '../../helpers/mock_image_cache_service.dart';
 import '../../helpers/mock_metadata_service.dart';
 
 Widget buildSavedWidget({List<Link> links = const [], List<Tag> tags = const []}) {
@@ -22,6 +24,7 @@ Widget buildSavedWidget({List<Link> links = const [], List<Tag> tags = const []}
       appStringsProvider.overrideWithValue(AppStrings('es')),
       captureServiceProvider.overrideWithValue(MockCaptureService()),
       metadataServiceProvider.overrideWithValue(MockMetadataService()),
+      imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
       filteredSavedLinksProvider.overrideWith((ref) => Stream.value(links)),
       allTagsProvider.overrideWith((ref) => Stream.value(tags)),
     ],
@@ -167,6 +170,7 @@ void main() {
           appStringsProvider.overrideWithValue(AppStrings('es')),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
           allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
         ],
         child: const MaterialApp(home: SavedScreen()),
@@ -196,6 +200,7 @@ void main() {
           appStringsProvider.overrideWithValue(AppStrings('es')),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
           allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
         ],
         child: const MaterialApp(home: SavedScreen()),

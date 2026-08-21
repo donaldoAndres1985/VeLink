@@ -367,7 +367,7 @@ class _FloatingNavBarState extends State<_FloatingNavBar> {
                   isActive ? widget.activeIcons[i] : widget.icons[i],
                   key: ValueKey('nav_${i}_$isActive'),
                   size: 22,
-                  color: isActive ? VerLinkColors.green : vc.textTertiary,
+                  color: isActive ? VerLinkColors.primary : vc.textTertiary,
                 ),
               ),
               const SizedBox(height: 4),
@@ -376,7 +376,7 @@ class _FloatingNavBarState extends State<_FloatingNavBar> {
                 style: TextStyle(
                   fontSize: 9,
                   fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
-                  color: isActive ? VerLinkColors.green : vc.textTertiary,
+                  color: isActive ? VerLinkColors.primary : vc.textTertiary,
                 ),
                 child: Text(widget.labels[i]),
               ),
@@ -386,7 +386,7 @@ class _FloatingNavBarState extends State<_FloatingNavBar> {
                 width: isActive ? 4 : 0,
                 height: isActive ? 4 : 0,
                 decoration: const BoxDecoration(
-                  color: VerLinkColors.green,
+                  color: VerLinkColors.primary,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -420,7 +420,7 @@ class _FloatingNavBarState extends State<_FloatingNavBar> {
                 height: 44,
                 decoration: BoxDecoration(
                   color: isEnabled
-                      ? VerLinkColors.green
+                      ? VerLinkColors.primary
                       : const Color(0xFF2A2A2A),
                   shape: BoxShape.circle,
                 ),

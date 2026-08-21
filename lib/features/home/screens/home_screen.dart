@@ -108,7 +108,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ],
           border: Border.all(
-            color: _searchFocused ? VerLinkColors.green : vc.outline,
+            color: _searchFocused ? VerLinkColors.primary : vc.outline,
             width: _searchFocused ? 1.5 : 1,
           ),
         ),
@@ -262,14 +262,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [vc.greenLight, vc.surfaceContainer],
+                  colors: [vc.primaryTint, vc.surfaceContainer],
                 ),
                 borderRadius: BorderRadius.circular(24),
               ),
               child: const Icon(
                 Icons.link_rounded,
                 size: 36,
-                color: VerLinkColors.green,
+                color: VerLinkColors.primary,
               ),
             ),
             const SizedBox(height: 20),
@@ -423,7 +423,7 @@ class _PremiumFilterChip extends StatelessWidget {
                   icon,
                   size: 14,
                   color: selected
-                      ? VerLinkColors.green
+                      ? VerLinkColors.primary
                       : vc.textSecondary,
                 ),
                 const SizedBox(width: 6),
@@ -434,7 +434,7 @@ class _PremiumFilterChip extends StatelessWidget {
                   fontSize: 13,
                   fontWeight:
                       selected ? FontWeight.w600 : FontWeight.w500,
-                  color: selected ? VerLinkColors.green : vc.textSecondary,
+                  color: selected ? VerLinkColors.primary : vc.textSecondary,
                 ),
               ),
             ],
@@ -634,7 +634,7 @@ class _PlatformFilterSheet extends StatelessWidget {
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                         color: isSelected
-                            ? VerLinkColors.green
+                            ? VerLinkColors.primary
                             : vc.textSecondary,
                       ),
                     ),

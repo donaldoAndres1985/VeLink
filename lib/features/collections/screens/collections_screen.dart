@@ -6,13 +6,14 @@ import '../../../core/preferences/preferences_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../providers/collection_providers.dart';
 import '../../premium/screens/paywall_screen.dart';
+import '../../premium/presentation/widgets/premium_upgrade_card.dart';
 import 'collection_detail_screen.dart';
 import 'create_collection_dialog.dart';
 
 class CollectionsContent extends ConsumerWidget {
   const CollectionsContent({super.key});
 
-  static const _freeLimit = 3;
+  static const _freeLimit = 2;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,14 +38,14 @@ class CollectionsContent extends ConsumerWidget {
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [vc.greenLight, vc.surfaceContainer],
+                            colors: [vc.primaryTint, vc.surfaceContainer],
                           ),
                           borderRadius: BorderRadius.circular(24),
                         ),
                         child: const Icon(
                           Icons.folder_outlined,
                           size: 36,
-                          color: VerLinkColors.green,
+                          color: VerLinkColors.primary,
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -83,7 +84,7 @@ class CollectionsContent extends ConsumerWidget {
                 itemCount: collections.length + (showBanner ? 1 : 0),
                 itemBuilder: (_, i) {
                   if (showBanner && i == collections.length) {
-                    return _PremiumCollectionBanner(s: s);
+                    return PremiumUpgradeCard(customDesc: s.limitCollectionsReached);
                   }
                   return _CollectionCard(collection: collections[i]);
                 },
@@ -91,7 +92,7 @@ class CollectionsContent extends ConsumerWidget {
             }),
       loading: () => const Center(
         child: CircularProgressIndicator(
-          color: VerLinkColors.green,
+          color: VerLinkColors.primary,
           strokeWidth: 2,
         ),
       ),
@@ -345,12 +346,12 @@ class _PremiumCollectionBanner extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            VerLinkColors.green.withValues(alpha: 0.08),
+            VerLinkColors.primary.withValues(alpha: 0.08),
             const Color(0xFFEAB308).withValues(alpha: 0.08),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: VerLinkColors.green.withValues(alpha: 0.25)),
+        border: Border.all(color: VerLinkColors.primary.withValues(alpha: 0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -373,11 +374,11 @@ class _PremiumCollectionBanner extends StatelessWidget {
           const SizedBox(height: 12),
           TextButton(
             style: TextButton.styleFrom(
-              foregroundColor: VerLinkColors.green,
+              foregroundColor: VerLinkColors.primary,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
-                side: BorderSide(color: VerLinkColors.green.withValues(alpha: 0.4)),
+                side: BorderSide(color: VerLinkColors.primary.withValues(alpha: 0.4)),
               ),
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,

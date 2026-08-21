@@ -7,6 +7,8 @@ import '../models/og_metadata.dart';
 import '../providers/capture_provider.dart';
 import '../services/platform_detector.dart';
 import '../../collections/providers/collection_providers.dart';
+import '../../premium/domain/premium_limits.dart';
+import '../../premium/screens/paywall_screen.dart';
 
 class CaptureScreen extends ConsumerStatefulWidget {
   final String url;
@@ -154,6 +156,13 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                         onPressed: state.isSaving
                             ? null
                             : () async {
+                                final canCreate = await ref.read(canCreateLinkProvider.future);
+                                if (!canCreate) {
+                                  if (context.mounted) {
+                                    Navigator.push(context, MaterialPageRoute(builder: (_) => const PaywallScreen()));
+                                  }
+                                  return;
+                                }
                                 try {
                                   await ref
                                       .read(captureProvider.notifier)

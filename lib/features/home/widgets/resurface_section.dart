@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database.dart';
 import '../../../core/preferences/preferences_provider.dart';
@@ -55,7 +55,7 @@ class _ResurfaceContent extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: vc.greenLight,
+                  color: vc.primaryTint,
                   borderRadius: BorderRadius.circular(50),
                 ),
                 child: Text(
@@ -63,7 +63,7 @@ class _ResurfaceContent extends ConsumerWidget {
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: VerLinkColors.green,
+                    color: VerLinkColors.primary,
                   ),
                 ),
               ),

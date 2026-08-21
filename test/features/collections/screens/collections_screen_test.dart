@@ -166,22 +166,22 @@ void main() {
           makeCollection(id: 3, name: 'C'),
         ];
 
-    testWidgets('free + 3 colecciones muestra banner de límite', (tester) async {
-      await tester.pumpWidget(buildCollectionsWidget(
-        collections: _threeCollections(),
-        isPremium: false,
-      ));
-      await tester.pumpAndSettle();
-      expect(find.text('Límite de colecciones'), findsOneWidget);
-    });
-
-    testWidgets('free + 2 colecciones no muestra banner de límite', (tester) async {
+    testWidgets('free + 2 colecciones muestra banner de límite', (tester) async {
       await tester.pumpWidget(buildCollectionsWidget(
         collections: [makeCollection(id: 1, name: 'A'), makeCollection(id: 2, name: 'B')],
         isPremium: false,
       ));
       await tester.pumpAndSettle();
-      expect(find.text('Límite de colecciones'), findsNothing);
+      expect(find.text('Desbloquea VeLink Pro'), findsOneWidget);
+    });
+
+    testWidgets('free + 1 colección no muestra banner de límite', (tester) async {
+      await tester.pumpWidget(buildCollectionsWidget(
+        collections: [makeCollection(id: 1, name: 'A')],
+        isPremium: false,
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text('Desbloquea VeLink Pro'), findsNothing);
     });
 
     testWidgets('premium + 3 colecciones NO muestra banner', (tester) async {
@@ -190,16 +190,16 @@ void main() {
         isPremium: true,
       ));
       await tester.pumpAndSettle();
-      expect(find.text('Límite de colecciones'), findsNothing);
+      expect(find.text('Desbloquea VeLink Pro'), findsNothing);
     });
 
-    testWidgets('banner de límite muestra botón Ver planes', (tester) async {
+    testWidgets('banner de límite muestra botón Ver Premium', (tester) async {
       await tester.pumpWidget(buildCollectionsWidget(
-        collections: _threeCollections(),
+        collections: [makeCollection(id: 1, name: 'A'), makeCollection(id: 2, name: 'B')],
         isPremium: false,
       ));
       await tester.pumpAndSettle();
-      expect(find.text('Ver planes'), findsOneWidget);
+      expect(find.text('Ver Premium'), findsOneWidget);
     });
   });
 }

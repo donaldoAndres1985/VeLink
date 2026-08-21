@@ -103,6 +103,18 @@ class AppDatabase extends _$AppDatabase {
       (update(links)..where((l) => l.id.equals(linkId)))
           .write(LinksCompanion(remindAt: Value(remindAt)));
 
+  /// Guarda la ruta local de una imagen de preview ya descargada/cacheada
+  /// (ej. tras un `cacheImage` exitoso), sin tocar el resto de campos.
+  Future<void> setLinkPreviewImagePath(int linkId, String path) =>
+      (update(links)..where((l) => l.id.equals(linkId)))
+          .write(LinksCompanion(previewImagePath: Value(path)));
+
+  /// Actualiza la URL remota de la imagen de preview (ej. tras re-scrapear
+  /// el link porque la URL guardada ya venció), sin tocar el resto de campos.
+  Future<void> setLinkPreviewImageUrl(int linkId, String url) =>
+      (update(links)..where((l) => l.id.equals(linkId)))
+          .write(LinksCompanion(previewImageUrl: Value(url)));
+
   Future<void> updateLinkTitle(int linkId, String? title) =>
       (update(links)..where((l) => l.id.equals(linkId)))
           .write(LinksCompanion(title: Value(title)));

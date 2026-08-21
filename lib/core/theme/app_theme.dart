@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class VerLinkColors {
@@ -7,10 +7,15 @@ class VerLinkColors {
   static const background = Color(0xFFF7F5F2);
   static const surface = Color(0xFFFFFFFF);
   static const softSurface = Color(0xFFF1EEE8);
-  static const green = Color(0xFF8FBF6A);
-  static const greenSecondary = Color(0xFF6E9B58);
-  static const greenMuted = Color(0xFFA9C49A);
-  static const greenLight = Color(0xFFE8F5DA);
+
+  // Verde — sistema de color primario
+  static const primary = Color(0xFF8FBF6A);
+  static const primaryDark = Color(0xFF6E9B58);
+  static const secondary = Color(0xFF6E9B58);
+  static const secondaryMuted = Color(0xFFA9C49A);
+  static const primaryContainerLight = Color(0xFFE8F5DA);
+  static const accentOnDark = Color(0xFF8FBF6A);
+
   static const textPrimary = Color(0xFF111111);
   static const textSecondary = Color(0xFF5E5E66);
   static const textTertiary = Color(0xFF8A8A95);
@@ -89,11 +94,11 @@ class AppTheme {
         brightness: Brightness.light,
         extensions: const [VeLinkSemanticColors.light],
         colorScheme: const ColorScheme.light(
-          primary: VerLinkColors.green,
+          primary: VerLinkColors.primary,
           onPrimary: Colors.white,
-          primaryContainer: VerLinkColors.greenLight,
-          onPrimaryContainer: VerLinkColors.greenSecondary,
-          secondary: VerLinkColors.greenSecondary,
+          primaryContainer: VerLinkColors.primaryContainerLight,
+          onPrimaryContainer: VerLinkColors.primaryDark,
+          secondary: VerLinkColors.secondary,
           onSecondary: Colors.white,
           surface: VerLinkColors.surface,
           onSurface: VerLinkColors.textPrimary,
@@ -133,7 +138,7 @@ class AppTheme {
         ),
         bottomNavigationBarTheme: const BottomNavigationBarThemeData(
           backgroundColor: VerLinkColors.primaryBlack,
-          selectedItemColor: VerLinkColors.green,
+          selectedItemColor: VerLinkColors.accentOnDark,
           unselectedItemColor: Color(0xFF6B7280),
           type: BottomNavigationBarType.fixed,
           elevation: 0,
@@ -154,7 +159,7 @@ class AppTheme {
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(28),
             borderSide:
-                const BorderSide(color: VerLinkColors.green, width: 1.5),
+                const BorderSide(color: VerLinkColors.primary, width: 1.5),
           ),
           hintStyle: GoogleFonts.inter(
             color: VerLinkColors.textTertiary,
@@ -177,7 +182,7 @@ class AppTheme {
           backgroundColor: VerLinkColors.surface,
           selectedColor: VerLinkColors.primaryBlack,
           secondarySelectedColor: VerLinkColors.primaryBlack,
-          checkmarkColor: VerLinkColors.green,
+          checkmarkColor: VerLinkColors.accentOnDark,
           labelStyle: GoogleFonts.inter(
             fontSize: 13,
             fontWeight: FontWeight.w500,
@@ -186,7 +191,7 @@ class AppTheme {
           secondaryLabelStyle: GoogleFonts.inter(
             fontSize: 13,
             fontWeight: FontWeight.w500,
-            color: VerLinkColors.green,
+            color: VerLinkColors.accentOnDark,
           ),
           side: const BorderSide(color: VerLinkColors.outline),
           shape: const StadiumBorder(),
@@ -196,7 +201,7 @@ class AppTheme {
         tabBarTheme: TabBarThemeData(
           labelColor: VerLinkColors.textPrimary,
           unselectedLabelColor: VerLinkColors.textTertiary,
-          indicatorColor: VerLinkColors.green,
+          indicatorColor: VerLinkColors.primary,
           indicatorSize: TabBarIndicatorSize.label,
           dividerColor: VerLinkColors.outlineVariant,
           labelStyle: GoogleFonts.inter(
@@ -239,7 +244,7 @@ class AppTheme {
         ),
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
-            foregroundColor: VerLinkColors.green,
+            foregroundColor: VerLinkColors.primary,
             textStyle: GoogleFonts.inter(
               fontSize: 14,
               fontWeight: FontWeight.w500,
@@ -267,7 +272,7 @@ class AppTheme {
           }),
           trackColor: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
-              return VerLinkColors.green;
+              return VerLinkColors.primary;
             }
             return null;
           }),
@@ -361,13 +366,13 @@ class AppTheme {
         useMaterial3: true,
         brightness: Brightness.dark,
         extensions: const [VeLinkSemanticColors.dark],
-        colorScheme: ColorScheme.dark(
-          primary: VerLinkColors.green,
-          onPrimary: Colors.white,
-          primaryContainer: const Color(0xFF1E2D1A),
-          onPrimaryContainer: VerLinkColors.greenMuted,
-          secondary: VerLinkColors.greenSecondary,
-          onSecondary: Colors.white,
+        colorScheme: const ColorScheme.dark(
+          primary: VerLinkColors.accentOnDark,
+          onPrimary: DarkColors.onPrimary,
+          primaryContainer: DarkColors.primaryContainerDark,
+          onPrimaryContainer: VerLinkColors.secondaryMuted,
+          secondary: VerLinkColors.secondaryMuted,
+          onSecondary: DarkColors.onPrimary,
           surface: DarkColors.surface,
           onSurface: DarkColors.textPrimary,
           surfaceContainerHighest: DarkColors.surfaceElevated,
@@ -406,7 +411,7 @@ class AppTheme {
         ),
         bottomNavigationBarTheme: const BottomNavigationBarThemeData(
           backgroundColor: DarkColors.navBar,
-          selectedItemColor: VerLinkColors.green,
+          selectedItemColor: VerLinkColors.accentOnDark,
           unselectedItemColor: DarkColors.textTertiary,
           type: BottomNavigationBarType.fixed,
           elevation: 0,
@@ -424,8 +429,8 @@ class AppTheme {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(28),
-            borderSide:
-                const BorderSide(color: VerLinkColors.green, width: 1.5),
+            borderSide: const BorderSide(
+                color: VerLinkColors.accentOnDark, width: 1.5),
           ),
           hintStyle: GoogleFonts.inter(
             color: DarkColors.textTertiary,
@@ -437,8 +442,8 @@ class AppTheme {
           suffixIconColor: DarkColors.textTertiary,
         ),
         floatingActionButtonTheme: FloatingActionButtonThemeData(
-          backgroundColor: VerLinkColors.green,
-          foregroundColor: Colors.white,
+          backgroundColor: VerLinkColors.accentOnDark,
+          foregroundColor: DarkColors.onPrimary,
           elevation: 6,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
@@ -446,9 +451,9 @@ class AppTheme {
         ),
         chipTheme: ChipThemeData(
           backgroundColor: DarkColors.surfaceElevated,
-          selectedColor: VerLinkColors.green,
-          secondarySelectedColor: VerLinkColors.green,
-          checkmarkColor: Colors.white,
+          selectedColor: VerLinkColors.accentOnDark,
+          secondarySelectedColor: VerLinkColors.accentOnDark,
+          checkmarkColor: DarkColors.onPrimary,
           labelStyle: GoogleFonts.inter(
             fontSize: 13,
             fontWeight: FontWeight.w500,
@@ -457,7 +462,7 @@ class AppTheme {
           secondaryLabelStyle: GoogleFonts.inter(
             fontSize: 13,
             fontWeight: FontWeight.w500,
-            color: Colors.white,
+            color: DarkColors.onPrimary,
           ),
           side: const BorderSide(color: DarkColors.outline),
           shape: const StadiumBorder(),
@@ -467,7 +472,7 @@ class AppTheme {
         tabBarTheme: TabBarThemeData(
           labelColor: DarkColors.textPrimary,
           unselectedLabelColor: DarkColors.textTertiary,
-          indicatorColor: VerLinkColors.green,
+          indicatorColor: VerLinkColors.accentOnDark,
           indicatorSize: TabBarIndicatorSize.label,
           dividerColor: DarkColors.outlineVariant,
           labelStyle: GoogleFonts.inter(
@@ -496,8 +501,8 @@ class AppTheme {
         ),
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
-            backgroundColor: VerLinkColors.green,
-            foregroundColor: Colors.white,
+            backgroundColor: VerLinkColors.accentOnDark,
+            foregroundColor: DarkColors.onPrimary,
             minimumSize: const Size(0, 48),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
@@ -510,7 +515,7 @@ class AppTheme {
         ),
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
-            foregroundColor: VerLinkColors.green,
+            foregroundColor: VerLinkColors.accentOnDark,
             textStyle: GoogleFonts.inter(
               fontSize: 14,
               fontWeight: FontWeight.w500,
@@ -538,7 +543,7 @@ class AppTheme {
           }),
           trackColor: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
-              return VerLinkColors.green;
+              return VerLinkColors.accentOnDark;
             }
             return DarkColors.outline;
           }),
@@ -597,7 +602,10 @@ class DarkColors {
 
   static const error            = Color(0xFFFF6B6B);
   static const warning          = Color(0xFFEFAA44);
-  static const greenContainer   = Color(0xFF172612);
+  static const success          = Color(0xFF4DAA57);
+
+  static const onPrimary            = Colors.white;
+  static const primaryContainerDark = Color(0xFF1E2D1A);
 }
 
 @immutable
@@ -614,7 +622,7 @@ class VeLinkSemanticColors extends ThemeExtension<VeLinkSemanticColors> {
   final Color shadow12;
   final Color shadow25;
   final Color chipSelectedBg;
-  final Color greenLight;
+  final Color primaryTint;
   final Color warning;
   final Color navBarBg;
 
@@ -631,7 +639,7 @@ class VeLinkSemanticColors extends ThemeExtension<VeLinkSemanticColors> {
     required this.shadow12,
     required this.shadow25,
     required this.chipSelectedBg,
-    required this.greenLight,
+    required this.primaryTint,
     required this.warning,
     required this.navBarBg,
   });
@@ -653,7 +661,7 @@ class VeLinkSemanticColors extends ThemeExtension<VeLinkSemanticColors> {
     shadow12:         Color(0x1F000000),
     shadow25:         Color(0x40000000),
     chipSelectedBg:   Color(0xFF0B0B0F),
-    greenLight:       Color(0xFFE8F5DA),
+    primaryTint:      Color(0xFFE8F5DA),
     warning:          Color(0xFFD89B3C),
     navBarBg:         Color(0xFF0B0B0F),
   );
@@ -671,7 +679,7 @@ class VeLinkSemanticColors extends ThemeExtension<VeLinkSemanticColors> {
     shadow12:         Color(0x1A000000),
     shadow25:         Color(0x00000000),
     chipSelectedBg:   Color(0xFF222235),
-    greenLight:       Color(0xFF172612),
+    primaryTint:      Color(0xFF172612),
     warning:          Color(0xFFEFAA44),
     navBarBg:         Color(0xFF0F0F1B),
   );
@@ -690,7 +698,7 @@ class VeLinkSemanticColors extends ThemeExtension<VeLinkSemanticColors> {
     Color? shadow12,
     Color? shadow25,
     Color? chipSelectedBg,
-    Color? greenLight,
+    Color? primaryTint,
     Color? warning,
     Color? navBarBg,
   }) =>
@@ -707,7 +715,7 @@ class VeLinkSemanticColors extends ThemeExtension<VeLinkSemanticColors> {
         shadow12:         shadow12         ?? this.shadow12,
         shadow25:         shadow25         ?? this.shadow25,
         chipSelectedBg:   chipSelectedBg   ?? this.chipSelectedBg,
-        greenLight:       greenLight       ?? this.greenLight,
+        primaryTint:      primaryTint      ?? this.primaryTint,
         warning:          warning          ?? this.warning,
         navBarBg:         navBarBg         ?? this.navBarBg,
       );
@@ -728,7 +736,7 @@ class VeLinkSemanticColors extends ThemeExtension<VeLinkSemanticColors> {
       shadow12:         Color.lerp(shadow12,         other.shadow12,         t)!,
       shadow25:         Color.lerp(shadow25,         other.shadow25,         t)!,
       chipSelectedBg:   Color.lerp(chipSelectedBg,   other.chipSelectedBg,   t)!,
-      greenLight:       Color.lerp(greenLight,       other.greenLight,       t)!,
+      primaryTint:      Color.lerp(primaryTint,      other.primaryTint,      t)!,
       warning:          Color.lerp(warning,          other.warning,          t)!,
       navBarBg:         Color.lerp(navBarBg,         other.navBarBg,         t)!,
     );

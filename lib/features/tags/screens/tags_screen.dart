@@ -4,6 +4,9 @@ import '../../../core/database/database.dart';
 import '../../../core/preferences/preferences_provider.dart';
 import '../../../features/capture/providers/capture_provider.dart';
 import '../providers/tag_providers.dart';
+import '../../premium/domain/premium_limits.dart';
+import '../../premium/presentation/widgets/premium_upgrade_card.dart';
+import '../../premium/screens/paywall_screen.dart';
 import 'create_tag_dialog.dart';
 import 'edit_tag_dialog.dart';
 
@@ -20,7 +23,7 @@ class TagsScreen extends ConsumerWidget {
         label: s.createTagTitle,
         button: true,
         child: FloatingActionButton(
-          onPressed: () => _showCreateDialog(context),
+          onPressed: () => _onCreateTag(context, ref),
           tooltip: s.createTagTitle,
           child: const Icon(Icons.add),
         ),
@@ -29,12 +32,21 @@ class TagsScreen extends ConsumerWidget {
     );
   }
 
-  void _showCreateDialog(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => const CreateTagDialog(),
-    );
+  Future<void> _onCreateTag(BuildContext context, WidgetRef ref) async {
+    final canCreate = await ref.read(canCreateTagProvider.future);
+    if (!canCreate) {
+      if (context.mounted) {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const PaywallScreen()));
+      }
+      return;
+    }
+    if (context.mounted) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (_) => const CreateTagDialog(),
+      );
+    }
   }
 }
 
@@ -44,11 +56,13 @@ class TagsContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tagsAsync = ref.watch(allTagsProvider);
+    final isPremium = ref.watch(premiumProvider);
     final s = ref.watch(appStringsProvider);
 
     return tagsAsync.when(
-      data: (tags) => tags.isEmpty
-          ? Center(
+      data: (tags) {
+        final showBanner = !isPremium && tags.length >= freeMaxTags;
+        if (tags.isEmpty) return Center(
               child: Padding(
                 padding: const EdgeInsets.all(32),
                 child: Column(
@@ -76,12 +90,18 @@ class TagsContent extends ConsumerWidget {
                   ],
                 ),
               ),
-            )
-          : ListView.builder(
+            );
+        return ListView.builder(
               padding: const EdgeInsets.all(12),
-              itemCount: tags.length,
-              itemBuilder: (_, i) => _TagCard(tag: tags[i]),
-            ),
+              itemCount: tags.length + (showBanner ? 1 : 0),
+              itemBuilder: (_, i) {
+                if (showBanner && i == tags.length) {
+                  return PremiumUpgradeCard(customDesc: s.limitTagsReached);
+                }
+                return _TagCard(tag: tags[i]);
+              },
+            );
+      },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, __) => Center(
         child: Text(ref.read(appStringsProvider).errorLoadTags),
