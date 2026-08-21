@@ -8,10 +8,13 @@ import 'package:velink/core/preferences/preferences_provider.dart';
 import 'package:velink/features/capture/models/og_metadata.dart';
 import 'package:velink/features/capture/providers/capture_provider.dart';
 import 'package:velink/features/capture/screens/capture_screen.dart';
+import 'package:velink/features/capture/services/image_cache_service.dart';
 import 'package:velink/features/capture/services/image_picker_service.dart';
 import 'package:velink/features/collections/providers/collection_providers.dart';
+import 'package:velink/features/premium/domain/premium_limits.dart';
 import '../../../helpers/database_helper.dart';
 import '../../../helpers/mock_capture_service.dart';
+import '../../../helpers/mock_image_cache_service.dart';
 import '../../../helpers/mock_image_picker_service.dart';
 import '../../../helpers/mock_metadata_service.dart';
 
@@ -25,6 +28,7 @@ Widget buildCaptureWidget(String url,
       appStringsProvider.overrideWithValue(AppStrings('es')),
       captureServiceProvider.overrideWithValue(MockCaptureService()),
       metadataServiceProvider.overrideWithValue(metadataService ?? MockMetadataService()),
+      imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
       imagePickerServiceProvider.overrideWithValue(imagePicker ?? MockImagePickerService()),
       // Avoid opening Drift watch streams — cleanup timers fire after disposal.
       allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
@@ -151,6 +155,7 @@ void main() {
           appStringsProvider.overrideWithValue(AppStrings('es')),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
           allCollectionsProvider.overrideWith((ref) => Stream.value(<Collection>[])),
         ],
         child: const MaterialApp(home: CaptureScreen(url: 'https://example.com')),
@@ -174,6 +179,7 @@ void main() {
           appStringsProvider.overrideWithValue(AppStrings('es')),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
           allCollectionsProvider.overrideWith((ref) => Stream.value(<Collection>[])),
         ],
         child: const MaterialApp(home: CaptureScreen(url: 'https://example.com')),
@@ -203,6 +209,7 @@ void main() {
           appStringsProvider.overrideWithValue(AppStrings('es')),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
           allCollectionsProvider.overrideWith((ref) => Stream.value(<Collection>[])),
         ],
         child: const MaterialApp(home: CaptureScreen(url: 'https://example.com')),
@@ -239,6 +246,7 @@ void main() {
           appStringsProvider.overrideWithValue(AppStrings('es')),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
           allCollectionsProvider.overrideWith((ref) => Stream.value(<Collection>[])),
         ],
         child: const MaterialApp(home: CaptureScreen(url: 'https://example.com')),
@@ -284,6 +292,7 @@ void main() {
           appStringsProvider.overrideWithValue(AppStrings('es')),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
           imagePickerServiceProvider.overrideWithValue(MockImagePickerService()),
           allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
           allCollectionsProvider.overrideWith((ref) => Stream.value([collection])),
@@ -314,6 +323,7 @@ void main() {
           appStringsProvider.overrideWithValue(AppStrings('es')),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
           imagePickerServiceProvider.overrideWithValue(MockImagePickerService()),
           allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
           allCollectionsProvider.overrideWith((ref) => Stream.value([collection])),
@@ -373,8 +383,10 @@ void main() {
         overrides: [
           databaseProvider.overrideWithValue(db),
           appStringsProvider.overrideWithValue(AppStrings('es')),
+          canCreateLinkProvider.overrideWith((ref) => Future.value(true)),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
           allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
           allCollectionsProvider.overrideWith((ref) => Stream.value(<Collection>[])),
         ],
@@ -402,8 +414,10 @@ void main() {
         overrides: [
           databaseProvider.overrideWithValue(db),
           appStringsProvider.overrideWithValue(AppStrings('es')),
+          canCreateLinkProvider.overrideWith((ref) => Future.value(true)),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService(result: mockMeta)),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
           allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
           allCollectionsProvider.overrideWith((ref) => Stream.value(<Collection>[])),
         ],
@@ -427,8 +441,10 @@ void main() {
         overrides: [
           databaseProvider.overrideWithValue(db),
           appStringsProvider.overrideWithValue(AppStrings('es')),
+          canCreateLinkProvider.overrideWith((ref) => Future.value(true)),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
           allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
           allCollectionsProvider.overrideWith((ref) => Stream.value(<Collection>[])),
         ],
@@ -469,6 +485,7 @@ void main() {
           appStringsProvider.overrideWithValue(AppStrings('es')),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
           allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
           allCollectionsProvider.overrideWith((ref) => Stream.value(<Collection>[])),
         ],
@@ -521,6 +538,7 @@ void main() {
           appStringsProvider.overrideWithValue(AppStrings('es')),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
           allTagsProvider.overrideWith((ref) => Stream.value(<Tag>[])),
           allCollectionsProvider.overrideWith((ref) => Stream.value(<Collection>[])),
         ],

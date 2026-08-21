@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
@@ -50,7 +50,7 @@ class LinkCard extends ConsumerWidget {
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => DetailScreen(link: link)),
               ),
-              splashColor: VerLinkColors.green.withAlpha(20),
+              splashColor: VerLinkColors.primary.withAlpha(20),
               highlightColor: vc.surfaceContainer,
               child: Padding(
                 padding: const EdgeInsets.all(14),
@@ -82,7 +82,7 @@ class LinkCard extends ConsumerWidget {
                           Text(
                             _cleanDisplayUrl(link.url),
                             style: const TextStyle(
-                              color: VerLinkColors.greenSecondary,
+                              color: VerLinkColors.secondary,
                               fontSize: 12,
                               fontWeight: FontWeight.w400,
                             ),
@@ -115,7 +115,7 @@ class LinkCard extends ConsumerWidget {
                                 const Icon(
                                   Icons.alarm_rounded,
                                   size: 13,
-                                  color: VerLinkColors.green,
+                                  color: VerLinkColors.primary,
                                 ),
                               ],
                               const Spacer(),
@@ -251,7 +251,7 @@ class LinkCard extends ConsumerWidget {
             style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: VerLinkColors.green,
+              color: VerLinkColors.primary,
             ),
           ),
         ),

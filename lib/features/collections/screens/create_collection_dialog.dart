@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database.dart';
 import '../../../core/preferences/preferences_provider.dart';
+import '../../premium/domain/premium_limits.dart';
+import '../../premium/screens/paywall_screen.dart';
 
 const _kColors = [
   '#6366F1',
@@ -109,6 +111,18 @@ class _CreateCollectionDialogState
       setState(() => _nameError =
           ref.read(appStringsProvider).collectionNameDuplicate);
       return;
+    }
+
+    if (widget.existing == null) {
+      final canCreate = await ref.read(canCreateCollectionProvider.future);
+      if (!canCreate) {
+        if (!mounted) return;
+        Navigator.of(context).maybePop();
+        if (mounted) {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const PaywallScreen()));
+        }
+        return;
+      }
     }
 
     final desc = _descController.text.trim();

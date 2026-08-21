@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/preferences/preferences_provider.dart';
@@ -87,7 +87,7 @@ class PaywallScreen extends ConsumerWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: VerLinkColors.green,
+                    backgroundColor: VerLinkColors.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -95,12 +95,21 @@ class PaywallScreen extends ConsumerWidget {
                     ),
                     elevation: 0,
                   ),
+                  // TODO: Integrar RevenueCat antes de publicar en tiendas
                   onPressed: () => _activate(context, ref, s),
                   child: Text(
-                    s.premiumUnlock,
+                    s.premiumUpgradeAction,
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                   ),
                 ),
+              ),
+            ),
+            TextButton(
+              // TODO: Implementar restore purchase con RevenueCat
+              onPressed: () {},
+              child: Text(
+                s.premiumRestorePurchase,
+                style: TextStyle(fontSize: 14, color: vc.textSecondary),
               ),
             ),
             TextButton(
@@ -124,16 +133,19 @@ class PaywallScreen extends ConsumerWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(s.premiumActive),
-        backgroundColor: VerLinkColors.green,
+        backgroundColor: VerLinkColors.primary,
         duration: const Duration(seconds: 2),
       ),
     );
   }
 
   static List<_Feature> _features(AppStrings s) => [
-        _Feature(Icons.bar_chart_rounded, s.premiumFeatureStats),
+        _Feature(Icons.link_rounded, s.premiumFeatureLinks),
         _Feature(Icons.folder_copy_rounded, s.premiumFeatureCollections),
+        _Feature(Icons.label_rounded, s.premiumFeatureTags),
+        _Feature(Icons.bar_chart_rounded, s.premiumFeatureStats),
         _Feature(Icons.emoji_events_rounded, s.premiumFeatureBadges),
+        _Feature(Icons.folder_special_rounded, s.premiumFeatureOrganize),
         _Feature(Icons.backup_rounded, s.premiumFeatureBackup),
       ];
 }
@@ -160,10 +172,10 @@ class _FeatureRow extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: VerLinkColors.green.withValues(alpha: 0.12),
+              color: VerLinkColors.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(feature.icon, size: 18, color: VerLinkColors.green),
+            child: Icon(feature.icon, size: 18, color: VerLinkColors.primary),
           ),
           const SizedBox(width: 14),
           Text(

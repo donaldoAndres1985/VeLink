@@ -110,7 +110,7 @@ class PendientesScreen extends ConsumerWidget {
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    vc.greenLight,
+                                    vc.primaryTint,
                                     vc.surfaceContainer,
                                   ],
                                 ),
@@ -119,7 +119,7 @@ class PendientesScreen extends ConsumerWidget {
                               child: const Icon(
                                 Icons.schedule_rounded,
                                 size: 36,
-                                color: VerLinkColors.green,
+                                color: VerLinkColors.primary,
                               ),
                             ),
                             const SizedBox(height: 20),
@@ -169,7 +169,7 @@ class PendientesScreen extends ConsumerWidget {
                 },
                 loading: () => const Center(
                   child: CircularProgressIndicator(
-                    color: VerLinkColors.green,
+                    color: VerLinkColors.primary,
                     strokeWidth: 2,
                   ),
                 ),

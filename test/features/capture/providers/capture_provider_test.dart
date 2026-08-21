@@ -4,9 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
 import 'package:velink/features/capture/models/og_metadata.dart';
 import 'package:velink/features/capture/providers/capture_provider.dart';
+import 'package:velink/features/capture/services/image_cache_service.dart';
 import 'package:velink/features/capture/services/image_picker_service.dart';
 import '../../../helpers/database_helper.dart';
 import '../../../helpers/mock_capture_service.dart';
+import '../../../helpers/mock_image_cache_service.dart';
 import '../../../helpers/mock_image_picker_service.dart';
 import '../../../helpers/mock_metadata_service.dart';
 
@@ -14,6 +16,7 @@ ProviderContainer createCaptureContainer({
   MockCaptureService? service,
   MockMetadataService? metadataService,
   ImagePickerService? imagePicker,
+  ImageCacheService? imageCache,
 }) {
   final db = createTestDatabase();
   return ProviderContainer(
@@ -22,6 +25,7 @@ ProviderContainer createCaptureContainer({
       captureServiceProvider.overrideWithValue(service ?? MockCaptureService()),
       metadataServiceProvider.overrideWithValue(metadataService ?? MockMetadataService()),
       imagePickerServiceProvider.overrideWithValue(imagePicker ?? MockImagePickerService()),
+      imageCacheServiceProvider.overrideWithValue(imageCache ?? MockImageCacheService()),
     ],
   );
 }
@@ -124,6 +128,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
         ],
       );
 
@@ -141,6 +146,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
         ],
       );
 
@@ -160,6 +166,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
         ],
       );
 
@@ -183,6 +190,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService(result: mockMeta)),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
         ],
       );
 
@@ -203,6 +211,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService(result: null)),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
         ],
       );
 
@@ -245,6 +254,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
         ],
       );
       await container.read(captureProvider.notifier).saveLink();
@@ -338,6 +348,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
         ],
       );
       container.read(captureProvider.notifier).setUrl('https://example.com');
@@ -355,6 +366,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
         ],
       );
       container.read(captureProvider.notifier).setUrl('https://example.com');
@@ -375,6 +387,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
         ],
       );
 
@@ -394,6 +407,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
         ],
       );
 
@@ -412,6 +426,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
         ],
       );
 
@@ -432,6 +447,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
         ],
       );
 
@@ -454,6 +470,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           captureServiceProvider.overrideWithValue(MockCaptureService()),
           metadataServiceProvider.overrideWithValue(MockMetadataService()),
+          imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
         ],
       );
 
@@ -529,6 +546,7 @@ void main() {
         databaseProvider.overrideWithValue(db),
         captureServiceProvider.overrideWithValue(MockCaptureService()),
         metadataServiceProvider.overrideWithValue(MockMetadataService()),
+        imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
         imagePickerServiceProvider.overrideWithValue(
           MockImagePickerService(galleryPath: '/tmp/image.jpg'),
         ),
@@ -546,6 +564,7 @@ void main() {
         databaseProvider.overrideWithValue(db),
         captureServiceProvider.overrideWithValue(MockCaptureService()),
         metadataServiceProvider.overrideWithValue(MockMetadataService()),
+        imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
         imagePickerServiceProvider.overrideWithValue(MockImagePickerService()),
       ]);
       container.read(captureProvider.notifier).setUrl('https://example.com');
@@ -560,6 +579,7 @@ void main() {
         databaseProvider.overrideWithValue(db),
         captureServiceProvider.overrideWithValue(MockCaptureService()),
         metadataServiceProvider.overrideWithValue(MockMetadataService()),
+        imageCacheServiceProvider.overrideWithValue(MockImageCacheService()),
         imagePickerServiceProvider.overrideWithValue(
           MockImagePickerService(galleryPath: '/tmp/image.jpg'),
         ),
@@ -568,6 +588,71 @@ void main() {
       await container.read(captureProvider.notifier).pickFromGallery();
       await container.read(captureProvider.notifier).saveLink();
       expect(container.read(captureProvider).pickedImagePath, isNull);
+    });
+  });
+
+  group('CaptureProvider — cache local de la imagen OG (bug: preview se rompe al expirar la URL)', () {
+    test('saveLink cachea la imagen OG y guarda la ruta local en previewImagePath', () async {
+      final mockMeta = OgMetadata(imageUrl: 'https://cdn.com/og.jpg');
+      final imageCache = MockImageCacheService(result: '/data/link_previews/1.jpg');
+      final container = createCaptureContainer(
+        metadataService: MockMetadataService(result: mockMeta),
+        imageCache: imageCache,
+      );
+
+      container.read(captureProvider.notifier).setUrl('https://example.com');
+      await container.read(captureProvider.notifier).fetchMetadata('https://example.com');
+      await container.read(captureProvider.notifier).saveLink();
+
+      expect(imageCache.requestedUrls, ['https://cdn.com/og.jpg']);
+      final links = await container.read(databaseProvider).getAllLinks();
+      expect(links.first.previewImagePath, '/data/link_previews/1.jpg');
+      expect(links.first.previewImageUrl, 'https://cdn.com/og.jpg');
+    });
+
+    test('si el cache falla (URL vencida, sin red), previewImagePath queda null sin romper el guardado', () async {
+      final mockMeta = OgMetadata(imageUrl: 'https://cdn.com/og-vencida.jpg');
+      final container = createCaptureContainer(
+        metadataService: MockMetadataService(result: mockMeta),
+        imageCache: MockImageCacheService(result: null),
+      );
+
+      container.read(captureProvider.notifier).setUrl('https://example.com');
+      await container.read(captureProvider.notifier).fetchMetadata('https://example.com');
+      await container.read(captureProvider.notifier).saveLink();
+
+      final links = await container.read(databaseProvider).getAllLinks();
+      expect(links.first.previewImagePath, isNull);
+      expect(links.first.previewImageUrl, 'https://cdn.com/og-vencida.jpg');
+    });
+
+    test('una imagen elegida manualmente tiene prioridad: no se cachea la OG', () async {
+      final mockMeta = OgMetadata(imageUrl: 'https://cdn.com/og.jpg');
+      final imageCache = MockImageCacheService(result: '/data/link_previews/1.jpg');
+      final container = createCaptureContainer(
+        metadataService: MockMetadataService(result: mockMeta),
+        imagePicker: MockImagePickerService(galleryPath: '/tmp/manual.jpg'),
+        imageCache: imageCache,
+      );
+
+      container.read(captureProvider.notifier).setUrl('https://example.com');
+      await container.read(captureProvider.notifier).fetchMetadata('https://example.com');
+      await container.read(captureProvider.notifier).pickFromGallery();
+      await container.read(captureProvider.notifier).saveLink();
+
+      expect(imageCache.callCount, 0);
+      final links = await container.read(databaseProvider).getAllLinks();
+      expect(links.first.previewImagePath, '/tmp/manual.jpg');
+    });
+
+    test('sin imagen OG, no se llama al servicio de cache', () async {
+      final imageCache = MockImageCacheService(result: '/data/link_previews/1.jpg');
+      final container = createCaptureContainer(imageCache: imageCache);
+
+      container.read(captureProvider.notifier).setUrl('https://example.com');
+      await container.read(captureProvider.notifier).saveLink();
+
+      expect(imageCache.callCount, 0);
     });
   });
 }

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 
 class ScreenHeader extends StatelessWidget {
@@ -65,7 +65,7 @@ class ScreenHeader extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
-                      color: VerLinkColors.green,
+                      color: VerLinkColors.primary,
                       letterSpacing: -0.2,
                     ),
                   ),

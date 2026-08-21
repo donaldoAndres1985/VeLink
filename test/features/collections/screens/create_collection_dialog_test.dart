@@ -6,6 +6,7 @@ import 'package:velink/core/database/database.dart';
 import 'package:velink/core/l10n/app_strings.dart';
 import 'package:velink/core/preferences/preferences_provider.dart';
 import 'package:velink/features/collections/screens/create_collection_dialog.dart';
+import 'package:velink/features/premium/domain/premium_limits.dart';
 import '../../../helpers/database_helper.dart';
 
 Widget buildDialog({Collection? existing, AppDatabase? db}) {
@@ -15,6 +16,7 @@ Widget buildDialog({Collection? existing, AppDatabase? db}) {
     overrides: [
       databaseProvider.overrideWithValue(database),
       appStringsProvider.overrideWithValue(AppStrings('es')),
+      canCreateCollectionProvider.overrideWith((ref) => Future.value(true)),
     ],
     child: MaterialApp(
       home: Scaffold(

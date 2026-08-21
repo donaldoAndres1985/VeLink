@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database.dart';
 import '../../../core/preferences/preferences_provider.dart';
+import '../../premium/domain/premium_limits.dart';
+import '../../premium/screens/paywall_screen.dart';
 
 const _kColors = [
   '#6366F1',
@@ -38,6 +40,15 @@ class _CreateTagDialogState extends ConsumerState<CreateTagDialog> {
   Future<void> _save() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) return;
+    final canCreate = await ref.read(canCreateTagProvider.future);
+    if (!canCreate) {
+      if (!mounted) return;
+      Navigator.of(context).maybePop();
+      if (mounted) {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const PaywallScreen()));
+      }
+      return;
+    }
     await ref.read(databaseProvider).insertTag(
           TagsCompanion.insert(
             name: name,

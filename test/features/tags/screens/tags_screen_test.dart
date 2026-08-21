@@ -5,18 +5,38 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:velink/core/database/database.dart';
 import 'package:velink/core/l10n/app_strings.dart';
 import 'package:velink/core/preferences/preferences_provider.dart';
+import 'package:velink/core/preferences/preferences_service.dart';
 import 'package:velink/features/capture/providers/capture_provider.dart';
 import 'package:velink/features/tags/providers/tag_providers.dart';
 import 'package:velink/features/tags/screens/tags_screen.dart';
 import '../../../helpers/database_helper.dart';
 
-Widget buildTagsWidget({List<Tag> tags = const []}) {
+class _FakePrefs implements PreferencesService {
+  final bool _premium;
+  const _FakePrefs({bool premium = false}) : _premium = premium;
+  @override Locale getLocale() => const Locale('es');
+  @override Future<void> setLocale(Locale l) async {}
+  @override bool getNotificationsEnabled() => true;
+  @override Future<void> setNotificationsEnabled(bool v) async {}
+  @override ThemeMode getThemeMode() => ThemeMode.light;
+  @override Future<void> setThemeMode(ThemeMode m) async {}
+  @override int getStreak() => 0;
+  @override Future<void> setStreak(int c) async {}
+  @override String? getStreakLastDate() => null;
+  @override Future<void> setStreakLastDate(String d) async {}
+  @override bool isPremium() => _premium;
+  @override Future<void> setPremium(bool v) async {}
+}
+
+Widget buildTagsWidget({List<Tag> tags = const [], bool isPremium = false}) {
   final db = createTestDatabase();
   addTearDown(db.close);
+  final prefs = _FakePrefs(premium: isPremium);
   return ProviderScope(
     overrides: [
       databaseProvider.overrideWithValue(db),
       appStringsProvider.overrideWithValue(AppStrings('es')),
+      premiumProvider.overrideWith((ref) => PremiumNotifier(prefs)),
       allTagsProvider.overrideWith((ref) => Stream.value(tags)),
     ],
     child: const MaterialApp(home: TagsScreen()),
@@ -76,6 +96,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           appStringsProvider.overrideWithValue(AppStrings('es')),
           allTagsProvider.overrideWith((ref) => Stream.value([tag])),
+          premiumProvider.overrideWith((ref) => PremiumNotifier(const _FakePrefs())),
         ],
         child: const MaterialApp(home: TagsScreen()),
       ));
@@ -110,6 +131,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           appStringsProvider.overrideWithValue(AppStrings('es')),
           allTagsProvider.overrideWith((ref) => Stream.value([tag])),
+          premiumProvider.overrideWith((ref) => PremiumNotifier(const _FakePrefs())),
         ],
         child: const MaterialApp(home: TagsScreen()),
       ));
@@ -136,6 +158,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           appStringsProvider.overrideWithValue(AppStrings('es')),
           allTagsProvider.overrideWith((ref) => Stream.value([tag])),
+          premiumProvider.overrideWith((ref) => PremiumNotifier(const _FakePrefs())),
         ],
         child: const MaterialApp(home: TagsScreen()),
       ));
@@ -213,6 +236,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           appStringsProvider.overrideWithValue(AppStrings('es')),
           allTagsProvider.overrideWith((ref) => Stream.value([tag])),
+          premiumProvider.overrideWith((ref) => PremiumNotifier(const _FakePrefs())),
         ],
         child: const MaterialApp(home: TagsScreen()),
       ));

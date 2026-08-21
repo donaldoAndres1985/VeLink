@@ -373,8 +373,8 @@ void main() {
       final hasActiveCell = containers.any((c) {
         final deco = c.decoration;
         if (deco is BoxDecoration && deco.color != null) {
-          // count>=5 → _cellColor devuelve VerLinkColors.green sin modificar alpha
-          return deco.color == VerLinkColors.green;
+          // count>=5 → _cellColor devuelve VerLinkColors.primary sin modificar alpha
+          return deco.color == VerLinkColors.primary;
         }
         return false;
       });

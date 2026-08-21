@@ -7,6 +7,9 @@ import 'package:share_plus/share_plus.dart';
 import '../../../core/database/database.dart';
 import '../../../core/preferences/preferences_provider.dart';
 import '../../../core/preferences/preferences_service.dart';
+import '../../capture/providers/capture_provider.dart' show metadataServiceProvider;
+import '../../capture/services/image_cache_service.dart';
+import '../../capture/services/metadata_service.dart';
 
 const _kBackupVersion = 1;
 
@@ -23,8 +26,16 @@ class InvalidBackupException implements Exception {
 class BackupService {
   final AppDatabase _db;
   final PreferencesService _prefs;
+  final ImageCacheService _imageCache;
+  final MetadataService _metadataService;
 
-  BackupService(this._db, this._prefs);
+  BackupService(
+    this._db,
+    this._prefs, [
+    ImageCacheService? imageCache,
+    MetadataService? metadataService,
+  ])  : _imageCache = imageCache ?? ImageCacheServiceImpl(),
+        _metadataService = metadataService ?? DioMetadataService();
 
   // ── Export ─────────────────────────────────────────────────────────────────
 
@@ -126,6 +137,12 @@ class BackupService {
   }
 
   /// Importa desde un Map ya parseado. Expuesto para tests.
+  ///
+  /// Corre entera dentro de una transacción: si un registro falla a mitad de
+  /// camino (dato corrupto, tipo inesperado, etc.) toda la importación se
+  /// revierte en vez de dejar datos parciales/huérfanos en la base — y en
+  /// modo `replace`, evita que un fallo posterior al borrado deje al usuario
+  /// con la base de datos vacía.
   Future<ImportResult> importFromBackupData(
     Map<String, dynamic> data, {
     bool replace = false,
@@ -134,94 +151,156 @@ class BackupService {
       throw const InvalidBackupException();
     }
 
-    if (replace) await _db.deleteAllData();
+    return _db.transaction(() async {
+      if (replace) await _db.deleteAllData();
 
-    // ── Tags ──────────────────────────────────────────────────────────────────
-    final tagsData = (data['tags'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-    final Map<int, int> tagIdMap = {};
-    final existingTags = await _db.getAllTags();
-    for (final td in tagsData) {
-      final name = td['name'] as String;
-      final color = td['color'] as String? ?? '#6366F1';
-      final oldId = td['id'] as int;
-      final found = existingTags
-          .where((t) => t.name.toLowerCase() == name.toLowerCase())
-          .firstOrNull;
-      if (found != null) {
-        tagIdMap[oldId] = found.id;
-      } else {
-        final newId = await _db.insertTag(
-          TagsCompanion(name: Value(name), color: Value(color)),
-        );
-        tagIdMap[oldId] = newId;
+      // ── Tags ────────────────────────────────────────────────────────────────
+      final tagsData =
+          (data['tags'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+      final Map<int, int> tagIdMap = {};
+      final existingTags = await _db.getAllTags();
+      for (final td in tagsData) {
+        final name = td['name'] as String;
+        final color = td['color'] as String? ?? '#6366F1';
+        final oldId = td['id'] as int;
+        final found = existingTags
+            .where((t) => t.name.toLowerCase() == name.toLowerCase())
+            .firstOrNull;
+        if (found != null) {
+          tagIdMap[oldId] = found.id;
+        } else {
+          final newId = await _db.insertTag(
+            TagsCompanion(name: Value(name), color: Value(color)),
+          );
+          tagIdMap[oldId] = newId;
+        }
       }
-    }
 
-    // ── Collections ───────────────────────────────────────────────────────────
-    final collsData =
-        (data['collections'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-    final Map<int, int> collIdMap = {};
-    final existingColls = await _db.getAllCollections();
-    for (final cd in collsData) {
-      final name = cd['name'] as String;
-      final oldId = cd['id'] as int;
-      final found = existingColls
-          .where((c) => c.name.toLowerCase() == name.toLowerCase())
-          .firstOrNull;
-      if (found != null) {
-        collIdMap[oldId] = found.id;
-      } else {
-        final newId = await _db.insertCollection(CollectionsCompanion(
-          name: Value(name),
-          description: Value(cd['description'] as String?),
-          color: Value(cd['color'] as String? ?? '#6366F1'),
-          icon: Value(cd['icon'] as String? ?? 'folder'),
+      // ── Collections ─────────────────────────────────────────────────────────
+      final collsData =
+          (data['collections'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+      final Map<int, int> collIdMap = {};
+      final existingColls = await _db.getAllCollections();
+      for (final cd in collsData) {
+        final name = cd['name'] as String;
+        final oldId = cd['id'] as int;
+        final found = existingColls
+            .where((c) => c.name.toLowerCase() == name.toLowerCase())
+            .firstOrNull;
+        if (found != null) {
+          collIdMap[oldId] = found.id;
+        } else {
+          final newId = await _db.insertCollection(CollectionsCompanion(
+            name: Value(name),
+            description: Value(cd['description'] as String?),
+            color: Value(cd['color'] as String? ?? '#6366F1'),
+            icon: Value(cd['icon'] as String? ?? 'folder'),
+          ));
+          collIdMap[oldId] = newId;
+        }
+      }
+
+      // ── Links ───────────────────────────────────────────────────────────────
+      final linksData =
+          (data['links'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+      int imported = 0;
+      int skipped = 0;
+      for (final ld in linksData) {
+        final url = ld['url'] as String;
+        if (!replace && await _db.getLinkByUrl(url) != null) {
+          skipped++;
+          continue;
+        }
+        final remindAtStr = ld['remindAt'] as String?;
+        final createdAtStr = ld['createdAt'] as String?;
+        final updatedAtStr = ld['updatedAt'] as String?;
+        final createdAt =
+            createdAtStr != null ? DateTime.tryParse(createdAtStr) : null;
+        final updatedAt =
+            updatedAtStr != null ? DateTime.tryParse(updatedAtStr) : null;
+        final linkId = await _db.insertLink(LinksCompanion(
+          url: Value(url),
+          title: Value(ld['title'] as String?),
+          description: Value(ld['description'] as String?),
+          previewImageUrl: Value(ld['previewImageUrl'] as String?),
+          previewImagePath: Value(ld['previewImagePath'] as String?),
+          faviconUrl: Value(ld['faviconUrl'] as String?),
+          platform: Value(ld['platform'] as String? ?? 'web'),
+          isFavorite: Value(ld['isFavorite'] as bool? ?? false),
+          isRead: Value(ld['isRead'] as bool? ?? false),
+          priority: Value(ld['priority'] as int? ?? 0),
+          notes: Value(ld['notes'] as String?),
+          remindAt:
+              Value(remindAtStr != null ? DateTime.tryParse(remindAtStr) : null),
+          // Preserva las fechas originales del backup en vez de resetearlas a
+          // "ahora": si faltan o son inválidas, cae al default de la tabla.
+          createdAt:
+              createdAt != null ? Value(createdAt) : const Value.absent(),
+          updatedAt:
+              updatedAt != null ? Value(updatedAt) : const Value.absent(),
         ));
-        collIdMap[oldId] = newId;
+        for (final oldTagId
+            in (ld['tagIds'] as List?)?.cast<int>() ?? <int>[]) {
+          final newId = tagIdMap[oldTagId];
+          if (newId != null) await _db.addTagToLink(linkId, newId);
+        }
+        for (final oldCollId
+            in (ld['collectionIds'] as List?)?.cast<int>() ?? <int>[]) {
+          final newId = collIdMap[oldCollId];
+          if (newId != null) await _db.addLinkToCollection(linkId, newId);
+        }
+        imported++;
+      }
+
+      return ImportResult(imported: imported, skipped: skipped);
+    });
+  }
+
+  // ── Post-import: cache de imágenes ──────────────────────────────────────────
+
+  /// Intenta descargar y guardar localmente la imagen de preview de todos
+  /// los links que no tengan `previewImagePath` (típicamente justo después
+  /// de un import: la copia local nunca se hizo en el dispositivo original).
+  ///
+  /// Para cada link:
+  /// 1. Si tiene `previewImageUrl`, intenta descargarla tal cual.
+  /// 2. Si eso falla (o no había `previewImageUrl`), la URL guardada suele
+  ///    estar vencida (Facebook/Instagram/LinkedIn firman esas URLs con
+  ///    expiración de días) — como fallback, re-scrapea la URL *del link*
+  ///    (la que sí sigue viva) para obtener un `og:image` fresco y cachea
+  ///    esa nueva imagen, actualizando también `previewImageUrl`.
+  ///
+  /// Best-effort: cada link se procesa de forma independiente, un fallo
+  /// (URL vencida, sin conexión, página ya no existe, etc.) no afecta a los
+  /// demás ni lanza excepción. Pensado para llamarse sin `await` justo
+  /// después de [importFromJson]/[importFromBackupData] — la UI ya
+  /// reacciona a los cambios vía streams, así que las previews van
+  /// completándose solas.
+  Future<void> cacheMissingPreviewImages() async {
+    final links = await _db.getAllLinks();
+    final pending = links.where((l) => l.previewImagePath == null);
+    for (final link in pending) {
+      String? path;
+      if (link.previewImageUrl != null) {
+        path = await _imageCache.cacheImage(link.previewImageUrl!);
+      }
+
+      String? freshImageUrl;
+      if (path == null) {
+        final fresh = await _metadataService.fetchMetadata(link.url);
+        freshImageUrl = fresh?.imageUrl;
+        if (freshImageUrl != null) {
+          path = await _imageCache.cacheImage(freshImageUrl);
+        }
+      }
+
+      if (path != null) {
+        await _db.setLinkPreviewImagePath(link.id, path);
+        if (freshImageUrl != null && freshImageUrl != link.previewImageUrl) {
+          await _db.setLinkPreviewImageUrl(link.id, freshImageUrl);
+        }
       }
     }
-
-    // ── Links ─────────────────────────────────────────────────────────────────
-    final linksData =
-        (data['links'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-    int imported = 0;
-    int skipped = 0;
-    for (final ld in linksData) {
-      final url = ld['url'] as String;
-      if (!replace && await _db.getLinkByUrl(url) != null) {
-        skipped++;
-        continue;
-      }
-      final remindAtStr = ld['remindAt'] as String?;
-      final linkId = await _db.insertLink(LinksCompanion(
-        url: Value(url),
-        title: Value(ld['title'] as String?),
-        description: Value(ld['description'] as String?),
-        previewImageUrl: Value(ld['previewImageUrl'] as String?),
-        previewImagePath: Value(ld['previewImagePath'] as String?),
-        faviconUrl: Value(ld['faviconUrl'] as String?),
-        platform: Value(ld['platform'] as String? ?? 'web'),
-        isFavorite: Value(ld['isFavorite'] as bool? ?? false),
-        isRead: Value(ld['isRead'] as bool? ?? false),
-        priority: Value(ld['priority'] as int? ?? 0),
-        notes: Value(ld['notes'] as String?),
-        remindAt:
-            Value(remindAtStr != null ? DateTime.tryParse(remindAtStr) : null),
-      ));
-      for (final oldTagId
-          in (ld['tagIds'] as List?)?.cast<int>() ?? <int>[]) {
-        final newId = tagIdMap[oldTagId];
-        if (newId != null) await _db.addTagToLink(linkId, newId);
-      }
-      for (final oldCollId
-          in (ld['collectionIds'] as List?)?.cast<int>() ?? <int>[]) {
-        final newId = collIdMap[oldCollId];
-        if (newId != null) await _db.addLinkToCollection(linkId, newId);
-      }
-      imported++;
-    }
-
-    return ImportResult(imported: imported, skipped: skipped);
   }
 
   // ── Utils ─────────────────────────────────────────────────────────────────
@@ -244,5 +323,7 @@ final backupServiceProvider = Provider<BackupService>((ref) {
   return BackupService(
     ref.watch(databaseProvider),
     ref.read(preferencesServiceProvider),
+    ref.watch(imageCacheServiceProvider),
+    ref.watch(metadataServiceProvider),
   );
 });
